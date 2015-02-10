@@ -1,0 +1,11 @@
+# Outputs
+*.obj
+*.dll
+*.exe
+
+# Directories
+Release
+
+# MSVC crap
+*.suo
+*.vcxproj.user
