@@ -32,7 +32,7 @@ struct _SbLexer {
 };
 
 
-STATIC void
+STATIC int
 indent_push(SbLexer * const lexer, Sb_size_t value)
 {
     lexer->indent_index += 1;
@@ -40,13 +40,15 @@ indent_push(SbLexer * const lexer, Sb_size_t value)
         Sb_size_t new_stack_size = lexer->indent_stack_size + 32;
         Sb_size_t *new_stack = (Sb_size_t *)Sb_Realloc(lexer->indent_stack, new_stack_size * sizeof(Sb_size_t));
         if (!new_stack) {
-            /* OOM */
-            return;
+            /* raise MemoryError: OOM */
+            return -1;
         }
         lexer->indent_stack = new_stack;
         lexer->indent_stack_size = new_stack_size;
     }
+
     lexer->indent_stack[lexer->indent_index] = value;
+    return 0;
 }
 
 /*
@@ -74,44 +76,54 @@ is_whitespace(SbLexerChar ch)
 static int
 is_lcalpha(SbLexerChar ch)
 {
-    return (unsigned)(ch - 'a') < 26;
+    return (unsigned)(ch - 'a') < 26U;
 }
 
 static int
 is_ucalpha(SbLexerChar ch)
 {
-    return (unsigned)(ch - 'A') < 26;
+    return (unsigned)(ch - 'A') < 26U;
 }
 
 static int
 is_alpha(SbLexerChar ch)
 {
-    return is_lcalpha(ch) || is_ucalpha(ch);
+    return (unsigned)((ch | 0x20) - 'a') < 26U;
 }
 
 static int
 is_digit(SbLexerChar ch)
 {
-    return (unsigned)(ch - '0') < 10;
+    return (unsigned)(ch - '0') < 10U;
+}
+
+static int
+is_bdigit(SbLexerChar ch)
+{
+    return (unsigned)(ch - '0') < 2U;
 }
 
 static int
 is_odigit(SbLexerChar ch)
 {
-    return (unsigned)(ch - '0') < 8;
+    return (unsigned)(ch - '0') < 8U;
 }
 
-STATIC void
-fetch_char(SbLexer * const lexer)
+static int
+is_xdigit(SbLexerChar ch)
 {
-    lexer->buffer[0] = lexer->buffer[1];
-    lexer->buffer[1] = lexer->buffer[2];
-    lexer->buffer[2] = lexer->fetcher(lexer->fetcher_context);
+    int r;
+    r = (unsigned)(ch - '0') < 10U;
+    if (r)
+        return r;
+    return (unsigned)((ch | 0x20) - 'a') < 6U;
 }
 
-STATIC void
+STATIC SbLexerChar
 next_char(SbLexer * const lexer)
 {
+    SbLexerChar ch;
+
     if (is_endofinput(lexer->buffer[0]))
         return;
 
@@ -127,17 +139,21 @@ next_char(SbLexer * const lexer)
         lexer->column += 1;
     }
 
-    fetch_char(lexer);
+    ch = lexer->buffer[1];
+    lexer->buffer[1] = lexer->buffer[2];
+    lexer->buffer[2] = lexer->fetcher(lexer->fetcher_context);
 
     /* Normalise line endings to be a single \n */
-    if (lexer->buffer[0] == '\r') {
+    if (ch == '\r') {
         if (lexer->buffer[1] == '\n') {
-            fetch_char(lexer);
+            lexer->buffer[1] = lexer->buffer[2];
+            lexer->buffer[2] = lexer->fetcher(lexer->fetcher_context);
         }
-        else {
-            lexer->buffer[0] = '\n';
-        }
+        ch = '\n';
     }
+
+    lexer->buffer[0] = ch;
+    return ch;
 }
 
 /*
@@ -145,13 +161,13 @@ next_char(SbLexer * const lexer)
  */
 
 STATIC int
-SbLexer_AppendChar(SbLexer * const lexer, SbLexerChar ch)
+SbLexer_ExpandToken(SbLexer * const lexer)
 {
-    if (lexer->token_length == lexer->token_maxlength) {
+    if (lexer->token_length >= lexer->token_maxlength) {
         char *new_buffer;
         Sb_size_t new_length;
         
-        new_length = lexer->token_maxlength + 256;
+        new_length = lexer->token_maxlength + 64;
         new_buffer = (char *)Sb_Realloc(lexer->token_buffer, new_length);
         if (!new_buffer) {
             /* raise MemoryError: OOM. */
@@ -161,7 +177,26 @@ SbLexer_AppendChar(SbLexer * const lexer, SbLexerChar ch)
         lexer->token_buffer = new_buffer;
         lexer->token_maxlength = new_length;
     }
+    return 0;
+}
+
+STATIC int
+SbLexer_AppendChar(SbLexer * const lexer, SbLexerChar ch)
+{
+    if (SbLexer_ExpandToken(lexer) < 0)
+        return -1;
+
     lexer->token_buffer[lexer->token_length++] = (char)ch;
+    return 0;
+}
+
+STATIC int
+SbLexer_NullTerminate(SbLexer * const lexer)
+{
+    if (SbLexer_ExpandToken(lexer) < 0)
+        return -1;
+
+    lexer->token_buffer[lexer->token_length] = '\0';
     return 0;
 }
 
@@ -261,44 +296,42 @@ int
 SbLexer_NextToken(SbLexer * const lexer, SbToken * const token)
 {
     SbLexerChar ch;
-    Sb_size_t token_indent;
 
     /* Handle whitespace and comments */
+    ch = lexer->buffer[0];
     for (;;) {
-        ch = lexer->buffer[0];
         if (is_endofinput(ch))
             break;
 
         /* Consume whitespace */
         if (is_whitespace(ch)) {
-            next_char(lexer);
+            ch = next_char(lexer);
             continue;
         }
 
         /* Consume comments */
         if (ch == '#') {
             while (!is_endofinput(ch) && !is_newline(ch)) {
-                next_char(lexer);
-                ch = lexer->buffer[0];
-            }
+                ch = next_char(lexer);
+           }
             continue;
         }
 
         /* Check for explicit line joining. */
         if (ch == '\\') {
             if (!is_newline(lexer->buffer[1])) {
-                /* raise SyntaxError */
+                /* raise SyntaxError: backslash not at EOL */
                 return -1;
             }
             next_char(lexer);
-            next_char(lexer);
+            ch = next_char(lexer);
             continue;
         }
 
         /* A logical line that contains only spaces, tabs, formfeeds 
            and possibly a comment, is ignored */
         if (is_newline(ch) && lexer->at_line_start) {
-            next_char(lexer);
+            ch = next_char(lexer);
             continue;
         }
 
@@ -307,10 +340,11 @@ SbLexer_NextToken(SbLexer * const lexer, SbToken * const token)
     }
 
     token->line = lexer->line;
-    token_indent = token->column = lexer->column;
+    token->column = lexer->column;
 
     /* Handle indentation */
     if (lexer->at_line_start) {
+        Sb_size_t token_indent = lexer->column;
         Sb_size_t top_indent = lexer->indent_stack[lexer->indent_index];
         /* If it is larger, it is pushed on the stack,
            and one INDENT token is generated. */
@@ -347,6 +381,8 @@ SbLexer_NextToken(SbLexer * const lexer, SbToken * const token)
         return 1;
     }
 
+    lexer->token_length = 0;
+
     /* Handle string literals */
     /* NOTE: No plans for supporting Unicode. */
     if (ch == '"' || ch == '\'' || ((ch == 'r' || ch == 'R') && (ch == '"' || ch == '\''))) {
@@ -357,8 +393,7 @@ SbLexer_NextToken(SbLexer * const lexer, SbToken * const token)
         /* Check if a raw string; consume 'R' if so */
         if (ch == 'r' || ch == 'R') {
             is_raw = 1;
-            next_char(lexer);
-            ch = lexer->buffer[0];
+            ch = next_char(lexer);
         }
 
         /* Check if a triple-quoted string; consume quotes */
@@ -370,7 +405,6 @@ SbLexer_NextToken(SbLexer * const lexer, SbToken * const token)
         quote_ch = ch;
         next_char(lexer);
 
-        lexer->token_length = 0;
         for (;;) {
             ch = lexer->buffer[0];
 
@@ -398,11 +432,12 @@ SbLexer_NextToken(SbLexer * const lexer, SbToken * const token)
             /* Check for escapes */
             if (!is_raw && ch == '\\') {
                 int recognised = 1;
+
                 if (is_endofinput(lexer->buffer[1])) {
                     /* Let it hit EOI handling */
                     continue;
                 }
-
+                /* TODO: verify size/speed against a loop over a string */
                 switch (lexer->buffer[1]) {
                 case '\\':
                 case '\'':
@@ -431,11 +466,13 @@ SbLexer_NextToken(SbLexer * const lexer, SbToken * const token)
                     break;
                 case 'x':
                 case 'X':
+                    /* TODO: implement */
                     next_char(lexer);
                     break;
+
                 default:
                     if (is_odigit(lexer->buffer[1])) {
-                        /* Treat as octal */
+                        /* Treat as octal: up to 3 digits */
                         next_char(lexer);
                         ch = lexer->buffer[0] - '0';
                         if (is_odigit(lexer->buffer[1])) {
@@ -452,6 +489,7 @@ SbLexer_NextToken(SbLexer * const lexer, SbToken * const token)
                     }
                 }
 
+                /* Consume backslash if the char is recognised. */
                 if (recognised) {
                     next_char(lexer);
                 }
@@ -465,34 +503,29 @@ SbLexer_NextToken(SbLexer * const lexer, SbToken * const token)
             next_char(lexer);
         }
 
+        token->type = TOKEN_STR;
         token->value.str.buffer = lexer->token_buffer;
         token->value.str.length = lexer->token_length;
-        token->type = TOKEN_STR;
         return 1;
     }
 
     /* Handle names */
     if (is_alpha(ch) || ch == '_') {
-        Sb_size_t len;
-
-        lexer->token_length = 0;
         do {
             if (SbLexer_AppendChar(lexer, ch) < 0)
                 return -1;
-            next_char(lexer);
-            ch = lexer->buffer[0];
+            ch = next_char(lexer);
         } while (is_alpha(ch) || is_digit(ch) || ch == '_');
+        /* Safe: no name may contain a NUL char */
+        if (SbLexer_NullTerminate(lexer) < 0)
+            return -1;
 
         /* Longest keyword is 8 chars */
-        len = lexer->token_length;
-        if (len <= 8) {
+        if (lexer->token_length <= 8) {
             const SbLexerKeyword *kw = SbLexer_KeywordTab;
-            char kwd[9];
 
-            Sb_MemCpy(kwd, lexer->token_buffer, len);
-            kwd[len] = '\0';
             while (kw->text) {
-                if (!Sb_StrCmp(kw->text, kwd)) {
+                if (!Sb_StrCmp(kw->text, lexer->token_buffer)) {
                     token->type = kw->token;
                     return 1;
                 }
@@ -500,28 +533,54 @@ SbLexer_NextToken(SbLexer * const lexer, SbToken * const token)
             }
         }
 
-        token->value.str.buffer = lexer->token_buffer;
-        token->value.str.length = len;
         token->type = TOKEN_NAME;
+        token->value.str.buffer = lexer->token_buffer;
+        token->value.str.length = lexer->token_length;
         return 1;
     }
 
     /* Handle numeric literals */
+    /* NOTE: This is in no way a robust parser -- it allows broken literals! */
     if (is_digit(ch) || (ch == '.' && is_digit(lexer->buffer[1]))) {
-        /* See if it's 0b, 0o, or 0x. */
-        if (ch == 0) {
-            SbLexerChar base_ch = lexer->buffer[1] & 0x20;
-            if (base_ch == 'B') {
-                return 1;
-            }
-            else if (base_ch == 'O') {
-                return 1;
-            }
-            else if (base_ch == 'X') {
-                return 1;
+        /* Either an integer or a float's intpart */
+        while (is_digit(ch) || is_alpha(ch)) {
+            if (SbLexer_AppendChar(lexer, ch) < 0)
+                return -1;
+            ch = next_char(lexer);
+        }
+        if (ch == '.') {
+            if (SbLexer_AppendChar(lexer, ch) < 0)
+                return -1;
+            ch = next_char(lexer);
+            while (is_digit(ch)) {
+                if (SbLexer_AppendChar(lexer, ch) < 0)
+                    return -1;
+                ch = next_char(lexer);
             }
         }
-        /* Either base10 integer or a float */
+        if (ch == 'e' || ch == 'E') {
+            if (SbLexer_AppendChar(lexer, 'e') < 0)
+                return -1;
+            ch = next_char(lexer);
+            if (ch == '+' || ch == '-') {
+                if (SbLexer_AppendChar(lexer, ch) < 0)
+                    return -1;
+                ch = next_char(lexer);
+            }
+            while (is_digit(ch)) {
+                if (SbLexer_AppendChar(lexer, ch) < 0)
+                    return -1;
+                ch = next_char(lexer);
+            }
+        }
+        /* Safe: no numeric may contain a NUL char */
+        if (SbLexer_NullTerminate(lexer) < 0)
+            return -1;
+
+        token->type = TOKEN_NUMBER;
+        token->value.str.buffer = lexer->token_buffer;
+        token->value.str.length = lexer->token_length;
+        return 1;
     }
 
     /* Handle operators/delimiters */
@@ -619,9 +678,9 @@ SbLexer_Init(SbFetchProc fetcher, void *context)
 
     lexer->at_line_start = 1;
 
-    fetch_char(lexer);
-    fetch_char(lexer);
-    fetch_char(lexer);
+    lexer->buffer[0] = lexer->fetcher(lexer->fetcher_context);
+    lexer->buffer[1] = lexer->fetcher(lexer->fetcher_context);
+    lexer->buffer[2] = lexer->fetcher(lexer->fetcher_context);
 
     return lexer;
 }

@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#include "platform.h"
+#include "bstrap.h"
 
 /* Nothing. */
 #define STATIC 

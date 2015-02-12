@@ -57,9 +57,7 @@ typedef enum {
     /* Literals */
     TOKEN_STR,
     TOKEN_NAME,
-    TOKEN_INTEGER,
-    TOKEN_LONGINT,
-    TOKEN_FLOAT,
+    TOKEN_NUMBER,
 
     /* Operators */
     TOKEN_OP_PLUS,
