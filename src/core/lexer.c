@@ -645,7 +645,7 @@ SbLexer_NextToken(SbLexer * const lexer, SbToken * const token)
 
     if (is_endofinput(ch)) {
         /* TODO: Handle dedents at the EOI */
-        token->type = TOKEN_EOI;
+        token->type = TOKEN_ENDMARKER;
         return 1;
     }
 

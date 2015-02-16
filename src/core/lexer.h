@@ -15,7 +15,7 @@ typedef struct _SbLexer SbLexer;
 
 typedef enum {
     TOKEN_ERROR = -1,
-    TOKEN_EOI,
+    TOKEN_ENDMARKER,
 
     TOKEN_INDENT,
     TOKEN_DEDENT,
