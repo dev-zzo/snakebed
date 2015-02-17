@@ -125,7 +125,7 @@ next_char(SbLexer * const lexer)
     SbLexerChar ch;
 
     if (is_endofinput(lexer->buffer[0]))
-        return;
+        return SB_LEXER_EOI;
 
     if (lexer->buffer[0] == '\n') {
         lexer->line += 1;

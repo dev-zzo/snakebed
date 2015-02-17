@@ -5,6 +5,8 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <string.h>
+#include <limits.h>
 
 #ifndef NULL
 #define NULL (void *)0
@@ -12,6 +14,10 @@ extern "C" {
 
 typedef size_t Sb_size_t;
 typedef long Sb_ssize_t;
+
+#define Sb_BZero(ptr, size) \
+    memset(ptr, 0, size)
+
 
 #ifdef __cplusplus
 }

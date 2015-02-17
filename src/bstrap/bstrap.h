@@ -6,6 +6,9 @@
 
 #include "platform.h"
 
+Sb_size_t
+Sb_StrLen(const char *s);
+
 void
 Sb_StrCpy(char *dst, const char *src);
 
@@ -14,6 +17,9 @@ Sb_StrCmp(const char *s1, const char *s2);
 
 void
 Sb_MemCpy(void *dst, const void *src, Sb_size_t count);
+
+int
+Sb_MemCmp(const void *p1, const void *p2, Sb_size_t count);
 
 
 #endif // __SNAKEBED_BSTRAP_H

@@ -80,20 +80,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\core\lexer.h" />
-    <ClInclude Include="..\src\core\object.h" />
-    <ClInclude Include="..\src\core\object_type.h" />
-    <ClInclude Include="..\src\core\snakebed.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\src\bstrap\string.c" />
-    <ClCompile Include="..\src\core\lexer.c" />
-    <ClCompile Include="..\src\core\main.c" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="SbBootStrap.vcxproj">
       <Project>{f80ad364-9c79-4c12-9364-280f33aaf1c4}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\core\builtins.c" />
+    <ClCompile Include="..\src\core\main.c" />
+    <ClCompile Include="..\src\core\marshal.c" />
+    <ClCompile Include="..\src\core\object.c" />
+    <ClCompile Include="..\src\core\object_builtins.c" />
+    <ClCompile Include="..\src\core\object_code.c" />
+    <ClCompile Include="..\src\core\object_dict.c" />
+    <ClCompile Include="..\src\core\object_int.c" />
+    <ClCompile Include="..\src\core\object_str.c" />
+    <ClCompile Include="..\src\core\object_tuple.c" />
+    <ClCompile Include="..\src\core\object_type.c" />
+    <ClCompile Include="..\src\core\proto_object.c" />
+    <ClCompile Include="..\src\core\snakebed.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\core\object.h" />
+    <ClInclude Include="..\src\core\object_code.h" />
+    <ClInclude Include="..\src\core\object_dict.h" />
+    <ClInclude Include="..\src\core\object_int.h" />
+    <ClInclude Include="..\src\core\object_str.h" />
+    <ClInclude Include="..\src\core\object_tuple.h" />
+    <ClInclude Include="..\src\core\object_type.h" />
+    <ClInclude Include="..\src\core\opcode.h" />
+    <ClInclude Include="..\src\core\snakebed.h" />
+    <ClInclude Include="..\src\core\supports.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
