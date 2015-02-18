@@ -17,14 +17,15 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -71,6 +72,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\src\core;..\src\bstrap;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerOutput>All</AssemblerOutput>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -85,14 +88,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\core\builtins.c" />
-    <ClCompile Include="..\src\core\main.c" />
     <ClCompile Include="..\src\core\marshal.c" />
     <ClCompile Include="..\src\core\object.c" />
     <ClCompile Include="..\src\core\object_builtins.c" />
     <ClCompile Include="..\src\core\object_code.c" />
     <ClCompile Include="..\src\core\object_dict.c" />
     <ClCompile Include="..\src\core\object_int.c" />
+    <ClCompile Include="..\src\core\object_list.c" />
     <ClCompile Include="..\src\core\object_str.c" />
     <ClCompile Include="..\src\core\object_tuple.c" />
     <ClCompile Include="..\src\core\object_type.c" />
@@ -104,6 +106,7 @@
     <ClInclude Include="..\src\core\object_code.h" />
     <ClInclude Include="..\src\core\object_dict.h" />
     <ClInclude Include="..\src\core\object_int.h" />
+    <ClInclude Include="..\src\core\object_list.h" />
     <ClInclude Include="..\src\core\object_str.h" />
     <ClInclude Include="..\src\core\object_tuple.h" />
     <ClInclude Include="..\src\core\object_type.h" />

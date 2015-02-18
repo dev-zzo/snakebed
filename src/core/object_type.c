@@ -21,7 +21,7 @@ SbType_GenericAlloc(SbTypeObject *type, Sb_ssize_t nitems)
 
     Sb_BZero(op, size);
 
-    return NULL;
+    return op;
 }
 
 SbTypeObject *

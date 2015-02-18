@@ -47,10 +47,7 @@ object_hash(SbObject *self)
 static void
 object_destroy(SbObject *self)
 {
-    SbTypeObject *tp;
-
-    tp = Sb_TYPE(self);
-    tp->tp_free(self);
+    Sb_TYPE(self)->tp_free(self);
 }
 
 /* Builtins initializer */
@@ -65,6 +62,7 @@ _SbObject_BuiltinInit()
     }
 
     tp->tp_basicsize = sizeof(SbObject);
+    tp->tp_destroy = (destructor)object_destroy;
     tp->tp_hash = (hashfunc)object_hash;
 
     SbObject_Type = tp;

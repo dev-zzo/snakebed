@@ -21,12 +21,18 @@ _SbNone_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("None", SbNone_Type);
+    tp = SbType_New("None", SbObject_Type);
     if (!tp) {
         return -1;
     }
 
     SbNone_Type = tp;
+
+    Sb_None = SbObject_New(SbNone_Type);
+    if (!Sb_None) {
+        return -1;
+    }
+
     return 0;
 }
 
@@ -49,12 +55,18 @@ _SbNotImplemented_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("NotImplemented", SbNotImplemented_Type);
+    tp = SbType_New("NotImplemented", SbObject_Type);
     if (!tp) {
         return -1;
     }
 
     SbNotImplemented_Type = tp;
+
+    Sb_NotImplemented = SbObject_New(SbNotImplemented_Type);
+    if (!Sb_NotImplemented) {
+        return -1;
+    }
+
     return 0;
 }
 

@@ -8,7 +8,27 @@ extern "C" {
 
 typedef struct _SbCodeObject {
     SbObject_HEAD;
+    unsigned flags;
+    unsigned stack_size; /* Evaluation stack max depth */
+    unsigned arg_count; /* Max: 255 */
+    unsigned kwonly_arg_count;
+    unsigned localvars_count; /* TODO: can be dropped? */
+
+    SbObject *code; /* str: bytecode itself */
+    SbObject *consts; /* constants used */
+    SbObject *names; /* names used (strs, pot. interned) */
+    SbObject *localvars_names; /* local variable names (strs, pot. interned) */
+    SbObject *freevars_names; /* free variable names (strs, pot. interned) */
+    /* TBD: closures */
+
+    SbObject *name; /* str: code object name (can be dropped?) */
+
 } SbCodeObject;
+
+#define SbCode_VARARGS      (1 << 2)
+#define SbCode_VARKWDS      (1 << 3)
+#define SbCode_GENERATOR    (1 << 5)
+#define SbCode_NO_FREE_VARS (1 << 6)
 
 extern SbTypeObject *SbCode_Type;
 

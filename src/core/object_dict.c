@@ -3,7 +3,7 @@
 #include "object_type.h"
 #include "object_str.h"
 
-#define SbDict_BUCKET_COUNT 113
+#define SbDict_BUCKET_COUNT 37
 
 typedef struct _SbDictBucketEntry {
     struct _SbDictBucketEntry *e_next;

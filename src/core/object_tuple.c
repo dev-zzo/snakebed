@@ -12,6 +12,37 @@ typedef struct _SbTupleObject {
 SbTypeObject *SbTuple_Type = NULL;
 
 /*
+ * Internals
+ */
+
+static int
+tuple_check_type_pos(SbObject *p, Sb_ssize_t pos)
+{
+    if (!SbTuple_CheckExact(p)) {
+        /* raise TypeError? */
+        return -1;
+    }
+    /* Do an unsigned comparison. */
+    if ((Sb_size_t)pos >= (Sb_size_t)SbTuple_GetSizeUnsafe(p)) {
+        /* raise IndexError */
+        return -1;
+    }
+    return 0;
+}
+
+static void
+tuple_destroy(SbTupleObject *self)
+{
+    Sb_ssize_t pos;
+    Sb_ssize_t size = SbTuple_GetSizeUnsafe((SbObject *)self);
+
+    for (pos = 0; pos < size; ++pos) {
+        Sb_CLEAR(self->items[pos]);
+    }
+    Sb_TYPE(self)->tp_free(self);
+}
+
+/*
  * C interface implementations
  */
 
@@ -27,7 +58,7 @@ SbTuple_New(Sb_ssize_t length)
     SbTupleObject *op;
 
     if (length < 0) {
-        /* Raise ArgumentError */
+        /* raise ArgumentError */
         return NULL;
     }
 
@@ -53,8 +84,9 @@ void
 SbTuple_SetItemUnsafe(SbObject *p, Sb_ssize_t pos, SbObject *o)
 {
     SbTupleObject *op = (SbTupleObject *)p;
-    Sb_CLEAR(op->items[pos]);
+    SbObject *oldp = op->items[pos];
     op->items[pos] = o;
+    Sb_XDECREF(oldp);
 }
 
 
@@ -66,20 +98,6 @@ SbTuple_GetSize(SbObject *p)
         return -1;
     }
     return SbTuple_GetSizeUnsafe(p);
-}
-
-static int
-tuple_check_type_pos(SbObject *p, Sb_ssize_t pos)
-{
-    if (!SbTuple_CheckExact(p)) {
-        /* raise TypeError? */
-        return -1;
-    }
-    if (pos < 0 || pos >= SbTuple_GetSizeUnsafe(p)) {
-        /* raise IndexError */
-        return -1;
-    }
-    return 0;
 }
 
 SbObject *
@@ -101,25 +119,6 @@ SbTuple_SetItem(SbObject *p, Sb_ssize_t pos, SbObject *o)
 
     SbTuple_SetItemUnsafe(p, pos, o);
     return 0;
-}
-
-
-SbObject *
-SbTuple_GetSlice(SbObject *p, Sb_ssize_t low, Sb_ssize_t high)
-{
-    return NULL;
-}
-
-
-static void
-tuple_destroy(SbTupleObject *self)
-{
-    Sb_ssize_t pos;
-    Sb_ssize_t size = SbTuple_GetSizeUnsafe((SbObject *)self);
-
-    for (pos = 0; pos < size; ++pos) {
-        Sb_CLEAR(self->items[pos]);
-    }
 }
 
 

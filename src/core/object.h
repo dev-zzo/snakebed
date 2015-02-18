@@ -64,6 +64,7 @@ extern void _SbObject_DecRef(SbObject *op);
 
 /* Defines object allocation/freeing interface */
 #define SbObject_Malloc Sb_Malloc
+#define SbObject_Realloc Sb_Realloc
 #define SbObject_Free Sb_Free
 
 /* Base "object" type. */

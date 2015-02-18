@@ -2,13 +2,6 @@
 #include "object_str.h"
 #include "object_type.h"
 
-/* Define the str object structure. */
-typedef struct _SbStrObject {
-    SbObject_HEAD_VAR;
-    long stored_hash;
-    char items[1];
-} SbStrObject;
-
 /* Keep the type object here. */
 SbTypeObject *SbStr_Type = NULL;
 
@@ -48,19 +41,6 @@ SbStr_FromStringAndSize(const char *v, Sb_ssize_t len)
 }
 
 Sb_ssize_t
-SbStr_GetSizeUnsafe(SbObject *p)
-{
-    return Sb_COUNT(p);
-}
-
-char *
-SbStr_AsStringUnsafe(SbObject *p)
-{
-    return ((SbStrObject *)p)->items;
-}
-
-
-Sb_ssize_t
 SbStr_GetSize(SbObject *p)
 {
     if (!SbStr_CheckExact(p)) {
@@ -70,7 +50,7 @@ SbStr_GetSize(SbObject *p)
     return SbStr_GetSizeUnsafe(p);
 }
 
-char *
+const char *
 SbStr_AsString(SbObject *p)
 {
     if (!SbStr_CheckExact(p)) {
@@ -139,7 +119,7 @@ _SbStr_EqString(SbObject *p1, const char *p2)
     if (length != SbStr_GetSizeUnsafe(p1)) {
         return 0;
     }
-    return Sb_MemCmp(SbStr_AsString(p1), SbStr_AsString(p2), length) == 0;
+    return Sb_MemCmp(SbStr_AsString(p1), p2, length) == 0;
 }
 
 
