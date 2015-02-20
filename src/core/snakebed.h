@@ -7,6 +7,16 @@ extern "C" {
 #include "supports.h"
 #include "bstrap.h"
 
+#include "object.h"
+#include "object_type.h"
+#include "object_tuple.h"
+#include "object_str.h"
+#include "object_dict.h"
+#include "object_list.h"
+#include "object_int.h"
+#include "object_cfunc.h"
+#include "object_method.h"
+
 /* Nothing. */
 #define STATIC 
 

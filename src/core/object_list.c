@@ -1,6 +1,4 @@
 #include "snakebed.h"
-#include "object_List.h"
-#include "object_type.h"
 
 /* Relying on compiler here. */
 #include <stdarg.h>

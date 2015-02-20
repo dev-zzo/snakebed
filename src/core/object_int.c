@@ -1,6 +1,4 @@
 #include "snakebed.h"
-#include "object_int.h"
-#include "object_type.h"
 
 /* Define the int object structure. */
 typedef struct _SbIntObject {
@@ -127,7 +125,6 @@ _SbInt_BuiltinInit()
     }
 
     tp->tp_basicsize = sizeof(SbIntObject);
-    tp->tp_hash = (hashfunc)int_hash;
 
     SbInt_Type = tp;
     return 0;

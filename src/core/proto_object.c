@@ -1,18 +1,16 @@
 #include "snakebed.h"
 #include "object.h"
 #include "object_type.h"
+#include "object_cfunc.h"
 
 long
 SbObject_Hash(SbObject *p)
 {
-    SbTypeObject *type;
+    SbObject *result;
 
-    type = Sb_TYPE(p);
-    if (type->tp_hash) {
-        return type->tp_hash(p);
-    }
+    result = SbObject_CallMethod(p, "__hash__", NULL, NULL);
 
-    return -1;
+    return result ? SbInt_AsLong(result) : -1;
 }
 
 int
@@ -29,4 +27,32 @@ SbObject_CompareBool(SbObject *p1, SbObject *p2, int op)
     }
 
     return -1;
+}
+
+SbObject *
+SbObject_Call(SbObject *callable, SbObject *args, SbObject *kwargs)
+{
+    /* Avoid recursion. */
+    if (SbCFunction_Check(callable)) {
+        return SbCFunction_Call(callable, NULL, args, kwargs);
+    }
+    if (SbType_Check(callable)) {
+        /* TODO: call `__new__`. */
+        return NULL;
+    }
+    /* TODO: Look up `__call__` property. */
+    return NULL;
+}
+
+SbObject *
+SbObject_CallMethod(SbObject *o, const char *method, SbObject *args, SbObject *kwargs)
+{
+    SbObject *p;
+
+    p = _SbType_FindMethod(o, method);
+    if (!p) {
+        return NULL;
+    }
+
+    return SbObject_Call(p, args, kwargs);
 }

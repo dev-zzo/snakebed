@@ -1,7 +1,6 @@
 #include "snakebed.h"
-#include "object_type.h"
-#include "object_tuple.h"
-#include "object_str.h"
+
+/* Relying on compiler here. */
 #include <stdarg.h>
 
 /* Keep the type object here. */
@@ -27,9 +26,8 @@ SbType_GenericAlloc(SbTypeObject *type, Sb_ssize_t nitems)
 
     /* Check and allocate slots */
     if (type->tp_flags & SbType_FLAGS_HAS_SLOTS) {
-        if (SbType_AllocateInstanceSlots(op) < 0) {
-            goto fail1;
-        }
+    }
+    else if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
     }
 
     return op;
@@ -38,6 +36,16 @@ fail1:
     SbObject_Free(op);
 fail0:
     return NULL;
+}
+
+static int
+type_inherit(SbTypeObject *tp, SbTypeObject *base_type)
+{
+    tp->tp_base = base_type;
+    tp->tp_basicsize = base_type->tp_basicsize;
+    tp->tp_itemsize = base_type->tp_itemsize;
+    tp->tp_destroy = base_type->tp_destroy;
+    return 0;
 }
 
 SbTypeObject *
@@ -56,47 +64,19 @@ SbType_New(const char *name, SbTypeObject *base_type)
 
     /* If we have a base -- inherit what's inheritable. */
     if (base_type) {
-        tp->tp_base = base_type;
-        tp->tp_basicsize = base_type->tp_basicsize;
-        tp->tp_itemsize = base_type->tp_itemsize;
-        tp->tp_destroy = base_type->tp_destroy;
-        tp->tp_hash = base_type->tp_hash;
+        type_inherit(tp, base_type);
     }
 
     return tp;
-}
-
-int
-SbType_AllocateInstanceSlots(SbObject *op)
-{
-    SbTypeObject *type;
-    SbObject *slots;
-    Sb_ssize_t slot_count;
-
-    /* TODO: This assumes slot names are always a tuple. */
-    slot_count = 0;
-    type = Sb_TYPE(op);
-    while (type) {
-        slot_count += SbTuple_GetSizeUnsafe(type->tp_slotnames);
-        type = type->tp_base;
-    }
-
-    slots = SbTuple_New(slot_count);
-    if (!slots) {
-        goto fail0;
-    }
-
-    op->ob_instvars = slots;
-    return 0;
-
-fail0:
-    return -1;
 }
 
 /* Handle destruction of type instances */
 static void
 type_destroy(SbTypeObject *tp)
 {
+    if (tp->tp_flags & SbType_FLAGS_HAS_SLOTS) {
+        Sb_DECREF(tp->tp_slotnames);
+    }
     tp->tp_free(tp);
 }
 
@@ -136,7 +116,6 @@ fail0:
 SbObject *
 _SbType_Lookup(SbObject *op, const char *name)
 {
-    SbObject *item;
     SbTypeObject *type;
 
     type = Sb_TYPE(op);
@@ -153,20 +132,37 @@ _SbType_Lookup(SbObject *op, const char *name)
             slot_count = SbTuple_GetSizeUnsafe(slot_names);
             for (intype_index = 0; intype_index < slot_count; ++intype_index, ++slot_index) {
                 if (_SbStr_EqString(SbTuple_GetItemUnsafe(slot_names, intype_index), name)) {
-                    return SbTuple_GetItemUnsafe(op->ob_instvars, slot_index);
+
                 }
             }
             type = type->tp_base;
         }
         return NULL;
     }
-    else {
-        /* */
+    else if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
+        SbObject *item;
+
+        /* Check instance dictionary first */
+        item = SbDict_GetItemString(SbObject_DICT(op), name);
+        if (item) {
+            return item;
+        }
     }
 
-    return NULL;
+    return SbDict_GetItemString(SbObject_DICT(type), name);
 }
 
+SbObject *
+_SbType_FindMethod(SbObject *op, const char *name)
+{
+    SbObject *attr;
+
+    attr = _SbType_Lookup(op, name);
+    if (attr && SbMethod_Check(attr)) {
+        attr = SbMethod_Bind(attr, op);
+    }
+    return attr;
+}
 
 /* Builtins initializer */
 int
@@ -186,8 +182,6 @@ _SbType_BuiltinInit()
 
     tp->tp_name = "type";
     tp->tp_basicsize = size;
-    /* This is done later on. */
-    /* tp->tp_flags = SbType_FLAGS_HAS_SLOTS; */
     tp->tp_destroy = (destructor)type_destroy;
     tp->tp_alloc = SbType_GenericAlloc;
     tp->tp_free = SbObject_Free;
@@ -197,30 +191,9 @@ _SbType_BuiltinInit()
     return 0;
 }
 
-/* Phase 2: object and tuple types are available. */
 int
 _SbType_BuiltinInit2()
 {
-    int rv;
-
-    SbType_Type->tp_flags = SbType_FLAGS_HAS_SLOTS;
-    rv = SbType_BuildSlots(SbType_Type, 2,
-        "__hash__",
-        "__repr__"
-        );
-    if (rv < 0) {
-        goto fail0;
-    }
-
-    rv = SbType_AllocateInstanceSlots((SbObject *)SbType_Type);
-    if (rv < 0) {
-        goto fail0;
-    }
-
-    /* TODO: fill the slots. */
-
+    /* Types have a dict by default. */
     return 0;
-
-fail0:
-    return -1;
 }

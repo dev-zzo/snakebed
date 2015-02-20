@@ -15,3 +15,7 @@ A toy implementation of Python 2.7 subset designed for compilation freedom and s
 
 * Non-NULL indicates success
 * NULL indicates failure (exception set unless noted otherwise)
+
+# TODO List
+
+* Slots implementation

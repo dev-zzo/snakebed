@@ -18,8 +18,7 @@ typedef struct _SbTypeObject SbTypeObject;
  */
 #define SbObject_HEAD \
     Sb_ssize_t ob_refcount; \
-    SbTypeObject *ob_type; \
-    SbObject *ob_instvars
+    SbTypeObject *ob_type
 
 struct _SbObject {
     SbObject_HEAD;
@@ -119,6 +118,11 @@ typedef enum {
    Returns: -1 on error, 0 if the result is false, 1 otherwise. */
 int
 SbObject_CompareBool(SbObject *p1, SbObject *p2, int op);
+
+SbObject *
+SbObject_Call(SbObject *callable, SbObject *args, SbObject *kwargs);
+SbObject *
+SbObject_CallMethod(SbObject *o, const char *method, SbObject *args, SbObject *kwargs);
 
 #ifdef __cplusplus
 }

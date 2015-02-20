@@ -1,7 +1,4 @@
 #include "snakebed.h"
-#include "object_dict.h"
-#include "object_type.h"
-#include "object_str.h"
 
 #define SbDict_BUCKET_COUNT 37
 

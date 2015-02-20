@@ -1,12 +1,4 @@
 #include "snakebed.h"
-#include "object_tuple.h"
-#include "object_type.h"
-
-/* Define the tuple object structure. */
-typedef struct _SbTupleObject {
-    SbObject_HEAD_VAR;
-    SbObject *items[1];
-} SbTupleObject;
 
 /* Keep the type object here. */
 SbTypeObject *SbTuple_Type = NULL;

@@ -1,6 +1,4 @@
 #include "snakebed.h"
-#include "object_str.h"
-#include "object_type.h"
 
 /* Keep the type object here. */
 SbTypeObject *SbStr_Type = NULL;
@@ -125,6 +123,23 @@ _SbStr_EqString(SbObject *p1, const char *p2)
 
 /* Python accessible methods */
 
+static SbObject *
+str_hash(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return SbInt_FromLong(_SbStr_Hash(self));
+}
+
+static SbObject *
+str_str(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return self;
+}
+
+static SbObject *
+str_len(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return SbInt_FromLong(SbStr_GetSizeUnsafe(self));
+}
 
 /* Builtins initializer */
 int
@@ -139,8 +154,29 @@ _SbStr_BuiltinInit()
 
     tp->tp_basicsize = sizeof(SbStrObject) - sizeof(char);
     tp->tp_itemsize = sizeof(char);
-    tp->tp_hash = (hashfunc)_SbStr_Hash;
 
     SbStr_Type = tp;
+    return 0;
+}
+
+int
+_SbStr_BuiltinInit2()
+{
+    SbObject *dict;
+    SbObject *fp;
+
+    dict = SbDict_New();
+    if (!dict) {
+        return -1;
+    }
+
+    fp = SbMethod_FromCFunction((SbObject *)SbStr_Type, str_hash);
+    SbDict_SetItemString(dict, "__hash__", fp);
+    fp = SbMethod_FromCFunction((SbObject *)SbStr_Type, str_str);
+    SbDict_SetItemString(dict, "__str__", fp);
+    fp = SbMethod_FromCFunction((SbObject *)SbStr_Type, str_len);
+    SbDict_SetItemString(dict, "__len__", fp);
+
+    SbObject_DICT(SbStr_Type) = dict;
     return 0;
 }

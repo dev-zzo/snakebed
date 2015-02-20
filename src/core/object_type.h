@@ -46,7 +46,10 @@ struct _SbTypeObject {
     SbTypeObject *tp_base;
 
     /* Slot names (iterable) -- only if __slots__ is defined */
+    long tp_slotcount;
     SbObject *tp_slotnames;
+    /* Offset of the dictionary pointer in the instance. */
+    Sb_ssize_t tp_dictoffset;
 
     /* Methods that are not available from Python */
 
@@ -62,9 +65,8 @@ struct _SbTypeObject {
     /* An optional pointer to an instance deallocation function. */
     freefunc tp_free;
 
-    /* Methods that implement certain Python accessible methods */
-
-    hashfunc tp_hash;
+    /* Type object instance's dict. */
+    SbObject *tp_dict;
 };
 
 extern SbTypeObject *SbType_Type;
@@ -72,7 +74,11 @@ extern SbTypeObject *SbType_Type;
 enum {
     /* Whether the object has slots or an instance dict */
     SbType_FLAGS_HAS_SLOTS          = (1 << 1),
+    SbType_FLAGS_HAS_DICT           = (1 << 2),
 };
+
+#define SbType_Check(p) \
+    (Sb_TYPE(p) == SbType_Type)
 
 SbObject *
 SbType_GenericAlloc(SbTypeObject *type, Sb_ssize_t nitems);
@@ -91,13 +97,24 @@ SbType_New(const char *name, SbTypeObject *base_type);
 int
 SbType_BuildSlots(SbTypeObject *type, Sb_ssize_t count, ...);
 
-int
-SbType_AllocateInstanceSlots(SbObject *op);
-
 /* Look up an item in the type hierarchy.
    Returns: Borrowed reference. */
 SbObject *
 _SbType_Lookup(SbObject *op, const char *name);
+SbObject *
+_SbType_FindMethod(SbObject *op, const char *name);
+
+/* Fast macros when p is typed properly */
+#define ROUND_INDEX(x, a) \
+    (((x) + (a) - 1) / (a))
+#define SbObject_SLOT(p, i) \
+    (((SbObject **)p)[ROUND_INDEX(sizeof(*(p)), sizeof(SbObject *)) + (i)])
+
+#define SbObject_SLOT_SLOW(p, i) \
+    (((SbObject **)p)[ROUND_INDEX(Sb_TYPE(p)->tp_basicsize, sizeof(SbObject *)) + (i)])
+
+#define SbObject_DICT(p) \
+    (*(SbObject **)(((char *)(p)) + Sb_TYPE(p)->tp_dictoffset))
 
 #ifdef __cplusplus
 }

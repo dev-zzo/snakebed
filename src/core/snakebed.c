@@ -20,6 +20,13 @@ extern int
 _SbNone_BuiltinInit();
 extern int
 _SbNotImplemented_BuiltinInit();
+extern int
+_SbCFunction_BuiltinInit();
+int
+_SbMethod_BuiltinInit();
+
+int
+_SbStr_BuiltinInit2();
 
 int
 Sb_Initialize()
@@ -28,13 +35,19 @@ Sb_Initialize()
     if (_SbType_BuiltinInit() < 0) {
         return -1;
     }
-    if (_SbObject_BuiltinInit() < 0) {
+    if (_SbCFunction_BuiltinInit() < 0) {
         return -1;
     }
-    if (_SbTuple_BuiltinInit() < 0) {
+    if (_SbMethod_BuiltinInit() < 0) {
         return -1;
     }
     if (_SbStr_BuiltinInit() < 0) {
+        return -1;
+    }
+    if (_SbDict_BuiltinInit() < 0) {
+        return -1;
+    }
+    if (_SbTuple_BuiltinInit() < 0) {
         return -1;
     }
     if (_SbNone_BuiltinInit() < 0) {
@@ -42,14 +55,15 @@ Sb_Initialize()
     }
     /* Stage 2: revisit type objects */
     _SbType_BuiltinInit2();
+    _SbStr_BuiltinInit2();
     /* Stage 3: implement all other objects */
+    if (_SbObject_BuiltinInit() < 0) {
+        return -1;
+    }
     if (_SbInt_BuiltinInit() < 0) {
         return -1;
     }
     if (_SbList_BuiltinInit() < 0) {
-        return -1;
-    }
-    if (_SbDict_BuiltinInit() < 0) {
         return -1;
     }
     if (_SbNotImplemented_BuiltinInit() < 0) {

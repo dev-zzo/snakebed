@@ -6,6 +6,12 @@ extern "C" {
 
 #include "object.h"
 
+/* Define the tuple object structure. */
+typedef struct _SbTupleObject {
+    SbObject_HEAD_VAR;
+    SbObject *items[1];
+} SbTupleObject;
+
 extern SbTypeObject *SbTuple_Type;
 
 /* Return true if p is a tuple object, 

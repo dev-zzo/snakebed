@@ -7,4 +7,5 @@ class A:
         return hash(self)
 
 a = A()
-a.x()
+a.x(1, 2, 3, a=4, b=5)
+b = A.x

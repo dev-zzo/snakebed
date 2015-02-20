@@ -1,6 +1,4 @@
 #include "snakebed.h"
-#include "object.h"
-#include "object_type.h"
 
 /* Keep the type object here. */
 SbTypeObject *SbObject_Type = NULL;
@@ -63,8 +61,8 @@ _SbObject_BuiltinInit()
     }
 
     tp->tp_basicsize = sizeof(SbObject);
+    tp->tp_flags = SbType_FLAGS_HAS_DICT;
     tp->tp_destroy = (destructor)object_destroy;
-    tp->tp_hash = (hashfunc)object_hash;
 
     SbObject_Type = tp;
     return 0;
