@@ -145,7 +145,7 @@ _SbDict_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("dict", SbObject_Type);
+    tp = SbType_New("dict", NULL);
     if (!tp) {
         return -1;
     }

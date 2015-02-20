@@ -2,9 +2,9 @@
 #include "object_tuple.h"
 #include "object_type.h"
 
-/* Define the Tuple object structure. */
+/* Define the tuple object structure. */
 typedef struct _SbTupleObject {
-    SbObject_HEAD;
+    SbObject_HEAD_VAR;
     SbObject *items[1];
 } SbTupleObject;
 
@@ -128,7 +128,7 @@ _SbTuple_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("tuple", SbObject_Type);
+    tp = SbType_New("tuple", NULL);
     if (!tp) {
         return -1;
     }

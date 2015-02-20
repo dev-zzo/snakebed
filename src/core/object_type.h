@@ -45,6 +45,9 @@ struct _SbTypeObject {
     /* Base type */
     SbTypeObject *tp_base;
 
+    /* Slot names (iterable) -- only if __slots__ is defined */
+    SbObject *tp_slotnames;
+
     /* Methods that are not available from Python */
 
     /* A pointer to the instance destructor function. The destructor function should:
@@ -66,6 +69,11 @@ struct _SbTypeObject {
 
 extern SbTypeObject *SbType_Type;
 
+enum {
+    /* Whether the object has slots or an instance dict */
+    SbType_FLAGS_HAS_SLOTS          = (1 << 1),
+};
+
 SbObject *
 SbType_GenericAlloc(SbTypeObject *type, Sb_ssize_t nitems);
 
@@ -73,10 +81,23 @@ SbObject *
 SbType_GenericNew(SbTypeObject *type, SbObject *args, SbObject *kwds);
 
 /* Create a new type object.
-   Return value: New reference.
- */
+   Returns: New reference. */
 SbTypeObject *
 SbType_New(const char *name, SbTypeObject *base_type);
+
+/* Build slots for the type.
+   All arguments must be C strings, which will be interned (later).
+   Returns: 0 if OK, -1 otherwise. */
+int
+SbType_BuildSlots(SbTypeObject *type, Sb_ssize_t count, ...);
+
+int
+SbType_AllocateInstanceSlots(SbObject *op);
+
+/* Look up an item in the type hierarchy.
+   Returns: Borrowed reference. */
+SbObject *
+_SbType_Lookup(SbObject *op, const char *name);
 
 #ifdef __cplusplus
 }

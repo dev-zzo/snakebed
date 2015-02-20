@@ -183,7 +183,7 @@ _SbList_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("list", SbObject_Type);
+    tp = SbType_New("list", NULL);
     if (!tp) {
         return -1;
     }

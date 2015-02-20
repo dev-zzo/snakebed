@@ -121,7 +121,7 @@ _SbInt_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("int", SbObject_Type);
+    tp = SbType_New("int", NULL);
     if (!tp) {
         return -1;
     }

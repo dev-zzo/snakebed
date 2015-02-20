@@ -132,7 +132,7 @@ _SbStr_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("str", SbObject_Type);
+    tp = SbType_New("str", NULL);
     if (!tp) {
         return -1;
     }

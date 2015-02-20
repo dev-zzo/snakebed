@@ -27,7 +27,7 @@ SbObject *
 SbDict_GetItem(SbObject *p, SbObject *key);
 
 /* Insert the object at the given key.
-   Returns 0 if OK, -1 otherwise. */
+   Returns: 0 if OK, -1 otherwise. */
 int
 SbDict_SetItem(SbObject *p, SbObject *key, SbObject *value);
 

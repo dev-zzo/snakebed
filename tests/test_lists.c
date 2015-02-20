@@ -101,15 +101,6 @@ test_list_getset(void)
     return 0;
 }
 
-static int
-test_list_check_exact(void)
-{
-    SbObject *list;
-
-    list = SbList_New(5);
-    return 0;
-}
-
 int
 test_lists_main(int which)
 {

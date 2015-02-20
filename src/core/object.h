@@ -5,17 +5,25 @@ extern "C" {
 #endif
 
 /* Forward declare the type object. */
+struct _SbObject;
+typedef struct _SbObject SbObject;
 struct _SbTypeObject;
 typedef struct _SbTypeObject SbTypeObject;
 
-/* Objects that do not support the "variable" part. */
+/* Objects that do not support the "variable" part.
+   A basic object is composed of:
+   - Reference counter
+   - Pointer to a type object
+   - Pointer to instance variables container (either a dict or a tuple)
+ */
 #define SbObject_HEAD \
     Sb_ssize_t ob_refcount; \
-    SbTypeObject *ob_type
+    SbTypeObject *ob_type; \
+    SbObject *ob_instvars
 
-typedef struct _SbObject {
+struct _SbObject {
     SbObject_HEAD;
-} SbObject;
+};
 
 /* Objects that do support the "variable" part. */
 #define SbObject_HEAD_VAR \

@@ -7,6 +7,7 @@ extern "C" {
 #include <stdint.h>
 #include <string.h>
 #include <limits.h>
+#include <assert.h>
 
 #ifndef NULL
 #define NULL (void *)0

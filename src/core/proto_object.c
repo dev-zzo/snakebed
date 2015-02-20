@@ -20,6 +20,7 @@ SbObject_CompareBool(SbObject *p1, SbObject *p2, int op)
 {
     SbTypeObject *type;
 
+    /* No need to look up things for these */
     if (p1 == p2) {
         if (op == Sb_EQ)
             return 1;

@@ -14,6 +14,7 @@ void _SbObject_DecRef(SbObject *op)
         return;
     }
     Sb_TYPE(op)->tp_destroy(op);
+    /* `op` becomes invalid after this point. */
 }
 
 SbObject *
