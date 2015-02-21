@@ -10,7 +10,7 @@ extern "C" {
 typedef struct _SbStrObject {
     SbObject_HEAD_VAR;
     long stored_hash;
-    char items[1];
+    Sb_byte_t items[1];
 } SbStrObject;
 
 extern SbTypeObject *SbStr_Type;
@@ -28,7 +28,7 @@ SbStr_FromString(const char *v);
 /* Construct a str object from a C array.
    Returns: New reference. */
 SbObject *
-SbStr_FromStringAndSize(const char *v, Sb_ssize_t len);
+SbStr_FromStringAndSize(const void *v, Sb_ssize_t len);
 
 /* Obtain the str's length.
    WARNING: no type checks are performed. */
@@ -45,7 +45,7 @@ Sb_ssize_t
 SbStr_GetSize(SbObject *p);
 
 /* Obtain the pointer to the str's buffer. */
-const char *
+const Sb_byte_t *
 SbStr_AsString(SbObject *p);
 
 /* METHODS USED INTERNALLY */
@@ -54,7 +54,7 @@ long
 _SbStr_Hash(SbObject *p);
 
 long
-_SbStr_HashString(const unsigned char *v, Sb_ssize_t len);
+_SbStr_HashString(const Sb_byte_t *v, Sb_ssize_t len);
 
 int
 _SbStr_Eq(SbObject *p1, SbObject *p2);

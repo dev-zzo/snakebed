@@ -15,6 +15,7 @@ extern "C" {
 
 typedef size_t Sb_size_t;
 typedef long Sb_ssize_t;
+typedef unsigned char Sb_byte_t;
 
 #define Sb_BZero(ptr, size) \
     memset(ptr, 0, size)

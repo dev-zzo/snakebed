@@ -23,7 +23,7 @@ SbStr_FromString(const char *v)
 }
 
 SbObject *
-SbStr_FromStringAndSize(const char *v, Sb_ssize_t len)
+SbStr_FromStringAndSize(const void *v, Sb_ssize_t len)
 {
     SbStrObject *op;
 
@@ -48,7 +48,7 @@ SbStr_GetSize(SbObject *p)
     return SbStr_GetSizeUnsafe(p);
 }
 
-const char *
+const Sb_byte_t *
 SbStr_AsString(SbObject *p)
 {
     if (!SbStr_CheckExact(p)) {
@@ -73,7 +73,7 @@ _SbStr_Hash(SbObject *p)
 }
 
 long
-_SbStr_HashString(const unsigned char *p, Sb_ssize_t len)
+_SbStr_HashString(const Sb_byte_t *p, Sb_ssize_t len)
 {
     Sb_ssize_t count = len;
     long x;

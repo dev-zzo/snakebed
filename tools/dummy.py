@@ -1,11 +1,13 @@
 
-class A:
-    def __hash__(self):
-        return 1
-        
-    def x(self):
-        return hash(self)
+def gfunc(x):
+    return x
 
-a = A()
-a.x(1, 2, 3, a=4, b=5)
-b = A.x
+def func(arg1, arg2, kwarg3=0):
+    local1 = arg1
+    local2 = arg2
+    local3 = hash(kwarg3)
+    gfunc(g1)
+    return local1 + local2
+pass
+
+func(1, 2)

@@ -16,6 +16,8 @@ extern "C" {
 #include "object_int.h"
 #include "object_cfunc.h"
 #include "object_method.h"
+#include "object_code.h"
+#include "object_frame.h"
 
 /* Nothing. */
 #define STATIC 

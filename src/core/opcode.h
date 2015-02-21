@@ -7,12 +7,15 @@ extern "C" {
 
 /* Instruction opcodes for compiled code */
 typedef enum _SbOpcode {
+    /* ??? */
     StopCode                = 0,
+    /* Remove topmost stack element. */
     PopTop                  = 1,
     RotTwo                  = 2,
     RotThree                = 3,
     DupTop                  = 4,
     RotFour                 = 5,
+    /* No operation. */
     Nop                     = 9,
 
     UnaryPositive           = 10,
@@ -123,6 +126,7 @@ typedef enum _SbOpcode {
     CallFunction            = 131, /* #args + (#kwargs<<8) */
     MakeFunction            = 132, /* #defaults */
     BuildSlice              = 133, /* Number of items */
+
     MakeClosure             = 134, /* #free vars */
     /* Load free variable from closure */
     LoadClosure             = 135,
@@ -130,9 +134,11 @@ typedef enum _SbOpcode {
     LoadDeref               = 136,
     /* Store into cell */
     StoreDeref              = 137,
+
     CallFunctionVar         = 140,
     CallFunctionKw          = 141,
     CallFunctionVarKw       = 142,
+
     SetupWith               = 143,
     /* Support for opargs more than 16 bits long */
     ExtendedArg             = 145,

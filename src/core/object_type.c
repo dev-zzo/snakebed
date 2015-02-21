@@ -77,7 +77,7 @@ type_destroy(SbTypeObject *tp)
     if (tp->tp_flags & SbType_FLAGS_HAS_SLOTS) {
         Sb_DECREF(tp->tp_slotnames);
     }
-    tp->tp_free(tp);
+    SbObject_Destroy(tp);
 }
 
 int

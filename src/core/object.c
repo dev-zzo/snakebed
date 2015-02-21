@@ -33,20 +33,18 @@ SbObject_NewVar(SbTypeObject *type, Sb_ssize_t count)
     return op;
 }
 
+void
+SbObject_Destroy(SbObject *p)
+{
+    Sb_TYPE(p)->tp_free(p);
+}
+
 /* Python accessible methods */
 
 static long
 object_hash(SbObject *self)
 {
     return (long)self;
-}
-
-/* Type internals */
-
-static void
-object_destroy(SbObject *self)
-{
-    Sb_TYPE(self)->tp_free(self);
 }
 
 /* Builtins initializer */
@@ -62,7 +60,7 @@ _SbObject_BuiltinInit()
 
     tp->tp_basicsize = sizeof(SbObject);
     tp->tp_flags = SbType_FLAGS_HAS_DICT;
-    tp->tp_destroy = (destructor)object_destroy;
+    tp->tp_destroy = SbObject_Destroy;
 
     SbObject_Type = tp;
     return 0;

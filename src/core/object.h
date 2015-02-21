@@ -82,11 +82,8 @@ SbObject *
 SbObject_New(SbTypeObject *type);
 SbVarObject *
 SbObject_NewVar(SbTypeObject *type, Sb_ssize_t count);
-
-#define SbObject_NEW(obj_struct, type) \
-    (obj_struct *)SbObject_New(type)
-#define SbObject_NEW_VAR(obj_struct, type, count) \
-    (obj_struct *)SbObject_NewVar(type, count)
+void
+SbObject_Destroy(SbObject *p);
 
 /* Builtin objects */
 

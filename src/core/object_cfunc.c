@@ -1,7 +1,4 @@
 #include "snakebed.h"
-#include "object_cfunc.h"
-#include "object_type.h"
-#include "object_str.h"
 
 /* Keep the type object here. */
 SbTypeObject *SbCFunction_Type = NULL;
@@ -26,7 +23,7 @@ SbCFunction_New(SbCFunction fp)
 static void
 cfunction_destroy(SbObject *p)
 {
-    Sb_TYPE(p)->tp_free(p);
+    SbObject_Destroy(p);
 }
 
 SbObject *

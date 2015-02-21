@@ -88,12 +88,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\core\interp.c" />
     <ClCompile Include="..\src\core\marshal.c" />
     <ClCompile Include="..\src\core\object.c" />
     <ClCompile Include="..\src\core\object_builtins.c" />
     <ClCompile Include="..\src\core\object_cfunc.c" />
     <ClCompile Include="..\src\core\object_code.c" />
     <ClCompile Include="..\src\core\object_dict.c" />
+    <ClCompile Include="..\src\core\object_frame.c" />
     <ClCompile Include="..\src\core\object_int.c" />
     <ClCompile Include="..\src\core\object_list.c" />
     <ClCompile Include="..\src\core\object_method.c" />
@@ -104,10 +106,12 @@
     <ClCompile Include="..\src\core\snakebed.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\core\interp.h" />
     <ClInclude Include="..\src\core\object.h" />
     <ClInclude Include="..\src\core\object_cfunc.h" />
     <ClInclude Include="..\src\core\object_code.h" />
     <ClInclude Include="..\src\core\object_dict.h" />
+    <ClInclude Include="..\src\core\object_frame.h" />
     <ClInclude Include="..\src\core\object_int.h" />
     <ClInclude Include="..\src\core\object_list.h" />
     <ClInclude Include="..\src\core\object_method.h" />

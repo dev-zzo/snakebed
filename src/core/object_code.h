@@ -4,8 +4,6 @@
 extern "C" {
 #endif
 
-#include "object.h"
-
 typedef struct _SbCodeObject {
     SbObject_HEAD;
     unsigned flags;
@@ -18,11 +16,7 @@ typedef struct _SbCodeObject {
     SbObject *consts; /* constants used */
     SbObject *names; /* names used (strs, pot. interned) */
     SbObject *localvars_names; /* local variable names (strs, pot. interned) */
-    SbObject *freevars_names; /* free variable names (strs, pot. interned) */
     /* TBD: closures */
-
-    SbObject *name; /* str: code object name (can be dropped?) */
-
 } SbCodeObject;
 
 #define SbCode_VARARGS      (1 << 2)
