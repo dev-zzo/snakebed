@@ -39,14 +39,18 @@ def dumpy_co(co, parent=None):
     output('  co_argcount:    %d' % co.co_argcount)
     # number of local variables
     output('  co_nlocals:     %d' % co.co_nlocals)
-    # output('co_freevars:    %d' % co.co_freevars)
-    # output('co_cellvars:    %d' % co.co_cellvars)
     
     output('  co_varnames:    %d' % len(co.co_varnames))
     output_table(co.co_varnames)
 
     output('  co_names:       %d' % len(co.co_names))
     output_table(co.co_names)
+
+    output('  co_freevars:    %d' % len(co.co_freevars))
+    output_table(co.co_freevars)
+
+    output('  co_cellvars:    %d' % len(co.co_cellvars))
+    output_table(co.co_cellvars)
 
     output('  co_consts:      %d' % len(co.co_consts))
     i = 0
