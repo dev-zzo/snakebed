@@ -4,18 +4,16 @@
 extern "C" {
 #endif
 
-
 /* Instruction opcodes for compiled code */
+/* Ref: https://docs.python.org/2/library/dis.html */
 typedef enum _SbOpcode {
     /* ??? */
     StopCode                = 0,
-    /* Remove topmost stack element. */
     PopTop                  = 1,
     RotTwo                  = 2,
     RotThree                = 3,
     DupTop                  = 4,
     RotFour                 = 5,
-    /* No operation. */
     Nop                     = 9,
 
     UnaryPositive           = 10,

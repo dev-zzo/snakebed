@@ -25,6 +25,15 @@ SbCFunction_New(SbCFunction fp);
 SbObject *
 SbCFunction_Call(SbObject *p, SbObject *self, SbObject *args, SbObject *kwargs);
 
+/* Define a method implemented by a C function. */
+typedef struct {
+    const char *name;
+    SbCFunction func;
+} SbCMethodDef;
+
+int
+SbType_CreateMethods(SbTypeObject *type, const SbCMethodDef *methods);
+
 #ifdef __cplusplus
 }
 #endif

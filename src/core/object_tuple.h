@@ -16,13 +16,18 @@ extern SbTypeObject *SbTuple_Type;
 
 /* Return true if p is a tuple object, 
    but not an instance of a subtype of the tuple type. */
-int
-SbTuple_CheckExact(SbObject *op);
+#define SbTuple_CheckExact(p) \
+    (Sb_TYPE(p) == SbTuple_Type)
 
 /* Return a new tuple object with given size.
    Returns: New reference or NULL on failure. */
 SbObject *
 SbTuple_New(Sb_ssize_t length);
+
+/* Construct a new tuple from the provided arguments.
+   Returns: New reference or NULL on failure. */
+SbObject *
+SbTuple_Pack(Sb_ssize_t count, ...);
 
 /* Return a tuple's size.
    WARNING: no type checks are performed. */

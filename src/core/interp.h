@@ -4,6 +4,12 @@
 extern "C" {
 #endif
 
+int 
+SbInterp_PushFrame(SbFrameObject *f, SbObject *args, SbObject *kwargs);
+
+int
+SbInterp_ExecuteNext(void);
+
 
 #ifdef __cplusplus
 }

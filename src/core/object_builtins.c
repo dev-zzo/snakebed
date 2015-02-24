@@ -8,7 +8,7 @@
 
 /* Define the str object structure. */
 typedef struct _SbNoneObject {
-    SbObject_HEAD_VAR;
+    SbObject_HEAD;
 } SbNoneObject;
 
 /* Keep the type object here. */
@@ -25,6 +25,8 @@ _SbNone_BuiltinInit()
     if (!tp) {
         return -1;
     }
+    tp->tp_basicsize = sizeof(SbNoneObject);
+    tp->tp_destroy = SbObject_Destroy;
 
     SbNone_Type = tp;
 
@@ -42,7 +44,7 @@ _SbNone_BuiltinInit()
 
 /* Define the str object structure. */
 typedef struct _SbNotImplementedObject {
-    SbObject_HEAD_VAR;
+    SbObject_HEAD;
 } SbNotImplementedObject;
 
 /* Keep the type object here. */
@@ -59,6 +61,8 @@ _SbNotImplemented_BuiltinInit()
     if (!tp) {
         return -1;
     }
+    tp->tp_basicsize = sizeof(SbNotImplementedObject);
+    tp->tp_destroy = SbObject_Destroy;
 
     SbNotImplemented_Type = tp;
 

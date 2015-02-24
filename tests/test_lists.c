@@ -1,6 +1,4 @@
 #include "snakebed.h"
-#include "object_list.h"
-#include "object_int.h"
 
 /* Test: Verify *_New() works as designed. */
 static int
@@ -24,16 +22,17 @@ test_list_new(void)
     Sb_DECREF(list);
 
     list = SbList_New(-1);
-    if (list) {
+    if (list || !SbErr_Occurred()) {
         Sb_DECREF(list);
         return -31;
     }
+    SbErr_Clear();
     /* No DECREF: list is NULL. */
 
     return 0;
 }
 
-/* Test: Verify SbList_{Get|Set}() works as designed. */
+/* Test: Verify destructir works as designed. */
 static int
 test_list_dtor(void)
 {
@@ -111,7 +110,4 @@ test_lists_main(int which)
     default:
         return 1;
     }
-
-
-
 }

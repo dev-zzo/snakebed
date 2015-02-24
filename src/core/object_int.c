@@ -1,11 +1,5 @@
 #include "snakebed.h"
 
-/* Define the int object structure. */
-typedef struct _SbIntObject {
-    SbObject_HEAD;
-    long value;
-} SbIntObject;
-
 /* Keep the type object here. */
 SbTypeObject *SbInt_Type = NULL;
 
@@ -13,16 +7,16 @@ SbTypeObject *SbInt_Type = NULL;
  * C interface implementations
  */
 
-int
-SbInt_CheckExact(SbObject *op)
-{
-    return Sb_TYPE(op) == SbInt_Type;
-}
-
 long
 SbInt_GetMax(void)
 {
     return LONG_MAX;
+}
+
+long
+SbInt_GetMin(void)
+{
+    return LONG_MIN;
 }
 
 SbObject *
@@ -105,15 +99,273 @@ SbInt_FromString(const char *str, const char **pend, unsigned base)
     return SbInt_FromLong(value);
 }
 
+int
+SbInt_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
+{
+    long v1, v2;
+
+    if (!SbInt_CheckExact(p1) || !SbInt_CheckExact(p2)) {
+        /* raise TypeError */
+        return -1;
+    }
+
+    v1 = SbInt_AsLong(p1);
+    v2 = SbInt_AsLong(p2);
+
+    switch(op) {
+    case Sb_LT:
+        return v1 < v2;
+    case Sb_LE:
+        return v1 <= v2;
+    case Sb_EQ:
+        return v1 == v2;
+    case Sb_NE:
+        return v1 != v2;
+    case Sb_GT:
+        return v1 > v2;
+    case Sb_GE:
+        return v1 >= v2;
+    }
+
+    return -1;
+}
+
 /* Python accessible methods */
 
-static long
-int_hash(SbIntObject *self)
+static SbObject *
+int_hash(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return self->value;
+    Sb_INCREF(self);
+    return self;
+}
+
+static SbObject *
+int_nonzero(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    /* TODO: optimise to use bools? */
+    return SbInt_AsLong(self) == 0 ? self : SbInt_FromLong(1);
+}
+
+static SbObject *
+int_compare_wrap(SbObject *self, SbObject *args, SbObjectCompareOp op)
+{
+    SbObject *other;
+    int result;
+
+    other = SbTuple_GetItem(args, 0);
+    if (!other) {
+        return NULL;
+    }
+    result = SbInt_CompareBool(self, other, op);
+    if (result >= 0) {
+        return SbBool_FromLong(result);
+    }
+    Sb_INCREF(Sb_NotImplemented);
+    return Sb_NotImplemented;
+}
+
+static SbObject *
+int_lt(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_compare_wrap(self, args, Sb_LT);
+}
+
+static SbObject *
+int_le(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_compare_wrap(self, args, Sb_LE);
+}
+
+static SbObject *
+int_eq(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_compare_wrap(self, args, Sb_EQ);
+}
+
+static SbObject *
+int_ne(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_compare_wrap(self, args, Sb_NE);
+}
+
+static SbObject *
+int_gt(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_compare_wrap(self, args, Sb_GT);
+}
+
+static SbObject *
+int_ge(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_compare_wrap(self, args, Sb_GE);
+}
+
+static SbObject *
+int_arith_wrap_binary(SbObject *self, SbObject *args, long (*func)(long lhs, long rhs))
+{
+    SbObject *other;
+
+    other = SbTuple_GetItem(args, 0);
+    if (!other) {
+        return NULL;
+    }
+
+    if (!SbInt_CheckExact(other)) {
+        Sb_INCREF(Sb_NotImplemented);
+        return Sb_NotImplemented;
+    }
+
+    return SbInt_FromLong(func(SbInt_AsLong(self), SbInt_AsLong(other)));
+}
+
+static long
+int_add_func(long lhs, long rhs)
+{
+    return lhs + rhs;
+}
+
+static SbObject *
+int_add(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_arith_wrap_binary(self, args, int_add_func);
+}
+
+static long
+int_sub_func(long lhs, long rhs)
+{
+    return lhs - rhs;
+}
+
+static SbObject *
+int_sub(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_arith_wrap_binary(self, args, int_sub_func);
+}
+
+static SbObject *
+int_mul(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *other;
+    Sb_long64_t result;
+
+    other = SbTuple_GetItem(args, 0);
+    if (!other) {
+        return NULL;
+    }
+
+    if (!SbInt_CheckExact(other)) {
+        Sb_INCREF(Sb_NotImplemented);
+        return Sb_NotImplemented;
+    }
+
+    result = Sb_Mul32x32As64(SbInt_AsLong(self), SbInt_AsLong(other));
+    if (result > SbInt_GetMax() || result < SbInt_GetMin()) {
+        /* TODO: Convert result to long */
+        return NULL;
+    }
+    return SbInt_FromLong((long)result);
+}
+
+static long
+int_fdiv_func(long lhs, long rhs)
+{
+    return lhs / rhs;
+}
+
+static SbObject *
+int_fdiv(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_arith_wrap_binary(self, args, int_fdiv_func);
+}
+
+static long
+int_shl_func(long lhs, long rhs)
+{
+    return lhs << rhs;
+}
+
+static SbObject *
+int_shl(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_arith_wrap_binary(self, args, int_shl_func);
+}
+
+static long
+int_shr_func(long lhs, long rhs)
+{
+    return lhs >> rhs;
+}
+
+static SbObject *
+int_shr(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_arith_wrap_binary(self, args, int_shr_func);
+}
+
+static SbObject *
+int_neg(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return SbInt_FromLong(-SbInt_AsLong(self));
+}
+
+static SbObject *
+int_pos(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    Sb_INCREF(self);
+    return self;
+}
+
+static SbObject *
+int_abs(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    if (SbInt_AsLong(self) < 0) {
+        return SbInt_FromLong(-SbInt_AsLong(self));
+    }
+    Sb_INCREF(self);
+    return self;
+}
+
+static SbObject *
+int_inv(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return SbInt_FromLong(~SbInt_AsLong(self));
 }
 
 /* Builtins initializer */
+
+static const SbCMethodDef int_methods[] = {
+    { "__hash__", int_hash },
+    { "__nonzero__", int_nonzero },
+
+    { "__lt__", int_lt },
+    { "__le__", int_le },
+    { "__eq__", int_eq },
+    { "__ne__", int_ne },
+    { "__gt__", int_gt },
+    { "__ge__", int_ge },
+
+    { "__add__", int_add },
+    { "__iadd__", int_add },
+    { "__sub__", int_sub },
+    { "__isub__", int_sub },
+    { "__mul__", int_mul },
+    { "__imul__", int_mul },
+    { "__floordiv__", int_fdiv },
+    { "__ifloordiv__", int_fdiv },
+    { "__lshift__", int_shl },
+    { "__ilshift__", int_shl },
+    { "__rshift__", int_shr },
+    { "__irshift__", int_shr },
+
+    { "__neg__", int_neg },
+    { "__pos__", int_pos },
+    { "__abs__", int_abs },
+    { "__invert__", int_inv },
+
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
 _SbInt_BuiltinInit()
 {
@@ -125,7 +377,8 @@ _SbInt_BuiltinInit()
     }
 
     tp->tp_basicsize = sizeof(SbIntObject);
+    tp->tp_destroy = SbObject_Destroy;
 
     SbInt_Type = tp;
-    return 0;
+    return SbType_CreateMethods(SbInt_Type, int_methods);
 }

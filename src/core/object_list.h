@@ -9,6 +9,7 @@ extern "C" {
 /* Define the list object structure. */
 typedef struct _SbListObject {
     SbObject_HEAD;
+    Sb_ssize_t count;
     Sb_ssize_t allocated;
     SbObject **items;
 } SbListObject;
@@ -33,7 +34,7 @@ SbList_Pack(Sb_ssize_t count, ...);
 /* Return the list's size.
    WARNING: no type checks are performed. */
 #define SbList_GetSizeUnsafe(p) \
-    Sb_COUNT(p)
+    (((SbListObject *)p)->count)
 
 /* Return an item at the given position.
    WARNING: no type/range checks are performed. */

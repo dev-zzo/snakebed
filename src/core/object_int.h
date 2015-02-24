@@ -6,12 +6,18 @@ extern "C" {
 
 #include "object.h"
 
+/* Define the int object structure. */
+typedef struct _SbIntObject {
+    SbObject_HEAD;
+    long value;
+} SbIntObject;
+
 extern SbTypeObject *SbInt_Type;
 
 /* Verify the given object is of type int.
    Returns: 1 if true, 0 otherwise. */
-int
-SbInt_CheckExact(SbObject *op);
+#define SbInt_CheckExact(p) \
+    (Sb_TYPE(p) == SbInt_Type)
 
 /* Returns the maximum value of the int object.
    Returns: Plain C data. */

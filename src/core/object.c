@@ -39,13 +39,13 @@ SbObject_Destroy(SbObject *p)
     Sb_TYPE(p)->tp_free(p);
 }
 
-/* Python accessible methods */
-
-static long
-object_hash(SbObject *self)
+long
+SbObject_Identity(SbObject *p)
 {
-    return (long)self;
+    return (long)p;
 }
+
+/* Python accessible methods */
 
 /* Builtins initializer */
 int

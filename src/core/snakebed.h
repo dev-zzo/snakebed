@@ -14,10 +14,13 @@ extern "C" {
 #include "object_dict.h"
 #include "object_list.h"
 #include "object_int.h"
+#include "object_bool.h"
 #include "object_cfunc.h"
 #include "object_method.h"
 #include "object_code.h"
 #include "object_frame.h"
+
+#include "exception.h"
 
 /* Nothing. */
 #define STATIC 

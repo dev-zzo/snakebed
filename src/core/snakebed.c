@@ -15,6 +15,8 @@ _SbList_BuiltinInit();
 extern int
 _SbStr_BuiltinInit();
 extern int
+_SbStr_BuiltinInit2();
+extern int
 _SbDict_BuiltinInit();
 extern int
 _SbNone_BuiltinInit();
@@ -22,51 +24,74 @@ extern int
 _SbNotImplemented_BuiltinInit();
 extern int
 _SbCFunction_BuiltinInit();
-int
+extern int
+_SbCFunction_BuiltinInit2();
+extern int
 _SbMethod_BuiltinInit();
+extern int
+_SbErr_BuiltinInit();
 
-int
-_SbStr_BuiltinInit2();
+typedef int (*typeinitfunc)();
+
+static typeinitfunc stage1_inits[] = {
+    _SbType_BuiltinInit,
+    _SbCFunction_BuiltinInit,
+    _SbStr_BuiltinInit,
+    _SbDict_BuiltinInit,
+    /* Sentinel */
+    NULL
+};
+
+static typeinitfunc stage2_inits[] = {
+    _SbType_BuiltinInit2,
+    _SbStr_BuiltinInit2,
+    _SbCFunction_BuiltinInit2,
+    /* Sentinel */
+    NULL
+};
+
+static typeinitfunc stage3_inits[] = {
+    _SbErr_BuiltinInit,
+    _SbTuple_BuiltinInit,
+    _SbList_BuiltinInit,
+    _SbInt_BuiltinInit,
+    _SbNone_BuiltinInit,
+    _SbNotImplemented_BuiltinInit,
+    _SbMethod_BuiltinInit,
+    _SbObject_BuiltinInit,
+    /* Sentinel */
+    NULL
+};
+
+static int
+do_initfuncs(typeinitfunc *funcs)
+{
+    for (;;) {
+        typeinitfunc f = *funcs;
+        if (!f) {
+            break;
+        }
+        if (f() < 0) {
+            return -1;
+        }
+        funcs++;
+    }
+    return 0;
+}
 
 int
 Sb_Initialize()
 {
     /* Stage 1: build the most basic types */
-    if (_SbType_BuiltinInit() < 0) {
-        return -1;
-    }
-    if (_SbCFunction_BuiltinInit() < 0) {
-        return -1;
-    }
-    if (_SbMethod_BuiltinInit() < 0) {
-        return -1;
-    }
-    if (_SbStr_BuiltinInit() < 0) {
-        return -1;
-    }
-    if (_SbDict_BuiltinInit() < 0) {
-        return -1;
-    }
-    if (_SbTuple_BuiltinInit() < 0) {
-        return -1;
-    }
-    if (_SbNone_BuiltinInit() < 0) {
+    if (do_initfuncs(stage1_inits) < 0) {
         return -1;
     }
     /* Stage 2: revisit type objects */
-    _SbType_BuiltinInit2();
-    _SbStr_BuiltinInit2();
+    if (do_initfuncs(stage2_inits) < 0) {
+        return -1;
+    }
     /* Stage 3: implement all other objects */
-    if (_SbObject_BuiltinInit() < 0) {
-        return -1;
-    }
-    if (_SbInt_BuiltinInit() < 0) {
-        return -1;
-    }
-    if (_SbList_BuiltinInit() < 0) {
-        return -1;
-    }
-    if (_SbNotImplemented_BuiltinInit() < 0) {
+    if (do_initfuncs(stage3_inits) < 0) {
         return -1;
     }
 

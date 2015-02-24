@@ -11,6 +11,7 @@ typedef struct _SbFrameObject {
     SbObject_HEAD_VAR;
     SbFrameObject *prev; /* Previous frame in frame stack */
     SbCodeObject *code;
+    const Sb_byte_t *ip;
     SbObject **sp; /* topmost in stack */
     SbObject *vars[1]; /* locals + stack */
 } SbFrameObject;
@@ -19,9 +20,6 @@ extern SbTypeObject *SbFrame_Type;
 
 SbObject *
 SbFrame_New(SbCodeObject *code, SbFrameObject *prev);
-
-SbObject *
-SbFrame_Execute(SbFrameObject *f, SbObject *args, SbObject *kwargs);
 
 #ifdef __cplusplus
 }

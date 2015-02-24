@@ -40,8 +40,22 @@ fail0:
     return NULL;
 }
 
+static SbObject *
+cfunction_call(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return ((SbCFunctionObject *)self)->fp(NULL, args, kwargs);
+}
+
 
 /* Builtins initializer */
+
+static const SbCMethodDef cfunc_methods[] = {
+    { "__call__", cfunction_call },
+
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
 _SbCFunction_BuiltinInit()
 {
@@ -62,5 +76,5 @@ _SbCFunction_BuiltinInit()
 int
 _SbCFunction_BuiltinInit2()
 {
-    return SbType_BuildSlots(SbCFunction_Type, 0);
+    return SbType_CreateMethods(SbCFunction_Type, cfunc_methods);
 }

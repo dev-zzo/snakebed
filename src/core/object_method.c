@@ -1,10 +1,5 @@
 #include "snakebed.h"
 
-/* Define the C function object structure. */
-typedef struct _SbMethodObject {
-    SbObject_HEAD;
-} SbMethodObject;
-
 /* Keep the type object here. */
 SbTypeObject *SbMethod_Type = NULL;
 
@@ -13,104 +8,63 @@ SbTypeObject *SbMethod_Type = NULL;
  */
 
 SbObject *
-SbMethod_New(SbObject *type, SbObject *func)
+SbMethod_New(SbTypeObject *type, SbObject *func, SbObject *self)
 {
     SbObject *p;
 
     p = SbObject_New(SbMethod_Type);
     if (p) {
-        SbMethod_SetType(p, type);
+        SbMethodObject *m = (SbMethodObject *)p;
+
+        Sb_INCREF(type);
+        m->type = type;
         Sb_INCREF(func);
-        SbMethod_SetFunc(p, func);
+        m->func = func;
+        if (self) {
+            Sb_INCREF(self);
+            m->self = self;
+        }
     }
 
     return p;
 }
 
-SbObject *
-SbMethod_FromCFunction(SbObject *type, SbCFunction fp)
+static void
+method_destroy(SbMethodObject *self)
 {
-    SbObject *func;
-    SbObject *p;
-
-    func = SbCFunction_New(fp);
-    if (!func) {
-        return NULL;
-    }
-
-    p = SbMethod_New(type, func);
-    if (!p) {
-        Sb_DECREF(func);
-    }
-    return p;
-}
-
-SbObject *
-SbMethod_Bind(SbObject *p, SbObject *self)
-{
-    SbObject *m;
-
-    m = SbMethod_New(SbMethod_GetType(p), SbMethod_GetFunc(p));
-    SbMethod_SetSelf(p, self);
-    return m;
-}
-
-SbObject *
-SbMethod_GetFunc(SbObject *p)
-{
-    return NULL;
-}
-
-SbObject *
-SbMethod_GetType(SbObject *p)
-{
-    return NULL;
-}
-
-SbObject *
-SbMethod_GetSelf(SbObject *p)
-{
-    return NULL;
-}
-
-int
-SbMethod_SetFunc(SbObject *p, SbObject *o)
-{
-    return 0;
-}
-
-int
-SbMethod_SetType(SbObject *p, SbObject *o)
-{
-    return 0;
-}
-
-int
-SbMethod_SetSelf(SbObject *p, SbObject *o)
-{
-    return 0;
+    Sb_CLEAR(self->type);
+    Sb_CLEAR(self->func);
+    Sb_CLEAR(self->self);
+    SbObject_Destroy((SbObject *)self);
 }
 
 SbObject *
 SbMethod_Call(SbObject *p, SbObject *args, SbObject *kwargs)
 {
+    SbMethodObject *m = (SbMethodObject *)p;
     SbObject *func;
-    SbObject *self;
 
-    func = SbMethod_GetFunc(p);
-    self = SbMethod_GetSelf(p);
+    func = m->func;
     if (SbCFunction_Check(func)) {
-        if (!self || self == Sb_None) {
+        if (!m->self || m->self == Sb_None) {
             return SbCFunction_Call(func, NULL, args, kwargs);
         }
         else {
-            return SbCFunction_Call(func, self, args, kwargs);
+            return SbCFunction_Call(func, m->self, args, kwargs);
         }
     }
     return NULL;
 }
 
 /* Builtins initializer */
+
+static const SbCMethodDef method_methods[] = {
+    { "__call__", SbMethod_Call },
+
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
 _SbMethod_BuiltinInit()
 {
@@ -122,14 +76,9 @@ _SbMethod_BuiltinInit()
     }
 
     tp->tp_basicsize = sizeof(SbMethodObject);
-    /* Slots:
-       __func__
-       im_class
-       __self__
-    */
-    tp->tp_flags = SbType_FLAGS_HAS_SLOTS;
-    tp->tp_slotcount = 3;
+    tp->tp_destroy = (destructor)method_destroy;
 
     SbMethod_Type = tp;
-    return 0;
+    return SbType_CreateMethods(tp, method_methods);
 }
+

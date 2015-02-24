@@ -45,9 +45,6 @@ struct _SbTypeObject {
     /* Base type */
     SbTypeObject *tp_base;
 
-    /* Slot names (iterable) -- only if __slots__ is defined */
-    long tp_slotcount;
-    SbObject *tp_slotnames;
     /* Offset of the dictionary pointer in the instance. */
     Sb_ssize_t tp_dictoffset;
 
@@ -72,8 +69,6 @@ struct _SbTypeObject {
 extern SbTypeObject *SbType_Type;
 
 enum {
-    /* Whether the object has slots or an instance dict */
-    SbType_FLAGS_HAS_SLOTS          = (1 << 1),
     SbType_FLAGS_HAS_DICT           = (1 << 2),
 };
 
@@ -90,28 +85,6 @@ SbType_GenericNew(SbTypeObject *type, SbObject *args, SbObject *kwds);
    Returns: New reference. */
 SbTypeObject *
 SbType_New(const char *name, SbTypeObject *base_type);
-
-/* Build slots for the type.
-   All arguments must be C strings, which will be interned (later).
-   Returns: 0 if OK, -1 otherwise. */
-int
-SbType_BuildSlots(SbTypeObject *type, Sb_ssize_t count, ...);
-
-/* Look up an item in the type hierarchy.
-   Returns: Borrowed reference. */
-SbObject *
-_SbType_Lookup(SbObject *op, const char *name);
-SbObject *
-_SbType_FindMethod(SbObject *op, const char *name);
-
-/* Fast macros when p is typed properly */
-#define ROUND_INDEX(x, a) \
-    (((x) + (a) - 1) / (a))
-#define SbObject_SLOT(p, i) \
-    (((SbObject **)p)[ROUND_INDEX(sizeof(*(p)), sizeof(SbObject *)) + (i)])
-
-#define SbObject_SLOT_SLOW(p, i) \
-    (((SbObject **)p)[ROUND_INDEX(Sb_TYPE(p)->tp_basicsize, sizeof(SbObject *)) + (i)])
 
 #define SbObject_DICT(p) \
     (*(SbObject **)(((char *)(p)) + Sb_TYPE(p)->tp_dictoffset))

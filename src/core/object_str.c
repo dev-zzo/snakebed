@@ -42,7 +42,7 @@ Sb_ssize_t
 SbStr_GetSize(SbObject *p)
 {
     if (!SbStr_CheckExact(p)) {
-        /* raise TypeError */
+        SbErr_RaiseWithString(SbErr_SystemError, "non-string object passed to a string method");
         return -1;
     }
     return SbStr_GetSizeUnsafe(p);
@@ -52,7 +52,7 @@ const Sb_byte_t *
 SbStr_AsString(SbObject *p)
 {
     if (!SbStr_CheckExact(p)) {
-        /* raise TypeError */
+        SbErr_RaiseWithString(SbErr_SystemError, "non-string object passed to a string method");
         return NULL;
     }
     return SbStr_AsStringUnsafe(p);
@@ -96,7 +96,7 @@ _SbStr_Eq(SbObject *p1, SbObject *p2)
     Sb_ssize_t length;
 
     if (!SbStr_CheckExact(p1) || !SbStr_CheckExact(p2)) {
-        return 0;
+        return -1;
     }
     length = SbStr_GetSizeUnsafe(p1);
     if (length != SbStr_GetSizeUnsafe(p2)) {
@@ -111,7 +111,7 @@ _SbStr_EqString(SbObject *p1, const char *p2)
     Sb_ssize_t length;
 
     if (!SbStr_CheckExact(p1)) {
-        return 0;
+        return -1;
     }
     length = Sb_StrLen(p2);
     if (length != SbStr_GetSizeUnsafe(p1)) {
@@ -132,6 +132,7 @@ str_hash(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 str_str(SbObject *self, SbObject *args, SbObject *kwargs)
 {
+    Sb_INCREF(self);
     return self;
 }
 
@@ -139,6 +140,30 @@ static SbObject *
 str_len(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     return SbInt_FromLong(SbStr_GetSizeUnsafe(self));
+}
+
+static SbObject *
+str_eq(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *other;
+
+    other = SbTuple_GetItem(args, 0);
+    if (other) {
+        return SbBool_FromLong(_SbStr_Eq(self, other));
+    }
+    return NULL;
+}
+
+static SbObject *
+str_ne(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *other;
+
+    other = SbTuple_GetItem(args, 0);
+    if (other) {
+        return SbBool_FromLong(!_SbStr_Eq(self, other));
+    }
+    return NULL;
 }
 
 /* Builtins initializer */
@@ -154,29 +179,25 @@ _SbStr_BuiltinInit()
 
     tp->tp_basicsize = sizeof(SbStrObject) - sizeof(char);
     tp->tp_itemsize = sizeof(char);
+    tp->tp_destroy = SbObject_Destroy;
 
     SbStr_Type = tp;
     return 0;
 }
 
+static const SbCMethodDef str_methods[] = {
+    { "__hash__", str_hash },
+    { "__str__", str_str },
+    { "__len__", str_len },
+    { "__eq__", str_eq },
+    { "__ne__", str_ne },
+
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
 _SbStr_BuiltinInit2()
 {
-    SbObject *dict;
-    SbObject *fp;
-
-    dict = SbDict_New();
-    if (!dict) {
-        return -1;
-    }
-
-    fp = SbMethod_FromCFunction((SbObject *)SbStr_Type, str_hash);
-    SbDict_SetItemString(dict, "__hash__", fp);
-    fp = SbMethod_FromCFunction((SbObject *)SbStr_Type, str_str);
-    SbDict_SetItemString(dict, "__str__", fp);
-    fp = SbMethod_FromCFunction((SbObject *)SbStr_Type, str_len);
-    SbDict_SetItemString(dict, "__len__", fp);
-
-    SbObject_DICT(SbStr_Type) = dict;
-    return 0;
+    return SbType_CreateMethods(SbStr_Type, str_methods);
 }

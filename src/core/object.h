@@ -77,13 +77,16 @@ extern void _SbObject_DecRef(SbObject *op);
 /* Base "object" type. */
 extern SbTypeObject *SbObject_Type;
 
-/* New object creation */
+/* New object creation.
+   NOTE: Does NOT call `__init__`. */
 SbObject *
 SbObject_New(SbTypeObject *type);
 SbVarObject *
 SbObject_NewVar(SbTypeObject *type, Sb_ssize_t count);
 void
 SbObject_Destroy(SbObject *p);
+long
+SbObject_Identity(SbObject *p);
 
 /* Builtin objects */
 
@@ -114,7 +117,14 @@ typedef enum {
 /* Compare the values of o1 and o2 using the operation specified by opid.
    Returns: -1 on error, 0 if the result is false, 1 otherwise. */
 int
-SbObject_CompareBool(SbObject *p1, SbObject *p2, int op);
+SbObject_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op);
+
+SbObject *
+SbObject_GetAttrString(SbObject *p, const char *attr_name);
+int
+SbObject_SetAttrString(SbObject *p, const char *attr_name, SbObject *v);
+int
+SbObject_DelAttrString(SbObject *p, const char *attr_name);
 
 SbObject *
 SbObject_Call(SbObject *callable, SbObject *args, SbObject *kwargs);

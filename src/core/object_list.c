@@ -18,6 +18,7 @@ list_resize(SbListObject *self, Sb_ssize_t new_length)
         new_items = SbObject_Realloc(self->items, new_allocated * sizeof(SbObject *));
         if (!new_items) {
             /* OOM */
+            SbErr_NoMemory();
             return -1;
         }
 
@@ -28,7 +29,7 @@ list_resize(SbListObject *self, Sb_ssize_t new_length)
         self->items = new_items;
         self->allocated = new_allocated;
     }
-    Sb_COUNT(self) = new_length;
+    self->count = new_length;
     return 0;
 }
 
@@ -36,12 +37,12 @@ static int
 list_check_type_pos(SbObject *p, Sb_ssize_t pos)
 {
     if (!SbList_CheckExact(p)) {
-        /* raise TypeError? */
+        SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
         return -1;
     }
     /* Do an unsigned comparison. */
     if ((Sb_size_t)pos >= (Sb_size_t)SbList_GetSizeUnsafe(p)) {
-        /* raise IndexError */
+        SbErr_RaiseWithString(SbErr_IndexError, "list index out of range");
         return -1;
     }
     return 0;
@@ -51,7 +52,7 @@ static void
 list_destroy(SbListObject *self)
 {
     Sb_ssize_t pos;
-    Sb_ssize_t size = Sb_COUNT(self);
+    Sb_ssize_t size = SbList_GetSizeUnsafe(self);
 
     for (pos = 0; pos < size; ++pos) {
         Sb_CLEAR(self->items[pos]);
@@ -75,7 +76,7 @@ SbList_New(Sb_ssize_t length)
     SbListObject *op;
 
     if (length < 0) {
-        /* raise ArgumentError */
+        SbErr_RaiseWithString(SbErr_ValueError, "list length cannot be negative");
         goto fail0;
     }
 
@@ -106,7 +107,15 @@ SbList_Pack(Sb_ssize_t count, ...)
 
         va_start(args, count);
         for (pos = 0; pos < count; ++pos) {
-            SbList_SetItemUnsafe(list, pos, va_arg(args, SbObject *));
+            SbObject *o;
+
+            o = va_arg(args, SbObject *);
+            if (!o) {
+                Sb_DECREF(list);
+                SbErr_RaiseWithString(SbErr_ValueError, "a NULL pointer found when packing into a list");
+                return NULL;
+            }
+            SbList_SetItemUnsafe(list, pos, o);
         }
         va_end(args);
     }
@@ -119,7 +128,7 @@ Sb_ssize_t
 SbList_GetSize(SbObject *p)
 {
     if (!SbList_CheckExact(p)) {
-        /* raise TypeError? */
+        SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
         return -1;
     }
     return SbList_GetSizeUnsafe(p);
@@ -157,7 +166,7 @@ SbList_Append(SbObject *p, SbObject *o)
     Sb_ssize_t pos;
 
     if (!SbList_CheckExact(p)) {
-        /* raise TypeError? */
+        SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
         goto fail0;
     }
 
