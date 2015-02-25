@@ -210,6 +210,7 @@ SbInterp_ExecuteNext(void)
             }
             Sb_DECREF(o);
         }
+        break;
     case DeleteGlobal:
         {
             SbObject *name;
@@ -245,6 +246,7 @@ SbInterp_ExecuteNext(void)
                 *--sp = o;
             }
         }
+        break;
     case StoreName:
     case StoreFast:
         {
@@ -258,6 +260,7 @@ SbInterp_ExecuteNext(void)
             }
             Sb_DECREF(o);
         }
+        break;
     case DeleteName:
     case DeleteFast:
         {
