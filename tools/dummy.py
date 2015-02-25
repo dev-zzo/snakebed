@@ -1,7 +1,5 @@
 
-class A:
-    def m(self):
-        self.m()
-class B(object):
-    def n(self):
-        pass
+a = 1
+
+while True:
+    a = 2

@@ -178,7 +178,12 @@ SbInterp_ExecuteNext(void)
 
     case LoadFast:
         tmp = frame->vars[opcode_arg];
-        Sb_INCREF(tmp);
+        if (tmp) {
+            Sb_INCREF(tmp);
+        }
+        else {
+            /* Unbounded local */
+        }
         *--sp = tmp;
         break;
     case StoreFast:
@@ -189,7 +194,12 @@ SbInterp_ExecuteNext(void)
     case DeleteFast:
         tmp = frame->vars[opcode_arg];
         frame->vars[opcode_arg] = NULL;
-        Sb_XDECREF(tmp);
+        if (tmp) {
+            Sb_DECREF(tmp);
+        }
+        else {
+            /* Unbounded local */
+        }
         break;
 
     case LoadGlobal:
@@ -260,6 +270,8 @@ SbInterp_ExecuteNext(void)
 
     case JumpIfFalseOrPop:
     case JumpIfTrueOrPop:
+    case PopJumpIfFalse:
+    case PopJumpIfTrue:
         break;
 
     case JumpAbsolute:
@@ -271,13 +283,13 @@ SbInterp_ExecuteNext(void)
         break;
     }
 
-    /* Check for errors/exceptions set */
-    if (SbErr_Occurred()) {
-    }
-
     /* Update frame */
     frame->sp = sp;
     frame->ip = bytecode;
+
+    /* Check for errors/exceptions set */
+    if (SbErr_Occurred()) {
+    }
 
     return 0;
 }

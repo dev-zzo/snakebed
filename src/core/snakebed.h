@@ -19,6 +19,7 @@ extern "C" {
 #include "object_method.h"
 #include "object_code.h"
 #include "object_frame.h"
+#include "object_module.h"
 
 #include "exception.h"
 

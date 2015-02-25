@@ -54,6 +54,10 @@ SbObject_DefaultSetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
     if (SbTuple_Unpack(args, 2, 2, &attr_name, &value) < 0) {
         return NULL;
     }
+    if (!SbStr_CheckExact(attr_name)) {
+        SbErr_RaiseWithString(SbErr_TypeError, "attribute name must be a string");
+        return NULL;
+    }
 
     /* If the object has a dict, modify it. */
     if (Sb_TYPE(self)->tp_flags & SbType_FLAGS_HAS_DICT) {
@@ -68,6 +72,10 @@ SbObject_DefaultDelAttr(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *attr_name;
 
     if (SbTuple_Unpack(args, 1, 1, &attr_name) < 0) {
+        return NULL;
+    }
+    if (!SbStr_CheckExact(attr_name)) {
+        SbErr_RaiseWithString(SbErr_TypeError, "attribute name must be a string");
         return NULL;
     }
 

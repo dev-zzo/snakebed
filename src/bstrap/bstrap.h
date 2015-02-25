@@ -6,7 +6,7 @@
 
 #include "platform.h"
 
-#define Sb_OffsetOf(st, m) ((Sb_size_t)(&((st *)0)->m))
+#define Sb_OffsetOf(type, member) ((Sb_size_t)(&((type *)0)->member))
 
 Sb_size_t
 Sb_StrLen(const char *s);
