@@ -28,7 +28,7 @@ SbModule_New(const char *name)
     op->dict = dict;
 
     Sb_DECREF(name_str);
-    return (SbObject *)p;
+    return (SbObject *)op;
 
 fail2:
     Sb_DECREF(name_str);
