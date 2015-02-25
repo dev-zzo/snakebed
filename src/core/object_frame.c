@@ -33,7 +33,7 @@ frame_destroy(SbFrameObject *f)
     Sb_XDECREF(f->code);
     Sb_XDECREF(f->vars);
     Sb_XDECREF(f->prev);
-    SbObject_Destroy((SbObject *)f);
+    SbObject_DefaultDestroy((SbObject *)f);
 }
 
 int

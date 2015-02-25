@@ -62,7 +62,7 @@ static void
 dict_destroy(SbDictObject *self)
 {
     _SbDict_Clear(self);
-    SbObject_Destroy((SbObject *)self);
+    SbObject_DefaultDestroy((SbObject *)self);
 }
 
 void

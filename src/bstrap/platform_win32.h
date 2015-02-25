@@ -5,6 +5,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdarg.h>
 #include <string.h>
 #include <limits.h>
 #include <assert.h>

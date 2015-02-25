@@ -26,7 +26,7 @@ extern "C" {
 #define STATIC 
 
 extern int
-Sb_Initialize();
+Sb_Initialize(void);
 
 
 #ifdef __cplusplus

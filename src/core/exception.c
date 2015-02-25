@@ -40,6 +40,12 @@ SbErr_RaiseWithString(SbTypeObject *type, const char *value)
     SbErr_RaiseWithObject(type, SbStr_FromString(value));
 }
 
+void
+SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...)
+{
+    SbErr_RaiseWithString(type, "{SbErr_RaiseWithFormat not properly implemented yet}");
+}
+
 SbObject *
 SbErr_NoMemory(void)
 {
@@ -76,7 +82,7 @@ SbErr_NewException(const char *name, SbTypeObject *base)
         return NULL;
     }
     tp->tp_basicsize = sizeof(SbExceptionObject);
-    tp->tp_destroy = SbObject_Destroy;
+    tp->tp_destroy = SbObject_DefaultDestroy;
     return tp;
 }
 

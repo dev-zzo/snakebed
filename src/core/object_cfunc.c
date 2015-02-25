@@ -20,12 +20,6 @@ SbCFunction_New(SbCFunction fp)
     return (SbObject *)op;
 }
 
-static void
-cfunction_destroy(SbObject *p)
-{
-    SbObject_Destroy(p);
-}
-
 SbObject *
 SbCFunction_Call(SbObject *p, SbObject *self, SbObject *args, SbObject *kwargs)
 {
@@ -67,7 +61,7 @@ _SbCFunction_BuiltinInit()
     }
 
     tp->tp_basicsize = sizeof(SbCFunctionObject);
-    tp->tp_destroy = cfunction_destroy;
+    tp->tp_destroy = SbObject_DefaultDestroy;
 
     SbCFunction_Type = tp;
     return 0;

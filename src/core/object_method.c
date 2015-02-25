@@ -35,7 +35,7 @@ method_destroy(SbMethodObject *self)
     Sb_CLEAR(self->type);
     Sb_CLEAR(self->func);
     Sb_CLEAR(self->self);
-    SbObject_Destroy((SbObject *)self);
+    SbObject_DefaultDestroy((SbObject *)self);
 }
 
 SbObject *

@@ -80,7 +80,7 @@ do_initfuncs(typeinitfunc *funcs)
 }
 
 int
-Sb_Initialize()
+Sb_Initialize(void)
 {
     /* Stage 1: build the most basic types */
     if (do_initfuncs(stage1_inits) < 0) {

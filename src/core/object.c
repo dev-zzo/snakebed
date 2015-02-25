@@ -34,18 +34,49 @@ SbObject_NewVar(SbTypeObject *type, Sb_ssize_t count)
 }
 
 void
-SbObject_Destroy(SbObject *p)
+SbObject_DefaultDestroy(SbObject *p)
 {
     Sb_TYPE(p)->tp_free(p);
 }
 
-long
-SbObject_Identity(SbObject *p)
+SbObject *
+SbObject_DefaultHash(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return (long)p;
+    return SbInt_FromLong((long)self);
 }
 
-/* Python accessible methods */
+SbObject *
+SbObject_DefaultSetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *attr_name;
+    SbObject *value;
+
+    if (SbTuple_Unpack(args, 2, 2, &attr_name, &value) < 0) {
+        return NULL;
+    }
+
+    /* If the object has a dict, modify it. */
+    if (Sb_TYPE(self)->tp_flags & SbType_FLAGS_HAS_DICT) {
+        return SbDict_SetItemString(SbObject_DICT(self), attr_name, value);
+    }
+    return NULL;
+}
+
+SbObject *
+SbObject_DefaultDelAttr(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *attr_name;
+
+    if (SbTuple_Unpack(args, 1, 1, &attr_name) < 0) {
+        return NULL;
+    }
+
+    /* If the object has a dict, modify it. */
+    if (Sb_TYPE(self)->tp_flags & SbType_FLAGS_HAS_DICT) {
+        return SbDict_DelItemString(SbObject_DICT(self), SbStr_AsString(attr_name));
+    }
+    return NULL;
+}
 
 /* Builtins initializer */
 int
@@ -60,7 +91,7 @@ _SbObject_BuiltinInit()
 
     tp->tp_basicsize = sizeof(SbObject);
     tp->tp_flags = SbType_FLAGS_HAS_DICT;
-    tp->tp_destroy = SbObject_Destroy;
+    tp->tp_destroy = SbObject_DefaultDestroy;
 
     SbObject_Type = tp;
     return 0;

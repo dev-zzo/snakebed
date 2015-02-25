@@ -66,7 +66,7 @@ type_destroy(SbTypeObject *tp)
     if (tp->tp_dict) {
         Sb_DECREF(tp->tp_dict);
     }
-    SbObject_Destroy((SbObject *)tp);
+    SbObject_DefaultDestroy((SbObject *)tp);
 }
 
 int

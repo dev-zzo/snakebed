@@ -94,12 +94,37 @@ SbObject_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
     return SbObject_IsTrue(result);
 }
 
+static SbObject *
+type_method_check(SbObject *p, const char *method_name)
+{
+    SbObject *attr;
+    SbTypeObject *tp;
+
+    tp = Sb_TYPE(p);
+    attr = SbDict_GetItemString(tp->tp_dict, method_name);
+    if (attr) {
+        if (SbCFunction_Check(attr)) {
+            return SbMethod_New(tp, attr, p);
+        }
+        /* TODO: check for Python methods */
+    }
+    return NULL;
+}
+
 SbObject *
 SbObject_GetAttrString(SbObject *p, const char *attr_name)
 {
+    SbObject *getattribute;
     SbObject *getattr;
     SbObject *attr_from_type;
     SbObject *attr_from_inst = NULL;
+
+    /* https://docs.python.org/2/reference/datamodel.html#customizing-attribute-access */
+
+    getattribute = type_method_check(p, "__getattribute__");
+    if (getattribute) {
+        return SbObject_CallObjArgs(getattribute, 1, SbStr_FromString(attr_name));
+    }
 
     attr_from_type = SbDict_GetItemString(Sb_TYPE(p)->tp_dict, attr_name);
     if (attr_from_type) {
@@ -111,6 +136,7 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
         Sb_INCREF(attr_from_type);
     }
 
+    /* If the object has a dict, check it. */
     if (Sb_TYPE(p)->tp_flags & SbType_FLAGS_HAS_DICT) {
         attr_from_inst = SbDict_GetItemString(SbObject_DICT(p), attr_name);
         if (attr_from_inst) {
@@ -122,15 +148,11 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
         }
     }
 
-    getattr = SbDict_GetItemString(Sb_TYPE(p)->tp_dict, "__getattr__");
+    /* Note that if the attribute is found through the normal mechanism, 
+       __getattr__() is not called. */
+    getattr = type_method_check(p, "__getattr__");
     if (getattr) {
-        SbObject *args;
-
-        args = SbTuple_Pack(1, SbStr_FromString(attr_name));
-        if (!args) {
-            return NULL;
-        }
-        return SbObject_Call(getattr, args, NULL);
+        return SbObject_CallObjArgs(getattr, 1, SbStr_FromString(attr_name));
     }
 
     SbErr_RaiseWithString(SbErr_AttributeError, attr_name);
@@ -140,11 +162,17 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
 int
 SbObject_SetAttrString(SbObject *p, const char *attr_name, SbObject *v)
 {
-    /* Look for a descriptor in type hierarchy first? */
+    SbObject *setattr;
 
-    /* If the object has a dict, set the ref there. */
-    if (Sb_TYPE(p)->tp_flags & SbType_FLAGS_HAS_DICT) {
-        return SbDict_SetItemString(SbObject_DICT(p), attr_name, v);
+    /* Look for a descriptor in type hierarchy first? */
+    setattr = type_method_check(p, "__setattr__");
+    if (setattr) {
+        SbObject *result;
+
+        Sb_INCREF(v);
+        result = SbObject_CallObjArgs(setattr, 2, SbStr_FromString(attr_name), v);
+        Sb_XDECREF(result);
+        return result ? 0 : -1;
     }
 
     SbErr_RaiseWithString(SbErr_AttributeError, attr_name);
@@ -154,9 +182,23 @@ SbObject_SetAttrString(SbObject *p, const char *attr_name, SbObject *v)
 int
 SbObject_DelAttrString(SbObject *p, const char *attr_name)
 {
+    SbObject *delattr;
+
+    /* Look for a descriptor in type hierarchy first? */
+    delattr = type_method_check(p, "__delattr__");
+    if (delattr) {
+        SbObject *result;
+
+        result = SbObject_CallObjArgs(delattr, 1, SbStr_FromString(attr_name));
+        Sb_XDECREF(result);
+        return result ? 0 : -1;
+    }
+
     SbErr_RaiseWithString(SbErr_AttributeError, attr_name);
     return -1;
 }
+
+/* Callable interface */
 
 SbObject *
 SbObject_Call(SbObject *callable, SbObject *args, SbObject *kwargs)
@@ -177,6 +219,26 @@ SbObject_Call(SbObject *callable, SbObject *args, SbObject *kwargs)
 }
 
 SbObject *
+SbObject_CallObjArgs(SbObject *callable, Sb_ssize_t count, ...)
+{
+    SbObject *args;
+    SbObject *result;
+    va_list va;
+
+    va_start(va, count);
+    args = SbTuple_PackVa(count, va);
+    va_end(va);
+    if (!args) {
+        return NULL;
+    }
+
+    result = SbObject_Call(callable, args, NULL);
+
+    Sb_DECREF(args);
+    return result;
+}
+
+SbObject *
 SbObject_CallMethod(SbObject *o, const char *method, SbObject *args, SbObject *kwargs)
 {
     SbObject *m;
@@ -189,5 +251,25 @@ SbObject_CallMethod(SbObject *o, const char *method, SbObject *args, SbObject *k
 
     result = SbObject_Call(m, args, kwargs);
     Sb_DECREF(m);
+    return result;
+}
+
+SbObject *
+SbObject_CallMethodObjArgs(SbObject *o, const char *method, Sb_ssize_t count, ...)
+{
+    SbObject *args;
+    SbObject *result;
+    va_list va;
+
+    va_start(va, count);
+    args = SbTuple_PackVa(count, va);
+    va_end(va);
+    if (!args) {
+        return NULL;
+    }
+
+    result = SbObject_CallMethod(o, method, args, NULL);
+
+    Sb_DECREF(args);
     return result;
 }

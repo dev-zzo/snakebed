@@ -26,7 +26,7 @@ _SbNone_BuiltinInit()
         return -1;
     }
     tp->tp_basicsize = sizeof(SbNoneObject);
-    tp->tp_destroy = SbObject_Destroy;
+    tp->tp_destroy = SbObject_DefaultDestroy;
 
     SbNone_Type = tp;
 
@@ -62,7 +62,7 @@ _SbNotImplemented_BuiltinInit()
         return -1;
     }
     tp->tp_basicsize = sizeof(SbNotImplementedObject);
-    tp->tp_destroy = SbObject_Destroy;
+    tp->tp_destroy = SbObject_DefaultDestroy;
 
     SbNotImplemented_Type = tp;
 

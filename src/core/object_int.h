@@ -22,7 +22,12 @@ extern SbTypeObject *SbInt_Type;
 /* Returns the maximum value of the int object.
    Returns: Plain C data. */
 long
-SbInt_GetMax();
+SbInt_GetMax(void);
+
+/* Returns the minimum value of the int object.
+   Returns: Plain C data. */
+long
+SbInt_GetMin(void);
 
 /* Construct an int object from a C long.
    Returns: New reference. */

@@ -34,7 +34,7 @@ tuple_destroy(SbTupleObject *self)
     for (pos = 0; pos < size; ++pos) {
         Sb_CLEAR(self->items[pos]);
     }
-    SbObject_Destroy((SbObject *)self);
+    SbObject_DefaultDestroy((SbObject *)self);
 }
 
 /*
@@ -57,31 +57,78 @@ SbTuple_New(Sb_ssize_t length)
 }
 
 SbObject *
-SbTuple_Pack(Sb_ssize_t count, ...)
+SbTuple_PackVa(Sb_ssize_t count, va_list va)
 {
     SbObject *tuple;
+    Sb_ssize_t pos;
 
     tuple = SbTuple_New(count);
-    if (tuple) {
-        va_list args;
-        Sb_ssize_t pos;
+    if (!tuple) {
+        return NULL;
+    }
 
-        va_start(args, count);
-        for (pos = 0; pos < count; ++pos) {
-            SbObject *o;
+    for (pos = 0; pos < count; ++pos) {
+        SbObject *o;
 
-            o = va_arg(args, SbObject *);
-            if (!o) {
-                Sb_DECREF(tuple);
-                SbErr_RaiseWithString(SbErr_ValueError, "a NULL pointer found when packing into a tuple");
-                return NULL;
-            }
-            SbTuple_SetItemUnsafe(tuple, pos, o);
+        o = va_arg(va, SbObject *);
+        if (!o) {
+            Sb_DECREF(tuple);
+            SbErr_RaiseWithString(SbErr_ValueError, "a NULL pointer found when packing into a tuple");
+            return NULL;
         }
-        va_end(args);
+        SbTuple_SetItemUnsafe(tuple, pos, o);
     }
 
     return tuple;
+}
+
+SbObject *
+SbTuple_Pack(Sb_ssize_t count, ...)
+{
+    SbObject *tuple;
+    va_list va;
+
+    va_start(va, count);
+    tuple = SbTuple_PackVa(count, va);
+    va_end(va);
+    return tuple;
+}
+
+int
+SbTuple_Unpack(SbObject *p, Sb_ssize_t count_min, Sb_ssize_t count_max, ...)
+{
+    va_list va;
+    Sb_ssize_t count, pos;
+
+    if (!SbTuple_CheckExact(p)) {
+        SbErr_RaiseWithString(SbErr_SystemError, "non-tuple object passed to a tuple method");
+        return -1;
+    }
+    count = SbTuple_GetSizeUnsafe(p);
+    if (count < count_min || count > count_max) {
+        if (count_min < count_max) {
+            SbErr_RaiseWithFormat(SbErr_TypeError, "tuple may contain between %d and %d items (%d given)", count_min, count_max, count);
+        }
+        else {
+            SbErr_RaiseWithFormat(SbErr_TypeError, "tuple may contain exactly %d items (%d given)", count_min, count);
+        }
+        return -1;
+    }
+
+    va_start(va, count);
+    for (pos = 0; pos < count; ++pos) {
+        SbObject **po;
+
+        po = va_arg(va, SbObject **);
+        if (!po) {
+            SbErr_RaiseWithString(SbErr_ValueError, "a NULL pointer found when unpacking a tuple");
+            return -1;
+        }
+        *po = SbTuple_GetItemUnsafe(p, pos);
+    }
+    va_end(va);
+
+    return 0;
 }
 
 Sb_ssize_t

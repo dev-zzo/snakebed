@@ -179,7 +179,7 @@ _SbStr_BuiltinInit()
 
     tp->tp_basicsize = sizeof(SbStrObject) - sizeof(char);
     tp->tp_itemsize = sizeof(char);
-    tp->tp_destroy = SbObject_Destroy;
+    tp->tp_destroy = SbObject_DefaultDestroy;
 
     SbStr_Type = tp;
     return 0;

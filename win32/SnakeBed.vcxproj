@@ -108,6 +108,7 @@
     <ClCompile Include="..\src\core\snakebed.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\core\args.h" />
     <ClInclude Include="..\src\core\exception.h" />
     <ClInclude Include="..\src\core\interp.h" />
     <ClInclude Include="..\src\core\object.h" />

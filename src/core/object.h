@@ -83,10 +83,23 @@ SbObject *
 SbObject_New(SbTypeObject *type);
 SbVarObject *
 SbObject_NewVar(SbTypeObject *type, Sb_ssize_t count);
+
+/*
+ Default method implementations
+ */
+
 void
-SbObject_Destroy(SbObject *p);
-long
-SbObject_Identity(SbObject *p);
+SbObject_DefaultDestroy(SbObject *p);
+
+SbObject *
+SbObject_DefaultHash(SbObject *self, SbObject *args, SbObject *kwargs);
+
+SbObject *
+SbObject_DefaultSetAttr(SbObject *self, SbObject *args, SbObject *kwargs);
+
+SbObject *
+SbObject_DefaultDelAttr(SbObject *self, SbObject *args, SbObject *kwargs);
+
 
 /* Builtin objects */
 
@@ -98,7 +111,9 @@ extern SbObject *Sb_None;
 
 extern SbObject *Sb_NotImplemented;
 
-/* Object protocol implementation */
+/*
+ Object protocol implementation
+ */
 
 /* Provides a hash of the given object.
    Returns: the hash if OK, -1 otherwise. */
@@ -126,10 +141,15 @@ SbObject_SetAttrString(SbObject *p, const char *attr_name, SbObject *v);
 int
 SbObject_DelAttrString(SbObject *p, const char *attr_name);
 
+/* NOTE: *ObjArgs functions steal references to passed objects. */
 SbObject *
 SbObject_Call(SbObject *callable, SbObject *args, SbObject *kwargs);
 SbObject *
+SbObject_CallObjArgs(SbObject *callable, Sb_ssize_t count, ...);
+SbObject *
 SbObject_CallMethod(SbObject *o, const char *method, SbObject *args, SbObject *kwargs);
+SbObject *
+SbObject_CallMethodObjArgs(SbObject *o, const char *method, Sb_ssize_t count, ...);
 
 #ifdef __cplusplus
 }

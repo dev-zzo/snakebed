@@ -377,7 +377,7 @@ _SbInt_BuiltinInit()
     }
 
     tp->tp_basicsize = sizeof(SbIntObject);
-    tp->tp_destroy = SbObject_Destroy;
+    tp->tp_destroy = SbObject_DefaultDestroy;
 
     SbInt_Type = tp;
     return SbType_CreateMethods(SbInt_Type, int_methods);
