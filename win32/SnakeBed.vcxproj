@@ -101,6 +101,7 @@
     <ClCompile Include="..\src\core\object_int.c" />
     <ClCompile Include="..\src\core\object_list.c" />
     <ClCompile Include="..\src\core\object_method.c" />
+    <ClCompile Include="..\src\core\object_module.c" />
     <ClCompile Include="..\src\core\object_str.c" />
     <ClCompile Include="..\src\core\object_tuple.c" />
     <ClCompile Include="..\src\core\object_type.c" />
@@ -108,7 +109,6 @@
     <ClCompile Include="..\src\core\snakebed.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\core\args.h" />
     <ClInclude Include="..\src\core\exception.h" />
     <ClInclude Include="..\src\core\interp.h" />
     <ClInclude Include="..\src\core\object.h" />
@@ -120,6 +120,8 @@
     <ClInclude Include="..\src\core\object_int.h" />
     <ClInclude Include="..\src\core\object_list.h" />
     <ClInclude Include="..\src\core\object_method.h" />
+    <ClInclude Include="..\src\core\object_module.h" />
+    <ClInclude Include="..\src\core\object_pfunc.h" />
     <ClInclude Include="..\src\core\object_str.h" />
     <ClInclude Include="..\src\core\object_tuple.h" />
     <ClInclude Include="..\src\core\object_type.h" />

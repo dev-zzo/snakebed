@@ -105,7 +105,7 @@ SbObject_DefaultDelAttr(SbObject *self, SbObject *args, SbObject *kwargs);
 
 extern SbObject *Sb_None;
 
-#define SB_RETURN_NONE \
+#define Sb_RETURN_NONE \
     Sb_INCREF(Sb_None); \
     return Sb_None
 

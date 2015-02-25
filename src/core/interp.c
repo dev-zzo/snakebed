@@ -174,42 +174,112 @@ SbInterp_ExecuteNext(void)
         *--sp = tmp;
         break;
 
-        /* Operations on local variables */
-
-    case LoadFast:
-        tmp = frame->vars[opcode_arg];
-        if (tmp) {
-            Sb_INCREF(tmp);
-        }
-        else {
-            /* Unbounded local */
-        }
-        *--sp = tmp;
-        break;
-    case StoreFast:
-        tmp = frame->vars[opcode_arg];
-        frame->vars[opcode_arg] = *sp++;
-        Sb_XDECREF(tmp);
-        break;
-    case DeleteFast:
-        tmp = frame->vars[opcode_arg];
-        frame->vars[opcode_arg] = NULL;
-        if (tmp) {
-            Sb_DECREF(tmp);
-        }
-        else {
-            /* Unbounded local */
-        }
-        break;
-
+        /* Always use global namespace. */
     case LoadGlobal:
-    case StoreGlobal:
-    case DeleteGlobal:
+        {
+            SbObject *name;
+            SbObject *o;
+
+            name = SbTuple_GetItem(frame->code->names, opcode_arg);
+            if (frame->globals) {
+                o = SbDict_GetItemString(frame->globals, SbStr_AsStringUnsafe(name));
+            }
+            if (!o) {
+                /* Try builtins */
+            }
+
+            if (!o) {
+                SbErr_RaiseWithObject(SbErr_NameError, name);
+            }
+            else {
+                Sb_INCREF(o);
+                *--sp = o;
+            }
+        }
         break;
+    case StoreGlobal:
+        {
+            SbObject *name;
+            SbObject *o;
+
+            name = SbTuple_GetItem(frame->code->names, opcode_arg);
+            o = *sp++;
+            if (SbDict_SetItemString(frame->globals, SbStr_AsStringUnsafe(name), o) < 0) {
+                SbErr_Clear();
+                SbErr_RaiseWithObject(SbErr_NameError, name);
+            }
+            Sb_DECREF(o);
+        }
+    case DeleteGlobal:
+        {
+            SbObject *name;
+
+            name = SbTuple_GetItem(frame->code->names, opcode_arg);
+            if (SbDict_DelItemString(frame->globals, SbStr_AsStringUnsafe(name)) < 0) {
+                SbErr_Clear();
+                SbErr_RaiseWithObject(SbErr_NameError, name);
+            }
+        }
+        break;
+
+        /* Use local, then global namespace */
 
     case LoadName:
+    case LoadFast:
+        {
+            SbObject *name;
+            SbObject *o = NULL;
+
+            name = SbTuple_GetItem(frame->code->names, opcode_arg);
+            if (frame->locals) {
+                o = SbDict_GetItemString(frame->locals, SbStr_AsStringUnsafe(name));
+            }
+            if (!o && frame->globals) {
+                o = SbDict_GetItemString(frame->globals, SbStr_AsStringUnsafe(name));
+            }
+            if (!o) {
+                SbErr_RaiseWithObject(SbErr_NameError, name);
+            }
+            else {
+                Sb_INCREF(o);
+                *--sp = o;
+            }
+        }
     case StoreName:
+    case StoreFast:
+        {
+            SbObject *name;
+            SbObject *o;
+
+            name = SbTuple_GetItem(frame->code->names, opcode_arg);
+            o = *sp++;
+            if (SbDict_SetItemString(frame->locals, SbStr_AsStringUnsafe(name), o) < 0) {
+                /* No handling. */
+            }
+            Sb_DECREF(o);
+        }
     case DeleteName:
+    case DeleteFast:
+        {
+            SbObject *name;
+
+            name = SbTuple_GetItem(frame->code->names, opcode_arg);
+            if (SbDict_DelItemString(frame->locals, SbStr_AsStringUnsafe(name)) < 0) {
+                if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_KeyError)) {
+                    SbErr_Clear();
+                    if (SbDict_DelItemString(frame->globals, SbStr_AsStringUnsafe(name)) < 0) {
+                        SbErr_Clear();
+                        SbErr_RaiseWithObject(SbErr_NameError, name);
+                    }
+                }
+            }
+        }
+        break;
+
+    case LoadLocals:
+        tmp = frame->locals;
+        Sb_INCREF(tmp);
+        *--sp = tmp;
         break;
 
     case LoadAttr:
@@ -276,6 +346,25 @@ SbInterp_ExecuteNext(void)
 
     case JumpAbsolute:
         bytecode = SbStr_AsStringUnsafe(frame->code->code) + opcode_arg;
+        break;
+
+    case MakeFunction:
+        {
+            SbObject *code;
+            SbObject *defaults;
+            Sb_ssize_t pos;
+
+            code = *sp++;
+
+            defaults = SbTuple_New(opcode_arg);
+            for (pos = 0; pos < (Sb_ssize_t)opcode_arg; ++pos) {
+                SbTuple_SetItemUnsafe(defaults, pos, sp[pos]);
+            }
+            sp += opcode_arg;
+
+
+            Sb_DECREF(code);
+        }
         break;
 
     default:

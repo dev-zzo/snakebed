@@ -61,7 +61,10 @@ SbObject_DefaultSetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
 
     /* If the object has a dict, modify it. */
     if (Sb_TYPE(self)->tp_flags & SbType_FLAGS_HAS_DICT) {
-        return SbDict_SetItemString(SbObject_DICT(self), attr_name, value);
+        if (SbDict_SetItemString(SbObject_DICT(self), SbStr_AsString(attr_name), value) < 0) {
+            return NULL;
+        }
+        Sb_RETURN_NONE;
     }
     return NULL;
 }
@@ -81,7 +84,10 @@ SbObject_DefaultDelAttr(SbObject *self, SbObject *args, SbObject *kwargs)
 
     /* If the object has a dict, modify it. */
     if (Sb_TYPE(self)->tp_flags & SbType_FLAGS_HAS_DICT) {
-        return SbDict_DelItemString(SbObject_DICT(self), SbStr_AsString(attr_name));
+        if (SbDict_DelItemString(SbObject_DICT(self), SbStr_AsString(attr_name)) < 0) {
+            return NULL;
+        }
+        Sb_RETURN_NONE;
     }
     return NULL;
 }

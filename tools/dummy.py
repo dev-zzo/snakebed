@@ -1,5 +1,5 @@
 
-a = 1
-
-while True:
-    a = 2
+def f(x):
+    a = 1
+    b = 2
+    return a + b
