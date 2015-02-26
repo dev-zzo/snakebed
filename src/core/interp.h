@@ -4,12 +4,13 @@
 extern "C" {
 #endif
 
-int 
-SbInterp_PushFrame(SbFrameObject *f, SbObject *args, SbObject *kwargs);
-
 int
 SbInterp_ExecuteNext(void);
 
+/* Execute instructions in the frame.
+   Returns: New refernce to the return value. */
+SbObject *
+SbInterp_Execute(SbFrameObject *frame);
 
 #ifdef __cplusplus
 }

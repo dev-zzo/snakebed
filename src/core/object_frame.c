@@ -8,21 +8,32 @@ SbTypeObject *SbFrame_Type = NULL;
  */
 
 SbObject *
-SbFrame_New(SbCodeObject *code, SbFrameObject *prev)
+SbFrame_New(SbCodeObject *code, SbObject *globals, SbObject *locals)
 {
     SbObject *p;
 
-    p = (SbObject *)SbObject_NewVar(SbFrame_Type, code->localvars_count + code->stack_size);
+    p = (SbObject *)SbObject_NewVar(SbFrame_Type, code->stack_size);
     if (p) {
         SbFrameObject *op = (SbFrameObject *)p;
+
         Sb_INCREF(code);
         op->code = code;
-        if (prev) {
-            Sb_INCREF(prev);
-            op->prev = prev;
+
+        if (globals) {
+            Sb_INCREF(globals);
+            op->globals = globals;
         }
+        else {
+        }
+
+        if (locals) {
+            Sb_INCREF(locals);
+            op->locals = locals;
+        }
+
+        op->ip = SbStr_AsStringUnsafe(code->code);
         /* stack pointer points just outside the stack */
-        op->sp = &op->vars[code->localvars_count + code->stack_size];
+        op->sp = &op->stack[code->stack_size];
     }
     return p;
 }
@@ -30,11 +41,32 @@ SbFrame_New(SbCodeObject *code, SbFrameObject *prev)
 static void
 frame_destroy(SbFrameObject *f)
 {
-    Sb_XDECREF(f->code);
-    Sb_XDECREF(f->vars);
-    Sb_XDECREF(f->prev);
+    Sb_CLEAR(f->code);
+    Sb_CLEAR(f->globals);
+    Sb_CLEAR(f->locals);
+    Sb_CLEAR(f->prev);
     SbObject_DefaultDestroy((SbObject *)f);
 }
+
+int
+SbFrame_SetPrevious(SbObject *f, SbFrameObject *prev)
+{
+    SbFrameObject *op = (SbFrameObject *)f;
+
+    Sb_CLEAR(op->prev);
+    Sb_INCREF(prev);
+    op->prev = prev;
+    return 0;
+}
+
+int
+SbFrame_ApplyArgs(SbObject *f, SbObject *args, SbObject *kwds, SbObject *defaults)
+{
+    SbFrameObject *op = (SbFrameObject *)f;
+    return 0;
+}
+
+/* Type initializer */
 
 int
 _SbFrame_BuiltinInit()

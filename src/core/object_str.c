@@ -177,6 +177,7 @@ _SbStr_BuiltinInit()
         return -1;
     }
 
+    /* This overallocates by 1 char -- is used for NUL terminator. */
     tp->tp_basicsize = sizeof(SbStrObject);
     tp->tp_itemsize = sizeof(char);
     tp->tp_destroy = SbObject_DefaultDestroy;

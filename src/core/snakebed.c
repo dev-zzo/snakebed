@@ -32,6 +32,8 @@ extern int
 _SbErr_BuiltinInit();
 extern int
 _SbModule_TypeInit();
+extern int
+_SbFile_TypeInit();
 
 typedef int (*typeinitfunc)();
 
@@ -62,6 +64,7 @@ static typeinitfunc stage3_inits[] = {
     _SbMethod_BuiltinInit,
     _SbObject_BuiltinInit,
     _SbModule_TypeInit,
+    _SbFile_TypeInit,
     /* Sentinel */
     NULL
 };

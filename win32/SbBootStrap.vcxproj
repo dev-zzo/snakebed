@@ -88,6 +88,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\bstrap\string.c" />
     <ClCompile Include="..\src\bstrap\thunks.c" />
+    <ClCompile Include="..\src\bstrap\win32\files.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

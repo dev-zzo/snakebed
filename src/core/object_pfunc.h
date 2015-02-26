@@ -14,8 +14,14 @@ typedef struct _SbPFunctionObject {
 
 extern SbTypeObject *SbPFunction_Type;
 
+#define SbPFunction_Check(p) \
+    (Sb_TYPE(p) == SbPFunction_Type)
+
 SbObject *
 SbPFunction_New(SbCodeObject *code, SbObject *defaults, SbObject *globals);
+
+SbObject *
+SbPFunction_Call(SbObject *p, SbObject *args, SbObject *kwargs);
 
 #ifdef __cplusplus
 }

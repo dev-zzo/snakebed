@@ -1,6 +1,6 @@
 #ifndef __SNAKEBED_SUPOORTS_H
 #define __SNAKEBED_SUPOORTS_H
 
-
+#define SUPPORTS_KWARGS 1
 
 #endif // __SNAKEBED_SUPOORTS_H

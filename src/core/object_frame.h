@@ -15,13 +15,19 @@ typedef struct _SbFrameObject {
     SbObject *locals; /* dict -- local namespace associated with current frame */
     const Sb_byte_t *ip;
     SbObject **sp; /* topmost in stack */
-    SbObject *vars[1]; /* locals + stack */
+    SbObject *stack[1]; /* stack */
 } SbFrameObject;
 
 extern SbTypeObject *SbFrame_Type;
 
 SbObject *
-SbFrame_New(SbCodeObject *code, SbFrameObject *prev);
+SbFrame_New(SbCodeObject *code, SbObject *globals, SbObject *locals);
+
+int
+SbFrame_SetPrevious(SbObject *f, SbFrameObject *prev);
+
+int
+SbFrame_ApplyArgs(SbObject *f, SbObject *args, SbObject *kwds, SbObject *defaults);
 
 #ifdef __cplusplus
 }

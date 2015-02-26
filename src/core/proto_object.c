@@ -207,6 +207,9 @@ SbObject_Call(SbObject *callable, SbObject *args, SbObject *kwargs)
     if (SbCFunction_Check(callable)) {
         return SbCFunction_Call(callable, NULL, args, kwargs);
     }
+    if (SbPFunction_Check(callable)) {
+        return SbPFunction_Call(callable, args, kwargs);
+    }
     if (SbMethod_Check(callable)) {
         return SbMethod_Call(callable, args, kwargs);
     }
