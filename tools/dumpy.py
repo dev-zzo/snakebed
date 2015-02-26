@@ -25,21 +25,25 @@ def dumpy_co(co, parent=None):
     
     # https://docs.python.org/2/library/inspect.html
     output('  co_name:        %s' % co.co_name)
+    
     # name of file in which this code object was created
     output('  co_filename:    %s' % co.co_filename)
     # number of first line in Python source code
     output('  co_firstlineno: %s' % co.co_firstlineno)
+    # encoded mapping of line numbers to bytecode indices
+    output('  co_lnotab:      %s' % repr(co.co_lnotab))
+    
     # bitmap: 1=optimized | 2=newlocals | 4=*arg | 8=**arg
     output('  co_flags:       %04X' % co.co_flags)
     # virtual machine stack space required
     output('  co_stacksize:   %d' % co.co_stacksize)
-    # encoded mapping of line numbers to bytecode indices
-    output('  co_lnotab:      %s' % repr(co.co_lnotab))
     # number of arguments (not including * or ** args)
     output('  co_argcount:    %d' % co.co_argcount)
     # number of local variables
     output('  co_nlocals:     %d' % co.co_nlocals)
-    
+    if co.co_nlocals != len(co.co_varnames):
+        print 'WARNING!! co_nlocals and co_varnames differ!'
+
     output('  co_varnames:    %d' % len(co.co_varnames))
     output_table(co.co_varnames)
 
