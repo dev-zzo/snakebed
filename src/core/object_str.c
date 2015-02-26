@@ -27,13 +27,13 @@ SbStr_FromStringAndSize(const void *v, Sb_ssize_t len)
 {
     SbStrObject *op;
 
-    op = (SbStrObject *)SbObject_NewVar(SbStr_Type, len + 1);
+    op = (SbStrObject *)SbObject_NewVar(SbStr_Type, len);
     if (op) {
-        /* Ehhh... trickery! */
-        Sb_COUNT(op)--;
         op->stored_hash = -1;
-        Sb_MemCpy(op->items, v, len);
-        op->items[len] = '\0';
+        if (v) {
+            Sb_MemCpy(op->items, v, len);
+            op->items[len] = '\0';
+        }
     }
     return (SbObject *)op;
 }
@@ -177,7 +177,7 @@ _SbStr_BuiltinInit()
         return -1;
     }
 
-    tp->tp_basicsize = sizeof(SbStrObject) - sizeof(char);
+    tp->tp_basicsize = sizeof(SbStrObject);
     tp->tp_itemsize = sizeof(char);
     tp->tp_destroy = SbObject_DefaultDestroy;
 

@@ -26,6 +26,7 @@ SbObject *
 SbStr_FromString(const char *v);
 
 /* Construct a str object from a C array.
+   If `v` is NULL, nothing is copied.
    Returns: New reference. */
 SbObject *
 SbStr_FromStringAndSize(const void *v, Sb_ssize_t len);
