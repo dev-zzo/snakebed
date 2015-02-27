@@ -4,9 +4,6 @@
 extern "C" {
 #endif
 
-int
-SbInterp_ExecuteNext(void);
-
 /* Execute instructions in the frame.
    Returns: New refernce to the return value. */
 SbObject *

@@ -57,7 +57,8 @@ list_destroy(SbListObject *self)
     for (pos = 0; pos < size; ++pos) {
         Sb_CLEAR(self->items[pos]);
     }
-    Sb_TYPE(self)->tp_free(self);
+    SbObject_Free(self->items);
+    SbObject_DefaultDestroy((SbObject *)self);
 }
 
 /*

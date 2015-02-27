@@ -25,6 +25,9 @@ extern "C" {
 
 #include "exception.h"
 
+#include "interp.h"
+#include "import.h"
+
 /* Nothing. */
 #define STATIC 
 

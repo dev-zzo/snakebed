@@ -234,6 +234,23 @@ SbDict_DelItemString(SbObject *p, const char *key)
     return -1;
 }
 
+#if 0
+SbObject *
+SbDict_GetItem(SbObject *p, SbObject *key)
+{
+}
+
+int
+SbDict_SetItem(SbObject *p, SbObject *key, SbObject *value)
+{
+}
+
+int
+SbDict_DelItem(SbObject *p, SbObject *key)
+{
+}
+#endif
+
 /* Builtins initializer */
 
 int

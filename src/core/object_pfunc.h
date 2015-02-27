@@ -9,7 +9,6 @@ typedef struct _SbPFunctionObject {
     SbCodeObject *code;
     SbObject *globals; /* dict */
     SbObject *defaults; /* tuple */
-    SbObject *name; /* str */
 } SbPFunctionObject;
 
 extern SbTypeObject *SbPFunction_Type;

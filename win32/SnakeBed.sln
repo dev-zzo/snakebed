@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SbBootStrap", "SbBootStrap.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SbTests", "SbTests.vcxproj", "{66A18750-1476-482B-8267-87AEEBC3FEB7}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SbApp", "SbApp.vcxproj", "{BBE79F2E-5D96-4659-B7FE-D04623233C1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -25,6 +27,10 @@ Global
 		{66A18750-1476-482B-8267-87AEEBC3FEB7}.Debug|Win32.Build.0 = Debug|Win32
 		{66A18750-1476-482B-8267-87AEEBC3FEB7}.Release|Win32.ActiveCfg = Release|Win32
 		{66A18750-1476-482B-8267-87AEEBC3FEB7}.Release|Win32.Build.0 = Release|Win32
+		{BBE79F2E-5D96-4659-B7FE-D04623233C1C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BBE79F2E-5D96-4659-B7FE-D04623233C1C}.Debug|Win32.Build.0 = Debug|Win32
+		{BBE79F2E-5D96-4659-B7FE-D04623233C1C}.Release|Win32.ActiveCfg = Release|Win32
+		{BBE79F2E-5D96-4659-B7FE-D04623233C1C}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

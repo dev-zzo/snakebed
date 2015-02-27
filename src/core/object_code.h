@@ -9,9 +9,9 @@ typedef struct _SbCodeObject {
     SbObject_HEAD;
     SbObject *name;
 
-    unsigned flags;
-    unsigned stack_size; /* Evaluation stack max depth */
-    unsigned arg_count; /* Max: 255 */
+    long flags;
+    long stack_size; /* Evaluation stack max depth */
+    long arg_count; /* Max: 255 */
 
     SbObject *code; /* str: bytecode itself */
     SbObject *consts; /* constants used */
@@ -27,6 +27,12 @@ typedef struct _SbCodeObject {
 #define SbCode_NO_FREE_VARS (1 << 6)
 
 extern SbTypeObject *SbCode_Type;
+
+#define SbCode_Check(p) \
+    (Sb_TYPE(p) == SbCode_Type)
+
+SbObject *
+SbCode_New(SbObject *name, long flags, long stack_size, long arg_count, SbObject *code, SbObject *consts, SbObject *names, SbObject *fastnames);
 
 #ifdef __cplusplus
 }

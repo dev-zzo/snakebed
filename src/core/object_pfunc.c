@@ -8,7 +8,16 @@ SbPFunction_New(SbCodeObject *code, SbObject *defaults, SbObject *globals)
 {
     SbObject *p;
 
-    p = (SbObject *)SbObject_NewVar(SbFrame_Type, code->stack_size);
+    if (!SbTuple_CheckExact(defaults)) {
+        SbErr_RaiseWithString(SbErr_ValueError, "expected a tuple for `defaults`");
+        return NULL;
+    }
+    if (!SbDict_CheckExact(globals)) {
+        SbErr_RaiseWithString(SbErr_ValueError, "expected a dict for `globals`");
+        return NULL;
+    }
+
+    p = (SbObject *)SbObject_New(SbPFunction_Type);
     if (p) {
         SbPFunctionObject *op = (SbPFunctionObject *)p;
 
@@ -18,7 +27,6 @@ SbPFunction_New(SbCodeObject *code, SbObject *defaults, SbObject *globals)
         op->defaults = defaults;
         Sb_INCREF(globals);
         op->globals = globals;
-        op->name = SbStr_FromString("<unnamed function>");
     }
     return p;
 }
@@ -26,7 +34,6 @@ SbPFunction_New(SbCodeObject *code, SbObject *defaults, SbObject *globals)
 static void
 pfunction_destroy(SbPFunctionObject *self)
 {
-    Sb_CLEAR(self->name);
     Sb_CLEAR(self->defaults);
     Sb_CLEAR(self->globals);
     Sb_CLEAR(self->code);

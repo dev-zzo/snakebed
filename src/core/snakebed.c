@@ -27,6 +27,8 @@ _SbCFunction_BuiltinInit();
 extern int
 _SbCFunction_BuiltinInit2();
 extern int
+_SbPFunction_TypeInit();
+extern int
 _SbMethod_BuiltinInit();
 extern int
 _SbErr_BuiltinInit();
@@ -34,6 +36,10 @@ extern int
 _SbModule_TypeInit();
 extern int
 _SbFile_TypeInit();
+extern int
+_SbCode_TypeInit();
+extern int
+_SbFrame_TypeInit();
 
 typedef int (*typeinitfunc)();
 
@@ -61,10 +67,13 @@ static typeinitfunc stage3_inits[] = {
     _SbInt_BuiltinInit,
     _SbNone_BuiltinInit,
     _SbNotImplemented_BuiltinInit,
+    _SbPFunction_TypeInit,
     _SbMethod_BuiltinInit,
     _SbObject_BuiltinInit,
     _SbModule_TypeInit,
     _SbFile_TypeInit,
+    _SbCode_TypeInit,
+    _SbFrame_TypeInit,
     /* Sentinel */
     NULL
 };

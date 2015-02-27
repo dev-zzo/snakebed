@@ -21,13 +21,17 @@ SbModule_New(const char *name)
     }
 
     dict = SbDict_New();
-    if (SbDict_SetItemString(dict, "__name__", name_str) < 0) {
+    if (!dict) {
         goto fail2;
     }
+    if (SbDict_SetItemString(dict, "__name__", name_str) < 0) {
+        Sb_DECREF(dict);
+        goto fail2;
+    }
+    Sb_DECREF(name_str);
 
     op->dict = dict;
 
-    Sb_DECREF(name_str);
     return (SbObject *)op;
 
 fail2:

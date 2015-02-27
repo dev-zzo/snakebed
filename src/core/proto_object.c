@@ -15,6 +15,11 @@ SbObject_IsTrue(SbObject *p)
 {
     SbObject *result;
 
+    /* Shortcuts */
+    if (p == Sb_None || p == Sb_False) {
+        return 0;
+    }
+
     result = SbObject_CallMethod(p, "__nonzero__", NULL, NULL);
     if (!result && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
         SbErr_Clear();
@@ -61,18 +66,45 @@ SbObject_Not(SbObject *p)
     return is_true == 0;
 }
 
+static const char *op_to_method[] = {
+    "__lt__",
+    "__le__",
+    "__eq__",
+    "__ne__",
+    "__gt__",
+    "__ge__",
+};
+
+SbObject *
+SbObject_Compare(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
+{
+    SbObject *result;
+
+    /* No need to look up things for these */
+    if (p1 == p2) {
+        if (op == Sb_EQ) {
+            Sb_RETURN_TRUE;
+        }
+        if (op == Sb_NE) {
+            Sb_RETURN_FALSE;
+        }
+    }
+
+    result = SbObject_CallMethod(p1, op_to_method[op], SbTuple_Pack(1, p2), NULL);
+    if (!result) {
+        if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
+            SbErr_Clear();
+            Sb_INCREF(Sb_NotImplemented);
+            return Sb_NotImplemented;
+        }
+    }
+    return result;
+}
+
 int
 SbObject_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
 {
     SbObject *result;
-    static const char *op_to_method[] = {
-        "__lt__",
-        "__le__",
-        "__eq__",
-        "__ne__",
-        "__gt__",
-        "__ge__",
-    };
 
     /* No need to look up things for these */
     if (p1 == p2) {
@@ -128,7 +160,7 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
 
     attr_from_type = SbDict_GetItemString(Sb_TYPE(p)->tp_dict, attr_name);
     if (attr_from_type) {
-        if (SbCFunction_Check(attr_from_type)) {
+        if (SbCFunction_Check(attr_from_type) || SbPFunction_Check(attr_from_type)) {
             attr_from_type = SbMethod_New(Sb_TYPE(p), attr_from_type, p);
             return attr_from_type;
         }

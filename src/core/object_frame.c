@@ -24,11 +24,17 @@ SbFrame_New(SbCodeObject *code, SbObject *globals, SbObject *locals)
             op->globals = globals;
         }
         else {
+            /* This is interesting. */
         }
 
         if (locals) {
             Sb_INCREF(locals);
             op->locals = locals;
+        }
+        else {
+            /* TODO: Is this correct? */
+            Sb_INCREF(op->globals);
+            op->locals = op->globals;
         }
 
         op->ip = SbStr_AsStringUnsafe(code->code);
@@ -54,8 +60,10 @@ SbFrame_SetPrevious(SbObject *f, SbFrameObject *prev)
     SbFrameObject *op = (SbFrameObject *)f;
 
     Sb_CLEAR(op->prev);
-    Sb_INCREF(prev);
-    op->prev = prev;
+    if (prev) {
+        Sb_INCREF(prev);
+        op->prev = prev;
+    }
     return 0;
 }
 
@@ -69,7 +77,7 @@ SbFrame_ApplyArgs(SbObject *f, SbObject *args, SbObject *kwds, SbObject *default
 /* Type initializer */
 
 int
-_SbFrame_BuiltinInit()
+_SbFrame_TypeInit()
 {
     SbTypeObject *tp;
 
@@ -82,6 +90,6 @@ _SbFrame_BuiltinInit()
     tp->tp_itemsize = sizeof(SbObject *);
     tp->tp_destroy = (destructor)frame_destroy;
 
-    SbCFunction_Type = tp;
+    SbFrame_Type = tp;
     return 0;
 }

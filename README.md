@@ -19,3 +19,5 @@ A toy implementation of Python 2.7 subset designed for compilation freedom and s
 # TODO List
 
 * Slots implementation
+* Unify lists and tuples by as much as possible without hurting performance
+* Factor out common code into some more generic sequence implementation?

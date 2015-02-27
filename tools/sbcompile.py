@@ -119,6 +119,7 @@ def write_obj(output, o):
         # free/cellvars
         _count_codes += 1
     else:
+        # Currently not handled: long, unicode
         raise TypeError, "unknown type passed: %s" % str(otype)
 
 def do_compile(module_name, input, output):

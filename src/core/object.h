@@ -130,9 +130,16 @@ typedef enum {
 } SbObjectCompareOp;
 
 /* Compare the values of o1 and o2 using the operation specified by opid.
+   Returns: New reference. */
+SbObject *
+SbObject_Compare(SbObject *p1, SbObject *p2, SbObjectCompareOp op);
+
+/* Compare the values of o1 and o2 using the operation specified by opid.
    Returns: -1 on error, 0 if the result is false, 1 otherwise. */
 int
 SbObject_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op);
+int
+SbObject_IsTrue(SbObject *p);
 
 SbObject *
 SbObject_GetAttrString(SbObject *p, const char *attr_name);
@@ -150,6 +157,26 @@ SbObject *
 SbObject_CallMethod(SbObject *o, const char *method, SbObject *args, SbObject *kwargs);
 SbObject *
 SbObject_CallMethodObjArgs(SbObject *o, const char *method, Sb_ssize_t count, ...);
+
+/*
+ Numeric protocol implementation
+ */
+
+SbObject *
+SbNumber_Add(SbObject * lhs, SbObject *rhs);
+SbObject *
+SbNumber_Subtract(SbObject * lhs, SbObject *rhs);
+SbObject *
+SbNumber_Multiply(SbObject * lhs, SbObject *rhs);
+SbObject *
+SbNumber_Divide(SbObject * lhs, SbObject *rhs);
+SbObject *
+SbNumber_FloorDivide(SbObject * lhs, SbObject *rhs);
+SbObject *
+SbNumber_TrueDivide(SbObject * lhs, SbObject *rhs);
+SbObject *
+SbNumber_Remainder(SbObject * lhs, SbObject *rhs);
+
 
 #ifdef __cplusplus
 }
