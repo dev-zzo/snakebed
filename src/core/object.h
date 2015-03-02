@@ -166,6 +166,17 @@ typedef SbObject *(*SbUnaryFunc)(SbObject *self);
 typedef SbObject *(*SbBinaryFunc)(SbObject *self, SbObject *);
 typedef SbObject *(*SbTernaryFunc)(SbObject *self, SbObject *, SbObject *);
 
+/* Unary operations */
+SbObject *
+SbNumber_Negative(SbObject * rhs);
+SbObject *
+SbNumber_Positive(SbObject * rhs);
+SbObject *
+SbNumber_Absolute(SbObject * rhs);
+SbObject *
+SbNumber_Invert(SbObject * rhs);
+
+/* Binary operations */
 SbObject *
 SbNumber_Add(SbObject * lhs, SbObject *rhs);
 SbObject *
@@ -186,7 +197,6 @@ SbObject *
 SbNumber_Or(SbObject * lhs, SbObject *rhs);
 SbObject *
 SbNumber_Xor(SbObject * lhs, SbObject *rhs);
-
 
 #ifdef __cplusplus
 }

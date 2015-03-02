@@ -34,6 +34,7 @@ SbInterp_Execute(SbFrameObject *frame)
         int i_result;
         int test_value;
         Sb_ssize_t pos;
+        SbUnaryFunc ufunc;
         SbBinaryFunc bfunc;
         int failure = 0;
 
@@ -118,30 +119,6 @@ SbInterp_Execute(SbFrameObject *frame)
             continue;
 
             /*** Opcodes that may raise an exception ***/
-
-            /* Unary operations */
-
-        case UnaryPositive:
-            /* X -> type(X).__pos__(X) */
-            method_name = "__pos__";
-            goto UnaryXxx_common;
-        case UnaryNegative:
-            /* X -> type(X).__neg__(X) */
-            method_name = "__neg__";
-            goto UnaryXxx_common;
-        case UnaryInvert:
-            /* X -> type(X).__invert__(X) */
-            method_name = "__invert__";
-UnaryXxx_common:
-            op1 = *sp++;
-            result = SbObject_CallMethod(op1, method_name, NULL, NULL);
-            failure = result == NULL;
-            Sb_DECREF(op1);
-
-            if (!failure) {
-                *--sp = result;
-            }
-            break;
 
         case JumpIfFalseOrPop:
             test_value = 0;
@@ -349,9 +326,9 @@ BuildXxx_popargs:
             }
 
             result = SbPFunction_New((SbCodeObject *)op1, op2, frame->globals);
-            failure = result == NULL;
             Sb_DECREF(op2);
             Sb_DECREF(op1);
+            failure = result == NULL;
             if (!failure) {
                 *--sp = result;
             }
@@ -411,15 +388,37 @@ BuildXxx_popargs:
                 op1 = *sp++;
 
                 result = SbObject_Call(op1, op2, op3);
-                failure = result == NULL;
 #if SUPPORTS_KWARGS
                 Sb_DECREF(op3);
 #endif
                 Sb_DECREF(op2);
                 Sb_DECREF(op1);
+                failure = result == NULL;
                 if (!failure) {
                     *--sp = result;
                 }
+            }
+            break;
+
+
+        case UnaryPositive:
+            /* X -> type(X).__pos__(X) */
+            ufunc = SbNumber_Positive;
+            goto UnaryXxx_common;
+        case UnaryNegative:
+            /* X -> type(X).__neg__(X) */
+            ufunc = SbNumber_Negative;
+            goto UnaryXxx_common;
+        case UnaryInvert:
+            /* X -> type(X).__invert__(X) */
+            ufunc = SbNumber_Invert;
+UnaryXxx_common:
+            op1 = *sp++;
+            result = ufunc(op1);
+            Sb_DECREF(op1);
+            failure = result == NULL;
+            if (!failure) {
+                *--sp = result;
             }
             break;
 
@@ -429,9 +428,9 @@ BuildXxx_popargs:
             op2 = *sp++;
             result = SbObject_Compare(op2, op1, opcode_arg);
 BinaryXxx_tests:
-            failure = result == NULL;
             Sb_DECREF(op2);
             Sb_DECREF(op1);
+            failure = result == NULL;
             if (!failure) {
                 *--sp = result;
             }
@@ -479,6 +478,14 @@ BinaryXxx_common:
             goto BinaryXxx_common;
         case InPlaceOr:
         case BinaryOr:
+            bfunc = &SbNumber_Or;
+            goto BinaryXxx_common;
+        case InPlaceLeftShift:
+        case BinaryLeftShift:
+            bfunc = &SbNumber_Or;
+            goto BinaryXxx_common;
+        case InPlaceRightShift:
+        case BinaryRightShift:
             bfunc = &SbNumber_Or;
             goto BinaryXxx_common;
 
