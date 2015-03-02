@@ -197,7 +197,7 @@ _SbList_BuiltinInit()
     }
 
     tp->tp_basicsize = sizeof(SbListObject);
-    tp->tp_destroy = (destructor)list_destroy;
+    tp->tp_destroy = (SbDestroyFunc)list_destroy;
 
     SbList_Type = tp;
     return 0;

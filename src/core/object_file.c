@@ -237,7 +237,7 @@ _SbFile_TypeInit()
     }
 
     tp->tp_basicsize = sizeof(SbFileObject);
-    tp->tp_destroy = (destructor)file_destroy;
+    tp->tp_destroy = (SbDestroyFunc)file_destroy;
 
     SbFile_Type = tp;
     return SbType_CreateMethods(SbFile_Type, file_methods);

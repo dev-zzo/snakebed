@@ -264,7 +264,7 @@ _SbDict_BuiltinInit()
     }
 
     tp->tp_basicsize = sizeof(SbDictObject);
-    tp->tp_destroy = (destructor)dict_destroy;
+    tp->tp_destroy = (SbDestroyFunc)dict_destroy;
 
     SbDict_Type = tp;
     return 0;

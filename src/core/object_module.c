@@ -72,7 +72,7 @@ _SbModule_TypeInit()
     tp->tp_basicsize = sizeof(SbModuleObject);
     tp->tp_flags = SbType_FLAGS_HAS_DICT;
     tp->tp_dictoffset = Sb_OffsetOf(SbModuleObject, dict);
-    tp->tp_destroy = (destructor)module_destroy;
+    tp->tp_destroy = (SbDestroyFunc)module_destroy;
 
     SbModule_Type = tp;
     return SbType_CreateMethods(SbModule_Type, module_methods);

@@ -88,7 +88,7 @@ _SbFrame_TypeInit()
 
     tp->tp_basicsize = sizeof(SbFrameObject);
     tp->tp_itemsize = sizeof(SbObject *);
-    tp->tp_destroy = (destructor)frame_destroy;
+    tp->tp_destroy = (SbDestroyFunc)frame_destroy;
 
     SbFrame_Type = tp;
     return 0;

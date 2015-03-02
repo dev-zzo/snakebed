@@ -120,7 +120,7 @@ _SbType_BuiltinInit()
 
     tp->tp_name = "type";
     tp->tp_basicsize = size;
-    tp->tp_destroy = (destructor)type_destroy;
+    tp->tp_destroy = (SbDestroyFunc)type_destroy;
     tp->tp_alloc = SbType_GenericAlloc;
     tp->tp_free = SbObject_Free;
 

@@ -90,7 +90,9 @@
   <ItemGroup>
     <ClCompile Include="..\src\core\exception.c" />
     <ClCompile Include="..\src\core\import.c" />
-    <ClCompile Include="..\src\core\interp.c" />
+    <ClCompile Include="..\src\core\interp.c">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
+    </ClCompile>
     <ClCompile Include="..\src\core\marshal.c" />
     <ClCompile Include="..\src\core\object.c" />
     <ClCompile Include="..\src\core\object_bool.c" />

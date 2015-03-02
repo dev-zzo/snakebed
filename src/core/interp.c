@@ -34,6 +34,7 @@ SbInterp_Execute(SbFrameObject *frame)
         int i_result;
         int test_value;
         Sb_ssize_t pos;
+        SbBinaryFunc bfunc;
         int failure = 0;
 
         opcode = (SbOpcode)(*ip++);
@@ -427,7 +428,7 @@ BuildXxx_popargs:
             op1 = *sp++;
             op2 = *sp++;
             result = SbObject_Compare(op2, op1, opcode_arg);
-BinaryXxx_common:
+BinaryXxx_tests:
             failure = result == NULL;
             Sb_DECREF(op2);
             Sb_DECREF(op1);
@@ -438,45 +439,47 @@ BinaryXxx_common:
 
         case InPlaceAdd:
         case BinaryAdd:
+            bfunc = &SbNumber_Add;
+BinaryXxx_common:
             op1 = *sp++;
             op2 = *sp++;
-            result = SbNumber_Add(op2, op1);
-            goto BinaryXxx_common;
+            result = bfunc(op2, op1);
+            goto BinaryXxx_tests;
         case InPlaceSubtract:
         case BinarySubtract:
-            op1 = *sp++;
-            op2 = *sp++;
-            result = SbNumber_Subtract(op2, op1);
+            bfunc = &SbNumber_Subtract;
             goto BinaryXxx_common;
         case InPlaceMultiply:
         case BinaryMultiply:
-            op1 = *sp++;
-            op2 = *sp++;
-            result = SbNumber_Multiply(op2, op1);
+            bfunc = &SbNumber_Multiply;
             goto BinaryXxx_common;
         case InPlaceDivide:
         case BinaryDivide:
-            op1 = *sp++;
-            op2 = *sp++;
-            result = SbNumber_Divide(op2, op1);
+            bfunc = &SbNumber_Divide;
             goto BinaryXxx_common;
         case InPlaceFloorDivide:
         case BinaryFloorDivide:
-            op1 = *sp++;
-            op2 = *sp++;
-            result = SbNumber_FloorDivide(op2, op1);
+            bfunc = &SbNumber_FloorDivide;
             goto BinaryXxx_common;
         case InPlaceTrueDivide:
         case BinaryTrueDivide:
-            op1 = *sp++;
-            op2 = *sp++;
-            result = SbNumber_TrueDivide(op2, op1);
+            bfunc = &SbNumber_TrueDivide;
             goto BinaryXxx_common;
         case InPlaceModulo:
         case BinaryModulo:
-            op1 = *sp++;
-            op2 = *sp++;
-            result = SbNumber_Remainder(op2, op1);
+            bfunc = &SbNumber_Remainder;
+            goto BinaryXxx_common;
+        case InPlaceAnd:
+        case BinaryAnd:
+            bfunc = &SbNumber_And;
+            goto BinaryXxx_common;
+        case InPlaceXor:
+        case BinaryXor:
+            bfunc = &SbNumber_Xor;
+            goto BinaryXxx_common;
+        case InPlaceOr:
+        case BinaryOr:
+            bfunc = &SbNumber_Or;
             goto BinaryXxx_common;
 
         case InPlacePower:

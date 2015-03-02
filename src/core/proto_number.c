@@ -83,3 +83,21 @@ SbNumber_Remainder(SbObject * lhs, SbObject *rhs)
 {
     return numeric_try_methods(lhs, rhs, "__mod__", "__rmod__");
 }
+
+SbObject *
+SbNumber_And(SbObject * lhs, SbObject *rhs)
+{
+    return numeric_try_methods(lhs, rhs, "__and__", "__rand__");
+}
+
+SbObject *
+SbNumber_Or(SbObject * lhs, SbObject *rhs)
+{
+    return numeric_try_methods(lhs, rhs, "__xor__", "__rxor__");
+}
+
+SbObject *
+SbNumber_Xor(SbObject * lhs, SbObject *rhs)
+{
+    return numeric_try_methods(lhs, rhs, "__or__", "__ror__");
+}

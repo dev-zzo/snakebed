@@ -76,7 +76,7 @@ _SbMethod_BuiltinInit()
     }
 
     tp->tp_basicsize = sizeof(SbMethodObject);
-    tp->tp_destroy = (destructor)method_destroy;
+    tp->tp_destroy = (SbDestroyFunc)method_destroy;
 
     SbMethod_Type = tp;
     return SbType_CreateMethods(tp, method_methods);

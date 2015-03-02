@@ -162,6 +162,10 @@ SbObject_CallMethodObjArgs(SbObject *o, const char *method, Sb_ssize_t count, ..
  Numeric protocol implementation
  */
 
+typedef SbObject *(*SbUnaryFunc)(SbObject *self);
+typedef SbObject *(*SbBinaryFunc)(SbObject *self, SbObject *);
+typedef SbObject *(*SbTernaryFunc)(SbObject *self, SbObject *, SbObject *);
+
 SbObject *
 SbNumber_Add(SbObject * lhs, SbObject *rhs);
 SbObject *
@@ -176,6 +180,12 @@ SbObject *
 SbNumber_TrueDivide(SbObject * lhs, SbObject *rhs);
 SbObject *
 SbNumber_Remainder(SbObject * lhs, SbObject *rhs);
+SbObject *
+SbNumber_And(SbObject * lhs, SbObject *rhs);
+SbObject *
+SbNumber_Or(SbObject * lhs, SbObject *rhs);
+SbObject *
+SbNumber_Xor(SbObject * lhs, SbObject *rhs);
 
 
 #ifdef __cplusplus

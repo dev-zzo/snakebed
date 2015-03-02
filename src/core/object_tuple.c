@@ -205,7 +205,7 @@ _SbTuple_BuiltinInit()
 
     tp->tp_basicsize = sizeof(SbTupleObject) - sizeof(SbObject *);
     tp->tp_itemsize = sizeof(SbObject *);
-    tp->tp_destroy = (destructor)tuple_destroy;
+    tp->tp_destroy = (SbDestroyFunc)tuple_destroy;
 
     SbTuple_Type = tp;
     return 0;

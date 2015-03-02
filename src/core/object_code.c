@@ -53,7 +53,7 @@ _SbCode_TypeInit()
     }
 
     tp->tp_basicsize = sizeof(SbCodeObject);
-    tp->tp_destroy = (destructor)code_destroy;
+    tp->tp_destroy = (SbDestroyFunc)code_destroy;
 
     SbCode_Type = tp;
     return 0;

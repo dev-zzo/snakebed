@@ -98,7 +98,7 @@ _SbPFunction_TypeInit()
     }
 
     tp->tp_basicsize = sizeof(SbPFunctionObject);
-    tp->tp_destroy = (destructor)pfunction_destroy;
+    tp->tp_destroy = (SbDestroyFunc)pfunction_destroy;
 
     SbPFunction_Type = tp;
     return SbType_CreateMethods(SbPFunction_Type, pfunction_methods);
