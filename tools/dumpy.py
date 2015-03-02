@@ -6,7 +6,7 @@ Dumps all the code within a compiled .py file.
 
 import sys
 import dis
-import py_compile
+import __future__
 
 
 def output(text):
@@ -77,7 +77,8 @@ def dumpy_text(text, path):
     output('Source length: %d' % len(text))
     output('')
     
-    co = compile(text, path, 'exec')
+    flags = __future__.print_function.compiler_flag
+    co = compile(text, path, 'exec', flags, 1)
     dumpy_co(co)
     
     output('')

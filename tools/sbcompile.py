@@ -8,6 +8,7 @@ import sys
 import os
 import struct
 import argparse
+import __future__
 
 COMPILER_VERSION = 0x0101
 
@@ -125,7 +126,8 @@ def write_obj(output, o):
 def do_compile(module_name, input, output):
     output.write(struct.pack('<14sH', 'MyLittlePython', COMPILER_VERSION))
     
-    module = compile(input.read(), '<source>', 'exec')
+    flags = __future__.print_function.compiler_flag
+    module = compile(input.read(), '<source>', 'exec', flags, 1)
     
     write_obj(output, module)
 
