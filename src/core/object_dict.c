@@ -153,6 +153,11 @@ SbDict_GetItemString(SbObject *p, const char *key)
     SbDictObject *op = (SbDictObject *)p;
     SbDictBucketEntry *entry;
 
+    if (!SbDict_CheckExact(p)) {
+        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        return NULL;
+    }
+
     entry = dict_find_entry_string(op, key);
     if (entry) {
         return entry->e_value;
@@ -167,6 +172,11 @@ SbDict_SetItemString(SbObject *p, const char *key, SbObject *value)
     SbDictObject *op = (SbDictObject *)p;
     SbDictBucketEntry *entry;
     SbDictBucketEntry **bucket;
+
+    if (!SbDict_CheckExact(p)) {
+        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        return -1;
+    }
 
     Sb_INCREF(value);
     entry = dict_find_entry_string(op, key);
@@ -211,6 +221,11 @@ SbDict_DelItemString(SbObject *p, const char *key)
     SbDictBucketEntry **bucket;
     SbDictBucketEntry *entry;
     SbDictBucketEntry *prev_entry;
+
+    if (!SbDict_CheckExact(p)) {
+        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        return -1;
+    }
 
     hash = _SbStr_HashString(key, Sb_StrLen(key));
     bucket = dict_bucket_ptr(op, hash);

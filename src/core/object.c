@@ -92,9 +92,26 @@ SbObject_DefaultDelAttr(SbObject *self, SbObject *args, SbObject *kwargs)
     return NULL;
 }
 
-/* Builtins initializer */
+SbObject *
+SbObject_DefaultStr(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    /* Provide the "<`type` instance at %p>" boilerplate representation */
+    return SbStr_FromString("<boilerplate str result>");
+}
+
+/* Type initializer */
+
+static const SbCMethodDef object_methods[] = {
+    { "__hash__", SbObject_DefaultHash },
+    { "__str__", SbObject_DefaultStr },
+    { "__repr__", SbObject_DefaultStr },
+
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
-_SbObject_BuiltinInit()
+_SbObject_TypeInit()
 {
     SbTypeObject *tp;
 
@@ -108,5 +125,5 @@ _SbObject_BuiltinInit()
     tp->tp_destroy = SbObject_DefaultDestroy;
 
     SbObject_Type = tp;
-    return 0;
+    return SbType_CreateMethods(tp, object_methods);
 }

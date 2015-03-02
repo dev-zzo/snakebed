@@ -14,6 +14,9 @@ extern SbTypeObject *SbModule_Type;
 SbObject *
 SbModule_New(const char *name);
 
+#define SbModule_GetDict(p) \
+    SbObject_DICT(p)
+
 #ifdef __cplusplus
 }
 #endif

@@ -19,6 +19,9 @@ SbObject_IsTrue(SbObject *p)
     if (p == Sb_None || p == Sb_False) {
         return 0;
     }
+    if (p == Sb_True) {
+        return 1;
+    }
 
     result = SbObject_CallMethod(p, "__nonzero__", NULL, NULL);
     if (!result && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
@@ -64,6 +67,34 @@ SbObject_Not(SbObject *p)
     }
 
     return is_true == 0;
+}
+
+SbObject *
+SbObject_Str(SbObject *p)
+{
+    SbObject *result;
+
+    result = SbObject_CallMethod(p, "__str__", NULL, NULL);
+    if (!result && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
+        SbErr_Clear();
+        result = SbObject_Repr(p);
+    }
+
+    return result;
+}
+
+SbObject *
+SbObject_Repr(SbObject *p)
+{
+    SbObject *result;
+
+    result = SbObject_CallMethod(p, "__repr__", NULL, NULL);
+    if (!result && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
+        SbErr_Clear();
+        result = SbObject_DefaultStr(p, NULL, NULL);
+    }
+
+    return result;
 }
 
 static const char *op_to_method[] = {

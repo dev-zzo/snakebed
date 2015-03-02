@@ -5,9 +5,11 @@ _SbType_BuiltinInit();
 extern int
 _SbType_BuiltinInit2();
 extern int
-_SbObject_BuiltinInit();
+_SbObject_TypeInit();
 extern int
 _SbInt_BuiltinInit();
+extern int
+_Sb_TypeInit_Bool();
 extern int
 _SbTuple_BuiltinInit();
 extern int
@@ -40,6 +42,10 @@ extern int
 _SbCode_TypeInit();
 extern int
 _SbFrame_TypeInit();
+extern int
+_Sb_ModuleInit_Builtin();
+extern int
+_Sb_ModuleInit_Sys();
 
 typedef int (*typeinitfunc)();
 
@@ -61,19 +67,24 @@ static typeinitfunc stage2_inits[] = {
 };
 
 static typeinitfunc stage3_inits[] = {
+    /* Types */
     _SbErr_BuiltinInit,
     _SbTuple_BuiltinInit,
     _SbList_BuiltinInit,
     _SbInt_BuiltinInit,
+    _Sb_TypeInit_Bool,
     _SbNone_BuiltinInit,
     _SbNotImplemented_BuiltinInit,
     _SbPFunction_TypeInit,
     _SbMethod_BuiltinInit,
-    _SbObject_BuiltinInit,
+    _SbObject_TypeInit,
     _SbModule_TypeInit,
     _SbFile_TypeInit,
     _SbCode_TypeInit,
     _SbFrame_TypeInit,
+    /* Modules */
+    _Sb_ModuleInit_Builtin,
+    _Sb_ModuleInit_Sys,
     /* Sentinel */
     NULL
 };

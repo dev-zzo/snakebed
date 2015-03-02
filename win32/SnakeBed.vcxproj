@@ -94,6 +94,8 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
     </ClCompile>
     <ClCompile Include="..\src\core\marshal.c" />
+    <ClCompile Include="..\src\core\module_builtin.c" />
+    <ClCompile Include="..\src\core\module_sys.c" />
     <ClCompile Include="..\src\core\object.c" />
     <ClCompile Include="..\src\core\object_bool.c" />
     <ClCompile Include="..\src\core\object_builtins.c" />
@@ -118,6 +120,8 @@
     <ClInclude Include="..\src\core\exception.h" />
     <ClInclude Include="..\src\core\import.h" />
     <ClInclude Include="..\src\core\interp.h" />
+    <ClInclude Include="..\src\core\module_builtin.h" />
+    <ClInclude Include="..\src\core\module_sys.h" />
     <ClInclude Include="..\src\core\object.h" />
     <ClInclude Include="..\src\core\object_bool.h" />
     <ClInclude Include="..\src\core\object_cfunc.h" />

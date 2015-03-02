@@ -28,6 +28,9 @@ extern "C" {
 #include "interp.h"
 #include "import.h"
 
+#include "module_builtin.h"
+#include "module_sys.h"
+
 /* Nothing. */
 #define STATIC 
 

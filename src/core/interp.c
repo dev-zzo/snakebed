@@ -181,6 +181,7 @@ LoadGlobal_action:
             result = SbDict_GetItemString(frame->globals, SbStr_AsStringUnsafe(name));
             if (!result) {
                 /* Try builtins */
+                result = SbDict_GetItemString(SbModule_GetDict(Sb_ModuleBuiltin), SbStr_AsStringUnsafe(name));
             }
 LoadXxx_common:
             if (!result) {
@@ -399,7 +400,6 @@ BuildXxx_popargs:
                 }
             }
             break;
-
 
         case UnaryPositive:
             /* X -> type(X).__pos__(X) */

@@ -17,9 +17,21 @@ SbBool_FromLong(long x)
     }
 }
 
-/* Builtins initializer */
+/* Type initializer */
+
+static SbObject *
+bool_new(long val)
+{
+    SbBoolObject *op;
+    op = (SbBoolObject *)SbObject_New(SbBool_Type);
+    if (op) {
+        op->value = val;
+    }
+    return (SbObject *)op;
+}
+
 int
-_SbBool_BuiltinInit()
+_Sb_TypeInit_Bool()
 {
     SbTypeObject *tp;
 
@@ -29,11 +41,9 @@ _SbBool_BuiltinInit()
     }
 
     SbBool_Type = tp;
-    return 0;
-}
 
-int
-_SbBool_BuiltinInit2()
-{
+    Sb_False = bool_new(0);
+    Sb_True = bool_new(1);
+
     return 0;
 }

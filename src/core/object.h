@@ -100,6 +100,9 @@ SbObject_DefaultSetAttr(SbObject *self, SbObject *args, SbObject *kwargs);
 SbObject *
 SbObject_DefaultDelAttr(SbObject *self, SbObject *args, SbObject *kwargs);
 
+SbObject *
+SbObject_DefaultStr(SbObject *self, SbObject *args, SbObject *kwargs);
+
 
 /* Builtin objects */
 
@@ -140,6 +143,11 @@ int
 SbObject_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op);
 int
 SbObject_IsTrue(SbObject *p);
+
+SbObject *
+SbObject_Repr(SbObject *p);
+SbObject *
+SbObject_Str(SbObject *p);
 
 SbObject *
 SbObject_GetAttrString(SbObject *p, const char *attr_name);
