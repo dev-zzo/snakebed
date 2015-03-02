@@ -7,17 +7,17 @@ SbObject *
 SbFile_New(const char *path, const char *mode)
 {
     SbObject *self;
+    void *handle;
 
-    self = SbObject_New(SbFile_Type);
-    if (self) {
-        SbFileObject *f = (SbFileObject *)self;
+    handle = Sb_FileOpen(path, mode);
+    if (!handle) {
+        /* raise IOError? */
+        return NULL;
+    }
 
-        f->handle = Sb_FileOpen(path, mode);
-        if (!f->handle) {
-            /* raise IOError? */
-            Sb_DECREF(self);
-            return NULL;
-        }
+    self = SbFile_FromHandle(handle);
+    if (!self) {
+        Sb_FileClose(handle);
     }
 
     return self;
@@ -30,6 +30,21 @@ file_destroy(SbFileObject *myself)
         Sb_FileClose(myself->handle);
     }
     SbObject_DefaultDestroy((SbObject *)myself);
+}
+
+SbObject *
+SbFile_FromHandle(void *handle)
+{
+    SbObject *self;
+
+    self = SbObject_New(SbFile_Type);
+    if (self) {
+        SbFileObject *f = (SbFileObject *)self;
+
+        f->handle = handle;
+    }
+
+    return self;
 }
 
 Sb_ssize_t

@@ -37,6 +37,15 @@ Sb_FileSeek(void *handle, Sb_ssize_t offset, int whence);
 void
 Sb_FileClose(void *handle);
 
+/* Standard input/output/error */
+
+void *
+Sb_GetStdInHandle(void);
+void *
+Sb_GetStdOutHandle(void);
+void *
+Sb_GetStdErrHandle(void);
+
 #ifdef __cplusplus
 }
 #endif

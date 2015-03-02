@@ -15,6 +15,9 @@ extern SbTypeObject *SbFile_Type;
 SbObject *
 SbFile_New(const char *path, const char *mode);
 
+SbObject *
+SbFile_FromHandle(void *handle);
+
 Sb_ssize_t
 SbFile_Read(SbObject *self, void *buffer, Sb_ssize_t count);
 

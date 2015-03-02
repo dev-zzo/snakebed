@@ -81,3 +81,20 @@ Sb_FileClose(void *handle)
     CloseHandle((HANDLE)handle);
 }
 
+void *
+Sb_GetStdInHandle(void)
+{
+    return (void *)GetStdHandle(STD_INPUT_HANDLE);
+}
+
+void *
+Sb_GetStdOutHandle(void)
+{
+    return (void *)GetStdHandle(STD_OUTPUT_HANDLE);
+}
+
+void *
+Sb_GetStdErrHandle(void)
+{
+    return (void *)GetStdHandle(STD_ERROR_HANDLE);
+}
