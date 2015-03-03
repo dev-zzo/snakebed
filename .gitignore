@@ -10,3 +10,6 @@ Release
 # MSVC crap
 *.suo
 *.vcxproj.user
+
+# Temporary scripts
+tools/dummy.*
