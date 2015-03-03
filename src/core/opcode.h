@@ -73,14 +73,14 @@ typedef enum _SbOpcode {
 /**/InPlaceXor              = 78,
 /**/InPlaceOr               = 79,
 
-    BreakLoop               = 80,
+/**/BreakLoop               = 80,
     WithCleanup             = 81,
 /**/LoadLocals              = 82,
-    ReturnValue             = 83,
+/**/ReturnValue             = 83,
     ImportStar              = 84,
     ExecStatement           = 85,
     YieldValue              = 86,
-    PopBlock                = 87,
+/**/PopBlock                = 87,
     EndFinally              = 88,
     BuildClass              = 89,
 
@@ -114,8 +114,8 @@ typedef enum _SbOpcode {
 /**/PopJumpIfFalse          = 114,
 /**/PopJumpIfTrue           = 115,
 /**/LoadGlobal              = 116, /* Index in name list */
-    ContinueLoop            = 119, /* Start of loop (absolute) */
-    SetupLoop               = 120, /* Target address (relative) */
+/**/ContinueLoop            = 119, /* Start of loop (absolute) */
+/**/SetupLoop               = 120, /* Target address (relative) */
     SetupExcept             = 121,
     SetupFinally            = 122,
 /**/LoadFast                = 124, /* Local variable number */
@@ -123,7 +123,7 @@ typedef enum _SbOpcode {
 /**/DeleteFast              = 126,
     RaiseVarArgs            = 130, /* Number of raise arguments (1, 2 or 3) */
 /**/CallFunction            = 131, /* #args + (#kwargs<<8) */
-    MakeFunction            = 132, /* #defaults */
+/**/MakeFunction            = 132, /* #defaults */
     BuildSlice              = 133, /* Number of items */
 
     MakeClosure             = 134, /* #free vars */

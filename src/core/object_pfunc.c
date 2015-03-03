@@ -43,7 +43,7 @@ pfunction_destroy(SbPFunctionObject *self)
 SbObject *
 SbPFunction_Call(SbObject *p, SbObject *args, SbObject *kwargs)
 {
-    SbObject *frame;
+    SbFrameObject *frame;
     SbPFunctionObject *op = (SbPFunctionObject *)p;
     SbObject *locals = NULL;
     SbObject *result = NULL;
@@ -67,7 +67,7 @@ SbPFunction_Call(SbObject *p, SbObject *args, SbObject *kwargs)
         goto fail1;
     }
 
-    result = SbInterp_Execute((SbFrameObject *)frame);
+    result = SbInterp_Execute(frame);
     Sb_DECREF(frame);
     return result;
 

@@ -5,6 +5,7 @@
 
 /* Interpreter supports */
 #define SUPPORTS_KWARGS 1
+#define SUPPORTS_WITH_STMT 0
 
 /* Module marshaler supports */
 #define SUPPORTS_UNMARSHAL_LIST 0

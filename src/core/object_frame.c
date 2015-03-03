@@ -7,15 +7,13 @@ SbTypeObject *SbFrame_Type = NULL;
  * C interface implementations
  */
 
-SbObject *
+SbFrameObject *
 SbFrame_New(SbCodeObject *code, SbObject *globals, SbObject *locals)
 {
-    SbObject *p;
+    SbFrameObject *op;
 
-    p = (SbObject *)SbObject_NewVar(SbFrame_Type, code->stack_size);
-    if (p) {
-        SbFrameObject *op = (SbFrameObject *)p;
-
+    op = (SbFrameObject *)SbObject_NewVar(SbFrame_Type, code->stack_size);
+    if (op) {
         Sb_INCREF(code);
         op->code = code;
 
@@ -41,7 +39,7 @@ SbFrame_New(SbCodeObject *code, SbObject *globals, SbObject *locals)
         /* stack pointer points just outside the stack */
         op->sp = &op->stack[code->stack_size];
     }
-    return p;
+    return op;
 }
 
 static void
@@ -55,23 +53,52 @@ frame_destroy(SbFrameObject *f)
 }
 
 int
-SbFrame_SetPrevious(SbObject *f, SbFrameObject *prev)
+SbFrame_SetPrevious(SbFrameObject *myself, SbFrameObject *prev)
 {
-    SbFrameObject *op = (SbFrameObject *)f;
-
-    Sb_CLEAR(op->prev);
+    Sb_CLEAR(myself->prev);
     if (prev) {
         Sb_INCREF(prev);
-        op->prev = prev;
+        myself->prev = prev;
     }
     return 0;
 }
 
 int
-SbFrame_ApplyArgs(SbObject *f, SbObject *args, SbObject *kwds, SbObject *defaults)
+SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObject *defaults)
 {
-    SbFrameObject *op = (SbFrameObject *)f;
     return 0;
+}
+
+int
+SbFrame_PushBlock(SbFrameObject *myself, const Sb_byte_t *handler, SbObject **old_sp, Sb_byte_t setup_insn)
+{
+    SbCodeBlock *b;
+
+    b = (SbCodeBlock *)Sb_Malloc(sizeof(*b));
+    if (!b) {
+        SbErr_NoMemory();
+        return -1;
+    }
+
+    b->next = myself->blocks;
+    b->handler = handler;
+    b->old_sp = old_sp;
+    b->setup_insn = setup_insn;
+    myself->blocks = b;
+
+    return 0;
+}
+
+void
+SbFrame_PopBlock(SbFrameObject *myself)
+{
+    SbCodeBlock *b;
+
+    b = myself->blocks;
+    /* assert(b != NULL); */
+    myself->blocks = b->next;
+
+    Sb_Free(b);
 }
 
 /* Type initializer */
