@@ -108,9 +108,9 @@ def write_obj(output, o):
     elif str(otype) == "<type 'code'>":
         output.write('c')
         write_obj(output, o.co_name)
-        write_raw_int(output, o.co_argcount)
-        write_raw_int(output, o.co_stacksize)
         write_raw_int(output, o.co_flags)
+        write_raw_int(output, o.co_stacksize)
+        write_raw_int(output, o.co_argcount)
         write_obj(output, o.co_code)
         write_obj(output, o.co_consts)
         # These are used with {Load|Store|Delete}{Global|Name}
