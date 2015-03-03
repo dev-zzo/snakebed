@@ -18,6 +18,13 @@ extern SbTypeObject   *SbErr_SystemError;
 extern SbTypeObject   *SbErr_TypeError;
 extern SbTypeObject   *SbErr_ValueError;
 
+/* NOTE: this is not tracked with refcounts. */
+typedef struct {
+    SbTypeObject *type;
+    SbObject *value;
+    SbObject *traceback;
+} SbExceptionInfo;
+
 /* Get the exception *type* if any occurred.
    Returns: Borrowed reference. */
 SbTypeObject *
@@ -43,6 +50,16 @@ SbErr_RaiseWithString(SbTypeObject *type, const char *value);
 
 void
 SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...);
+
+/* Retrieve exception information.
+   Note: you own the references. */
+void
+SbErr_Fetch(SbExceptionInfo *info);
+
+/* Reset the exception information back from info.
+   Note: references are stolen. */
+void
+SbErr_Restore(SbExceptionInfo *info);
 
 SbTypeObject *
 SbErr_NewException(const char *name, SbTypeObject *base);

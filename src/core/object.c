@@ -6,13 +6,17 @@ SbTypeObject *SbObject_Type = NULL;
 void _SbObject_DecRef(SbObject *op)
 {
     Sb_ssize_t new_refcount;
+    SbExceptionInfo info;
 
     new_refcount = --op->ob_refcount;
     if (new_refcount) {
         return;
     }
+
+    SbErr_Fetch(&info);
     Sb_TYPE(op)->tp_destroy(op);
     /* `op` becomes invalid after this point. */
+    SbErr_Restore(&info);
 }
 
 SbObject *

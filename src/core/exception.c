@@ -1,13 +1,11 @@
 #include "snakebed.h"
 
-SbTypeObject *SbErr_Type = NULL;
-SbObject *SbErr_Value = NULL;
-SbObject *SbErr_Traceback = NULL;
+static SbExceptionInfo exception = { NULL, NULL, NULL, };
 
 SbTypeObject *
 SbErr_Occurred(void)
 {
-    return SbErr_Type;
+    return exception.type;
 }
 
 int
@@ -19,9 +17,9 @@ SbErr_ExceptionMatches(SbTypeObject *exc, SbObject *what)
 void
 SbErr_Clear(void)
 {
-    Sb_CLEAR(SbErr_Type);
-    Sb_CLEAR(SbErr_Value);
-    Sb_CLEAR(SbErr_Traceback);
+    Sb_CLEAR(exception.type);
+    Sb_CLEAR(exception.value);
+    Sb_CLEAR(exception.traceback);
 }
 
 void
@@ -29,9 +27,9 @@ SbErr_RaiseWithObject(SbTypeObject *type, SbObject *value)
 {
     SbErr_Clear();
     Sb_INCREF(type);
+    exception.type = type;
     Sb_INCREF(value);
-    SbErr_Type = type;
-    SbErr_Value = value;
+    exception.value = value;
 }
 
 void
@@ -45,6 +43,23 @@ SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...)
 {
     SbErr_RaiseWithString(type, "{SbErr_RaiseWithFormat not properly implemented yet}");
 }
+
+void
+SbErr_Fetch(SbExceptionInfo *info)
+{
+    *info = exception;
+    exception.type = NULL;
+    exception.value = NULL;
+    exception.traceback = NULL;
+}
+
+void
+SbErr_Restore(SbExceptionInfo *info)
+{
+    SbErr_Clear();
+    exception = *info;
+}
+
 
 SbObject *
 SbErr_NoMemory(void)
