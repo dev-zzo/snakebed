@@ -19,6 +19,8 @@ extern SbTypeObject *SbInt_Type;
 #define SbInt_CheckExact(p) \
     (Sb_TYPE(p) == SbInt_Type)
 
+#define SbInt_Check SbInt_CheckExact
+
 /* Returns the maximum value of the int object.
    Returns: Plain C data. */
 long
@@ -33,6 +35,9 @@ SbInt_GetMin(void);
    Returns: New reference. */
 SbObject *
 SbInt_FromLong(long ival);
+
+#define SbInt_AsLongUnsafe(p) \
+    (((SbIntObject *)p)->value)
 
 /* Return the object's value as C long.
    WARNING: No conversions are performed.

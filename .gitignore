@@ -13,3 +13,4 @@ Release
 
 # Temporary scripts
 tools/dummy.*
+*.sb

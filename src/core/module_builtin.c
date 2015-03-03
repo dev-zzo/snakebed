@@ -76,6 +76,19 @@ _Sb_ModuleInit_Builtin()
         return -1;
     }
 
+    SbDict_SetItemString(dict, "Exception", SbErr_Exception);
+    SbDict_SetItemString(dict, "StandardError", SbErr_StandardError);
+    SbDict_SetItemString(dict, "AttributeError", SbErr_AttributeError);
+    SbDict_SetItemString(dict, "LookupError", SbErr_LookupError);
+    SbDict_SetItemString(dict, "IndexError", SbErr_IndexError);
+    SbDict_SetItemString(dict, "KeyError", SbErr_KeyError);
+    SbDict_SetItemString(dict, "MemoryError", SbErr_MemoryError);
+    SbDict_SetItemString(dict, "NameError", SbErr_NameError);
+    SbDict_SetItemString(dict, "UnboundLocalError", SbErr_UnboundLocalError);
+    SbDict_SetItemString(dict, "SystemError", SbErr_SystemError);
+    SbDict_SetItemString(dict, "TypeError", SbErr_TypeError);
+    SbDict_SetItemString(dict, "ValueError", SbErr_ValueError);
+
 #if SUPPORTS_BUILTIN_PRINT
     add_func(dict, "print", _builtin_print);
 #endif

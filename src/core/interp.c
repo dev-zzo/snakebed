@@ -30,6 +30,7 @@ SbInterp_Execute(SbFrameObject *frame)
     SbObject **sp_base;
     enum SbUnwindReason reason;
     const Sb_byte_t *continue_ip;
+    SbExceptionInfo exinfo = { NULL, };
 
     /* Link the new frame into frame chain. */
     SbFrame_SetPrevious(frame, SbInterp_TopFrame);
@@ -447,7 +448,19 @@ UnaryXxx_common:
             /* X Y -> Y.__op__(X) */
             op1 = STACK_POP();
             op2 = STACK_POP();
-            result = SbObject_Compare(op2, op1, opcode_arg);
+
+            if (opcode_arg <= PyCmp_GE) {
+                result = SbObject_Compare(op2, op1, opcode_arg);
+            }
+            else if (opcode_arg == PyCmp_EXC_MATCH) {
+                i_result = SbErr_ExceptionMatches(op2, op1);
+                if (i_result < 0) {
+                    reason = Reason_Error;
+                    break;
+                }
+                result = SbBool_FromLong(i_result);
+            }
+
             Sb_DECREF(op2);
             Sb_DECREF(op1);
             if (result) {
@@ -550,15 +563,86 @@ BinaryXxx_common:
             reason = Reason_Break;
             break;
 
+
+        case RaiseVarArgs:
+            /* [TraceBack] [Value] [Type] -> */
+            reason = Reason_Error;
+
+            if (opcode_arg > 0) {
+                op3 = NULL;
+                if (opcode_arg == 3) {
+                    op3 = STACK_POP();
+                }
+                tmp = exinfo.traceback;
+                exinfo.traceback = op3;
+                Sb_XDECREF(tmp);
+
+                op2 = NULL;
+                if (opcode_arg >= 2) {
+                    op2 = STACK_POP();
+                }
+                tmp = exinfo.value;
+                exinfo.value = op2;
+                Sb_XDECREF(tmp);
+
+                op1 = STACK_POP();
+                if (!SbType_Check(op1)) {
+                    SbErr_RaiseWithString(SbErr_TypeError, "only type objects can be passed at 1st parameter to raise");
+                    break;
+                }
+                /* NOTE: This may overwrite previously set exception info! */
+                tmp = (SbObject *)exinfo.type;
+                exinfo.type = (SbTypeObject *)op1;
+                Sb_XDECREF(tmp);
+            }
+            SbErr_Restore(&exinfo);
+            break;
+
+        case SetupExcept:
+        case SetupFinally:
+            SbFrame_PushBlock(frame, ip + opcode_arg, sp, opcode);
+            continue;
+
+        case EndFinally:
+            op1 = STACK_POP();
+            /* None -> */
+            if (op1 == Sb_None) {
+                /* No exception occurred or it was handled */
+                Sb_DECREF(op1);
+                continue;
+            }
+            /* Reason [RetVal] -> */
+            if (SbInt_CheckExact(op1)) {
+                /* Restore unwind reason and go on with unwinding */
+                reason = SbInt_AsLongUnsafe(op1);
+                Sb_DECREF(op1);
+                if (reason == Reason_Return) {
+                    return_value = STACK_POP();
+                }
+                break;
+            }
+            /* Type Value TraceBack -> */
+            op2 = STACK_POP();
+            op3 = STACK_POP();
+            exinfo.type = (SbTypeObject *)op1;
+            exinfo.value = op2;
+            exinfo.traceback = op3;
+            SbErr_Restore(&exinfo);
+            reason = Reason_Error;
+            break;
+
+
         default:
             /* Not implemented. */
             break;
         }
 
         /* If we are here, something has happened (exception/return/break) */
+
         while (frame->blocks) {
             SbCodeBlock *b;
             Sb_byte_t insn;
+            const Sb_byte_t *handler;
 
             b = frame->blocks;
             insn = b->setup_insn;
@@ -570,19 +654,55 @@ BinaryXxx_common:
                 break;
             }
 
+            /* Drop execution stack values */
             while (sp != b->old_sp) {
                 tmp = STACK_POP();
                 Sb_DECREF(tmp);
             }
 
+            /* Drop the block */
+            handler = b->handler;
+            SbFrame_PopBlock(frame);
+
+            /* If it was a `break` and we hit a loop block -- drop it */
             if (insn == SetupLoop && reason == Reason_Break) {
-                ip = b->handler;
+                ip = handler;
                 reason = Reason_AllRightNow;
-                SbFrame_PopBlock(frame);
                 break;
             }
 
-            SbFrame_PopBlock(frame);
+            /* The `finally` handler is always executed. */
+            if (insn == SetupFinally || (insn == SetupExcept && reason == Reason_Error)) {
+                tmp = Sb_None;
+                if (reason == Reason_Error) {
+                    /* Both `finally` and `except`: Type Value TraceBack -> */
+                    SbErr_Fetch(&exinfo);
+                    if (!exinfo.traceback) {
+                        exinfo.traceback = tmp;
+                    }
+                    Sb_INCREF(exinfo.traceback);
+                    STACK_PUSH(exinfo.traceback);
+                    if (!exinfo.value) {
+                        exinfo.value = tmp;
+                    }
+                    Sb_INCREF(exinfo.value);
+                    STACK_PUSH(exinfo.value);
+                    STACK_PUSH((SbObject *)exinfo.type);
+                }
+                else {
+                    if (reason == Reason_Return) {
+                        STACK_PUSH(return_value);
+                        return_value = NULL;
+                    }
+
+                    tmp = SbInt_FromLong(reason);
+                    STACK_PUSH(tmp);
+                }
+                ip = handler;
+                reason = Reason_AllRightNow;
+                break;
+            }
+
         }
 
         if (reason == Reason_AllRightNow) {
@@ -600,6 +720,7 @@ BinaryXxx_common:
         Sb_DECREF(tmp);
     }
 
+    SbInterp_TopFrame = frame->prev;
     return return_value;
 }
 

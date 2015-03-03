@@ -33,7 +33,12 @@ SbInt_FromLong(long ival)
 long
 SbInt_AsLong(SbObject *op)
 {
-    return ((SbIntObject *)op)->value;
+    if (!SbInt_Check(op)) {
+        SbErr_RaiseWithString(SbErr_SystemError, "non-int object passed to an int method");
+        return -1;
+    }
+
+    return SbInt_AsLongUnsafe(op);
 }
 
 static long

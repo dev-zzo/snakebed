@@ -11,6 +11,26 @@ SbErr_Occurred(void)
 int
 SbErr_ExceptionMatches(SbTypeObject *exc, SbObject *what)
 {
+    /* NOTE: Identity checks are used instead of equality. */
+
+    if ((SbObject *)exc == what) {
+        return 1;
+    }
+
+    if (SbTuple_CheckExact(what)) {
+        Sb_ssize_t pos, count;
+
+        count = SbTuple_GetSizeUnsafe(what);
+        for (pos = 0; pos < count; ++pos) {
+            SbTypeObject *tp;
+
+            tp = (SbTypeObject *)SbTuple_GetItemUnsafe(what, pos);
+            if (exc == tp) {
+                return 1;
+            }
+        }
+    }
+
     return 0;
 }
 
@@ -35,7 +55,12 @@ SbErr_RaiseWithObject(SbTypeObject *type, SbObject *value)
 void
 SbErr_RaiseWithString(SbTypeObject *type, const char *value)
 {
-    SbErr_RaiseWithObject(type, SbStr_FromString(value));
+    SbObject *s;
+
+    s = SbStr_FromString(value);
+    /* TODO: How to handle a double fault? */
+    SbErr_RaiseWithObject(type, s);
+    Sb_DECREF(s);
 }
 
 void
