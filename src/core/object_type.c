@@ -33,6 +33,7 @@ type_inherit(SbTypeObject *tp, SbTypeObject *base_type)
     tp->tp_basicsize = base_type->tp_basicsize;
     tp->tp_itemsize = base_type->tp_itemsize;
     tp->tp_destroy = base_type->tp_destroy;
+    tp->tp_dict = SbDict_Copy(base_type->tp_dict);
     return 0;
 }
 
