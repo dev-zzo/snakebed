@@ -30,7 +30,6 @@ SbInterp_Execute(SbFrameObject *frame)
     SbObject **sp_base;
     enum SbUnwindReason reason;
     const Sb_byte_t *continue_ip;
-    SbExceptionInfo exinfo = { NULL, };
 
     /* Link the new frame into frame chain. */
     SbFrame_SetPrevious(frame, SbInterp_TopFrame);
@@ -453,7 +452,7 @@ UnaryXxx_common:
                 result = SbObject_Compare(op2, op1, opcode_arg);
             }
             else if (opcode_arg == PyCmp_EXC_MATCH) {
-                i_result = SbErr_ExceptionMatches(op2, op1);
+                i_result = SbErr_ExceptionMatches((SbTypeObject *)op2, op1);
                 if (i_result < 0) {
                     reason = Reason_Error;
                     break;
@@ -569,33 +568,27 @@ BinaryXxx_common:
             reason = Reason_Error;
 
             if (opcode_arg > 0) {
-                op3 = NULL;
+                SbExceptionInfo exinfo = { NULL, NULL, NULL };
+
+                SbErr_Clear();
+
                 if (opcode_arg == 3) {
-                    op3 = STACK_POP();
+                    exinfo.traceback = STACK_POP();
                 }
-                tmp = exinfo.traceback;
-                exinfo.traceback = op3;
-                Sb_XDECREF(tmp);
-
-                op2 = NULL;
                 if (opcode_arg >= 2) {
-                    op2 = STACK_POP();
+                    exinfo.value = STACK_POP();
                 }
-                tmp = exinfo.value;
-                exinfo.value = op2;
-                Sb_XDECREF(tmp);
-
                 op1 = STACK_POP();
                 if (!SbType_Check(op1)) {
+                    Sb_XDECREF(exinfo.traceback);
+                    Sb_XDECREF(exinfo.value);
+                    Sb_XDECREF(op1);
                     SbErr_RaiseWithString(SbErr_TypeError, "only type objects can be passed at 1st parameter to raise");
                     break;
                 }
-                /* NOTE: This may overwrite previously set exception info! */
-                tmp = (SbObject *)exinfo.type;
                 exinfo.type = (SbTypeObject *)op1;
-                Sb_XDECREF(tmp);
+                SbErr_Restore(&exinfo);
             }
-            SbErr_Restore(&exinfo);
             break;
 
         case SetupExcept:
@@ -621,13 +614,15 @@ BinaryXxx_common:
                 }
                 break;
             }
-            /* Type Value TraceBack -> */
-            op2 = STACK_POP();
-            op3 = STACK_POP();
-            exinfo.type = (SbTypeObject *)op1;
-            exinfo.value = op2;
-            exinfo.traceback = op3;
-            SbErr_Restore(&exinfo);
+            {
+                SbExceptionInfo exinfo;
+
+                /* Type Value TraceBack -> */
+                exinfo.type = (SbTypeObject *)op1;
+                exinfo.value = STACK_POP();
+                exinfo.traceback = STACK_POP();
+                SbErr_Restore(&exinfo);
+            }
             reason = Reason_Error;
             break;
 
@@ -675,17 +670,19 @@ BinaryXxx_common:
             if (insn == SetupFinally || (insn == SetupExcept && reason == Reason_Error)) {
                 tmp = Sb_None;
                 if (reason == Reason_Error) {
+                    SbExceptionInfo exinfo;
+
                     /* Both `finally` and `except`: Type Value TraceBack -> */
-                    SbErr_Fetch(&exinfo);
+                    SbErr_FetchCopy(&exinfo);
                     if (!exinfo.traceback) {
                         exinfo.traceback = tmp;
+                        Sb_INCREF(tmp);
                     }
-                    Sb_INCREF(exinfo.traceback);
                     STACK_PUSH(exinfo.traceback);
                     if (!exinfo.value) {
                         exinfo.value = tmp;
+                        Sb_INCREF(tmp);
                     }
-                    Sb_INCREF(exinfo.value);
                     STACK_PUSH(exinfo.value);
                     STACK_PUSH((SbObject *)exinfo.type);
                 }
