@@ -11,9 +11,7 @@ SbErr_Occurred(void)
 int
 SbErr_ExceptionMatches(SbTypeObject *exc, SbObject *what)
 {
-    /* NOTE: Identity checks are used instead of equality. */
-
-    if ((SbObject *)exc == what) {
+    if (SbType_Check(what) && SbType_IsSubtype(exc, (SbTypeObject *)what)) {
         return 1;
     }
 
@@ -25,7 +23,7 @@ SbErr_ExceptionMatches(SbTypeObject *exc, SbObject *what)
             SbTypeObject *tp;
 
             tp = (SbTypeObject *)SbTuple_GetItemUnsafe(what, pos);
-            if (exc == tp) {
+            if (SbType_IsSubtype(exc, tp)) {
                 return 1;
             }
         }
@@ -43,9 +41,39 @@ SbErr_Clear(void)
 }
 
 void
+SbErr_Fetch(SbExceptionInfo *info)
+{
+    *info = exception;
+    exception.type = NULL;
+    exception.value = NULL;
+    exception.traceback = NULL;
+}
+
+void
+SbErr_FetchCopy(SbExceptionInfo *info)
+{
+    *info = exception;
+    if (info->type)
+        Sb_INCREF(info->type);
+    if (info->value)
+        Sb_INCREF(info->value);
+    if (info->traceback)
+        Sb_INCREF(info->traceback);
+}
+
+void
+SbErr_Restore(SbExceptionInfo *info)
+{
+    SbErr_Clear();
+    exception = *info;
+}
+
+
+void
 SbErr_RaiseWithObject(SbTypeObject *type, SbObject *value)
 {
     SbErr_Clear();
+
     Sb_INCREF(type);
     exception.type = type;
     Sb_INCREF(value);
@@ -69,22 +97,6 @@ SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...)
     SbErr_RaiseWithString(type, "{SbErr_RaiseWithFormat not properly implemented yet}");
 }
 
-void
-SbErr_Fetch(SbExceptionInfo *info)
-{
-    *info = exception;
-    exception.type = NULL;
-    exception.value = NULL;
-    exception.traceback = NULL;
-}
-
-void
-SbErr_Restore(SbExceptionInfo *info)
-{
-    SbErr_Clear();
-    exception = *info;
-}
-
 
 SbObject *
 SbErr_NoMemory(void)
@@ -97,6 +109,7 @@ SbErr_NoMemory(void)
 /* Dummy object -- these are never instantiated. */
 typedef struct _SbExceptionObject {
     SbObject_HEAD;
+    SbObject *args;
 } SbExceptionObject;
 
 SbTypeObject *SbErr_Exception = NULL;
@@ -126,11 +139,43 @@ SbErr_NewException(const char *name, SbTypeObject *base)
     return tp;
 }
 
+static SbObject *
+exception_getattribute(SbExceptionObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *attr_name;
+    const char *attr_str;
+    SbObject *value;
+
+    if (SbTuple_Unpack(args, 1, 1, &attr_name) < 0) {
+        return NULL;
+    }
+    if (!SbStr_CheckExact(attr_name)) {
+        SbErr_RaiseWithString(SbErr_TypeError, "attribute name must be a string");
+        return NULL;
+    }
+
+    attr_str = SbStr_AsStringUnsafe(attr_name);
+    if (!Sb_StrCmp(attr_str, "args")) {
+        value = self->args;
+        Sb_INCREF(value);
+        return value;
+    }
+
+    return NULL;
+}
+
+static const SbCMethodDef exception_methods[] = {
+    { "__getattribute__", (SbCFunction)exception_getattribute },
+    /* Sentinel */
+    { NULL, NULL },
+};
 
 int
 _SbErr_BuiltinInit()
 {
     SbErr_Exception = SbErr_NewException("Exception", NULL);
+    SbType_CreateMethods(SbErr_Exception, exception_methods);
+
     SbErr_StandardError = SbErr_NewException("StandardError", SbErr_Exception);
 
     SbErr_AttributeError = SbErr_NewException("AttributeError", SbErr_StandardError);
