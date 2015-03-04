@@ -157,6 +157,8 @@ SbObject_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
     return SbObject_IsTrue(result);
 }
 
+/* Lookup a method within the type dictionary.
+   Returns: New reference. */
 static SbObject *
 type_method_check(SbObject *p, const char *method_name)
 {
@@ -166,10 +168,9 @@ type_method_check(SbObject *p, const char *method_name)
     tp = Sb_TYPE(p);
     attr = SbDict_GetItemString(tp->tp_dict, method_name);
     if (attr) {
-        if (SbCFunction_Check(attr)) {
+        if (SbCFunction_Check(attr) || SbPFunction_Check(attr)) {
             return SbMethod_New(tp, attr, p);
         }
-        /* TODO: check for Python methods */
     }
     return NULL;
 }
@@ -181,14 +182,19 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
     SbObject *getattr;
     SbObject *attr_from_type;
     SbObject *attr_from_inst = NULL;
+    SbObject *attr;
 
     /* https://docs.python.org/2/reference/datamodel.html#customizing-attribute-access */
 
     getattribute = type_method_check(p, "__getattribute__");
     if (getattribute) {
-        return SbObject_CallObjArgs(getattribute, 1, SbStr_FromString(attr_name));
+        attr = SbObject_CallObjArgs(getattribute, 1, SbStr_FromString(attr_name));
+        Sb_DECREF(getattribute);
+        return attr;
     }
 
+    /* Note: inlined type_method_check to avoid double lookup */
+    attr = NULL;
     attr_from_type = SbDict_GetItemString(Sb_TYPE(p)->tp_dict, attr_name);
     if (attr_from_type) {
         if (SbCFunction_Check(attr_from_type) || SbPFunction_Check(attr_from_type)) {
@@ -197,25 +203,30 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
         }
         /* Check if a descriptor is found */
         Sb_INCREF(attr_from_type);
+        attr = attr_from_type;
     }
 
     /* If the object has a dict, check it. */
     if (Sb_TYPE(p)->tp_flags & SbType_FLAGS_HAS_DICT) {
         attr_from_inst = SbDict_GetItemString(SbObject_DICT(p), attr_name);
         if (attr_from_inst) {
-            if (attr_from_type) {
-                Sb_DECREF(attr_from_type);
-            }
             Sb_INCREF(attr_from_inst);
-            return attr_from_inst;
+            Sb_XDECREF(attr_from_type);
+            attr = attr_from_inst;
         }
+    }
+
+    if (attr) {
+        return attr;
     }
 
     /* Note that if the attribute is found through the normal mechanism, 
        __getattr__() is not called. */
     getattr = type_method_check(p, "__getattr__");
     if (getattr) {
-        return SbObject_CallObjArgs(getattr, 1, SbStr_FromString(attr_name));
+        attr = SbObject_CallObjArgs(getattr, 1, SbStr_FromString(attr_name));
+        Sb_DECREF(getattr);
+        return attr;
     }
 
     SbErr_RaiseWithString(SbErr_AttributeError, attr_name);
@@ -266,6 +277,8 @@ SbObject_DelAttrString(SbObject *p, const char *attr_name)
 SbObject *
 SbObject_Call(SbObject *callable, SbObject *args, SbObject *kwargs)
 {
+    SbObject *m_call;
+
     /* Avoid recursion. */
     if (SbCFunction_Check(callable)) {
         return SbCFunction_Call(callable, NULL, args, kwargs);
@@ -276,11 +289,13 @@ SbObject_Call(SbObject *callable, SbObject *args, SbObject *kwargs)
     if (SbMethod_Check(callable)) {
         return SbMethod_Call(callable, args, kwargs);
     }
-    if (SbType_Check(callable)) {
-        /* TODO: call `__new__`. */
-        return NULL;
+    m_call = type_method_check(callable, "__call__");
+    if (m_call) {
+        SbObject *result;
+        result = SbObject_Call(m_call, args, kwargs);
+        Sb_DECREF(m_call);
+        return result;
     }
-    /* TODO: Look up `__call__` property. */
     return NULL;
 }
 

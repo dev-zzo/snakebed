@@ -194,5 +194,8 @@ static const SbCMethodDef str_methods[] = {
 int
 _SbStr_BuiltinInit2()
 {
-    return SbType_CreateMethods(SbStr_Type, str_methods);
+    SbTypeObject *tp = SbStr_Type;
+
+    tp->tp_dict = SbDict_New();
+    return SbType_CreateMethods(tp, str_methods);
 }

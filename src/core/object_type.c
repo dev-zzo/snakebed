@@ -26,9 +26,27 @@ SbType_GenericAlloc(SbTypeObject *type, Sb_ssize_t nitems)
     return op;
 }
 
+SbObject *
+SbType_GenericNew(SbObject *dummy, SbObject *args, SbObject *kwds)
+{
+    SbTypeObject *tp;
+    SbObject *o;
+
+    tp = (SbTypeObject *)SbTuple_GetItem(args, 0);
+    if (tp->tp_itemsize) {
+        SbErr_RaiseWithString(SbErr_TypeError, "can't create a varobject with generic `__new__`");
+        return NULL;
+    }
+
+    o = SbObject_New(tp);
+    return o;
+}
+
+
 static int
 type_inherit(SbTypeObject *tp, SbTypeObject *base_type)
 {
+    Sb_INCREF(base_type);
     tp->tp_base = base_type;
     tp->tp_basicsize = base_type->tp_basicsize;
     tp->tp_itemsize = base_type->tp_itemsize;
@@ -51,6 +69,9 @@ SbType_New(const char *name, SbTypeObject *base_type)
     tp->tp_alloc = SbType_GenericAlloc;
     tp->tp_free = SbObject_Free;
     tp->tp_dictoffset = Sb_OffsetOf(SbTypeObject, tp_dict);
+    if (SbDict_Type) {
+        tp->tp_dict = SbDict_New();
+    }
 
     /* If we have a base -- inherit what's inheritable. */
     if (base_type) {
@@ -64,10 +85,22 @@ SbType_New(const char *name, SbTypeObject *base_type)
 static void
 type_destroy(SbTypeObject *tp)
 {
-    if (tp->tp_dict) {
-        Sb_DECREF(tp->tp_dict);
-    }
+    Sb_XDECREF(tp->tp_base);
+    Sb_CLEAR(tp->tp_dict);
     SbObject_DefaultDestroy((SbObject *)tp);
+}
+
+int
+SbType_IsSubtype(SbTypeObject *a, SbTypeObject *b)
+{
+    while (a) {
+        if (a == b) {
+            return 1;
+        }
+        a = a->tp_base;
+    }
+
+    return 0;
 }
 
 int
@@ -76,17 +109,7 @@ SbType_CreateMethods(SbTypeObject *type, const SbCMethodDef *methods)
     SbObject *dict;
     SbObject *func;
 
-    if (type->tp_dict) {
-        dict = type->tp_dict;
-    }
-    else {
-        dict = SbDict_New();
-        if (!dict) {
-            return -1;
-        }
-        type->tp_dict = dict;
-    }
-
+    dict = type->tp_dict;
     while (methods->name) {
         func = SbCFunction_New(methods->func);
         if (!func) {
@@ -99,11 +122,110 @@ SbType_CreateMethods(SbTypeObject *type, const SbCMethodDef *methods)
         methods++;
     }
 
-    type->tp_flags |= SbType_FLAGS_HAS_DICT;
     return 0;
 }
 
-/* Builtins initializer */
+/* Python accessible methods */
+
+static SbObject *
+type_new(SbObject *dummy, SbObject *args, SbObject *kwargs)
+{
+    Sb_ssize_t count;
+    SbObject *name = NULL, *base = NULL, *dict = NULL;
+    SbObject *result;
+
+    if (SbTuple_Unpack(args, 1, 3, &name, &base, &dict) < 0) {
+        return NULL;
+    }
+
+    count = SbTuple_GetSizeUnsafe(args);
+    if (count == 2) {
+        SbErr_RaiseWithString(SbErr_TypeError, "type() takes 1 or 3 parameters");
+        return NULL;
+    }
+
+    if (!base && !dict) {
+        result = (SbObject *)Sb_TYPE(name);
+        Sb_INCREF(result);
+        return result;
+    }
+
+    if (!SbStr_CheckExact(name)) {
+        SbErr_RaiseWithString(SbErr_TypeError, "expected `name` to be a str");
+        return NULL;
+    }
+    if (!SbStr_CheckExact(base)) {
+        SbErr_RaiseWithString(SbErr_TypeError, "expected `base` to be a type");
+        return NULL;
+    }
+    if (!SbDict_CheckExact(dict)) {
+        SbErr_RaiseWithString(SbErr_TypeError, "expected `dict` to be a dict");
+        return NULL;
+    }
+
+    result = (SbObject *)SbType_New(SbStr_AsStringUnsafe(name), (SbTypeObject *)base);
+    return result;
+}
+
+static SbObject *
+type_init(SbTypeObject *self, SbObject *args, SbObject *kwargs)
+{
+    /* TODO */
+    Sb_RETURN_NONE;
+}
+
+static SbObject *
+type_call(SbTypeObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o;
+    SbObject *m;
+    SbObject *new_args;
+    Sb_ssize_t pos, count;
+
+    count = SbTuple_GetSizeUnsafe(args);
+    new_args = SbTuple_New(count + 1);
+    if (!new_args) {
+        return NULL;
+    }
+    SbTuple_SetItemUnsafe(new_args, 0, (SbObject *)self);
+    for (pos = 0; pos < count; ++pos) {
+        o = SbTuple_GetItemUnsafe(args, pos);
+        Sb_INCREF(o);
+        SbTuple_SetItemUnsafe(new_args, pos, o);
+    }
+
+    m = SbDict_GetItemString(SbObject_DICT(self), "__new__");
+    if (m) {
+        o = SbObject_Call(m, new_args, kwargs);
+    }
+    else {
+        o = SbType_GenericNew(NULL, new_args, kwargs);
+    }
+    Sb_DECREF(new_args);
+    if (!o) {
+        return NULL;
+    }
+
+    if (SbType_IsSubtype(Sb_TYPE(o), self)) {
+        /* Just don't call `__init__` if it's not there. */
+        m = SbDict_GetItemString(SbObject_DICT(self), "__init__");
+        if (m) {
+            SbObject *none;
+
+            none = SbObject_CallMethod(o, "__init__", args, kwargs);
+            Sb_XDECREF(none);
+            if (none == NULL) {
+                Sb_DECREF(o);
+                o = NULL;
+            }
+        }
+    }
+
+    return o;
+}
+
+/* Type initializer */
+
 int
 _SbType_BuiltinInit()
 {
@@ -130,8 +252,20 @@ _SbType_BuiltinInit()
     return 0;
 }
 
+static const SbCMethodDef type_methods[] = {
+    { "__new__", (SbCFunction)type_new },
+    { "__init__", (SbCFunction)type_init },
+    { "__call__", (SbCFunction)type_call },
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
 _SbType_BuiltinInit2()
 {
-    return 0;
+    SbTypeObject *tp = SbType_Type;
+
+    tp->tp_flags = SbType_FLAGS_HAS_DICT;
+    tp->tp_dict = SbDict_New();
+    return SbType_CreateMethods(tp, type_methods);
 }

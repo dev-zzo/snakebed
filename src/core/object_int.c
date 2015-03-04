@@ -138,6 +138,26 @@ SbInt_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
 /* Python accessible methods */
 
 static SbObject *
+int_init(SbIntObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *x = NULL;
+    SbObject *base = NULL;
+
+    if (SbTuple_Unpack(args, 0, 2, &x, &base) < 0) {
+        return NULL;
+    }
+
+    if (SbInt_CheckExact(x)) {
+        self->value = SbInt_AsLongUnsafe(x);
+    }
+    else if (SbStr_CheckExact(x)) {
+        /* TODO */
+    }
+
+    Sb_RETURN_NONE;
+}
+
+static SbObject *
 int_hash(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     Sb_INCREF(self);
@@ -147,8 +167,7 @@ int_hash(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_nonzero(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    /* TODO: optimise to use bools? */
-    return SbInt_AsLong(self) == 0 ? self : SbInt_FromLong(1);
+    return SbBool_FromLong(SbInt_AsLongUnsafe(self));
 }
 
 static SbObject *
@@ -263,7 +282,7 @@ int_mul(SbObject *self, SbObject *args, SbObject *kwargs)
         return Sb_NotImplemented;
     }
 
-    result = Sb_Mul32x32As64(SbInt_AsLong(self), SbInt_AsLong(other));
+    result = Sb_Mul32x32As64(SbInt_AsLongUnsafe(self), SbInt_AsLongUnsafe(other));
     if (result > SbInt_GetMax() || result < SbInt_GetMin()) {
         /* TODO: Convert result to long */
         return NULL;
@@ -310,7 +329,7 @@ int_shr(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_neg(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return SbInt_FromLong(-SbInt_AsLong(self));
+    return SbInt_FromLong(-SbInt_AsLongUnsafe(self));
 }
 
 static SbObject *
@@ -323,8 +342,8 @@ int_pos(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_abs(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    if (SbInt_AsLong(self) < 0) {
-        return SbInt_FromLong(-SbInt_AsLong(self));
+    if (SbInt_AsLongUnsafe(self) < 0) {
+        return SbInt_FromLong(-SbInt_AsLongUnsafe(self));
     }
     Sb_INCREF(self);
     return self;
@@ -333,12 +352,13 @@ int_abs(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_inv(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return SbInt_FromLong(~SbInt_AsLong(self));
+    return SbInt_FromLong(~SbInt_AsLongUnsafe(self));
 }
 
 /* Builtins initializer */
 
 static const SbCMethodDef int_methods[] = {
+    { "__init__", (SbCFunction)int_init },
     { "__hash__", int_hash },
     { "__nonzero__", int_nonzero },
 

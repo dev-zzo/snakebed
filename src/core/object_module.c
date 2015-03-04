@@ -6,12 +6,12 @@ SbTypeObject *SbModule_Type = NULL;
 SbObject *
 SbModule_New(const char *name)
 {
-    SbModuleObject *op;
+    SbModuleObject *myself;
     SbObject *name_str;
     SbObject *dict;
 
-    op = (SbModuleObject *)SbObject_New(SbModule_Type);
-    if (!op) {
+    myself = (SbModuleObject *)SbObject_New(SbModule_Type);
+    if (!myself) {
         goto fail0;
     }
 
@@ -20,24 +20,18 @@ SbModule_New(const char *name)
         goto fail1;
     }
 
-    dict = SbDict_New();
-    if (!dict) {
-        goto fail2;
-    }
+    dict = SbObject_DICT(myself);
     if (SbDict_SetItemString(dict, "__name__", name_str) < 0) {
-        Sb_DECREF(dict);
         goto fail2;
     }
     Sb_DECREF(name_str);
 
-    op->dict = dict;
-
-    return (SbObject *)op;
+    return (SbObject *)myself;
 
 fail2:
     Sb_DECREF(name_str);
 fail1:
-    Sb_DECREF(op);
+    Sb_DECREF(myself);
 fail0:
     return NULL;
 }
@@ -45,7 +39,6 @@ fail0:
 static void
 module_destroy(SbModuleObject *self)
 {
-    Sb_CLEAR(self->dict);
     SbObject_DefaultDestroy((SbObject *)self);
 }
 

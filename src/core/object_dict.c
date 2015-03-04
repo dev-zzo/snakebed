@@ -488,3 +488,13 @@ _SbDict_BuiltinInit()
     SbDict_Type = tp;
     return 0;
 }
+
+int
+_SbDict_BuiltinInit2()
+{
+    SbTypeObject *tp = SbDict_Type;
+
+    tp->tp_dict = SbDict_New();
+    //return SbType_CreateMethods(tp, cfunc_methods);
+    return 0;
+}

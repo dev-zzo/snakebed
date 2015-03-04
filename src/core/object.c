@@ -25,6 +25,9 @@ SbObject_New(SbTypeObject *type)
     SbObject *op;
     op = (SbObject *)type->tp_alloc(type, 0);
     SbObject_INIT(op, type);
+    if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
+        SbObject_DICT(op) = SbDict_New();
+    }
     return op;
 }
 
@@ -34,13 +37,22 @@ SbObject_NewVar(SbTypeObject *type, Sb_ssize_t count)
     SbVarObject *op;
     op = (SbVarObject *)type->tp_alloc(type, count);
     SbObject_INIT_VAR(op, type, count);
+    if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
+        SbObject_DICT(op) = SbDict_New();
+    }
     return op;
 }
 
 void
 SbObject_DefaultDestroy(SbObject *p)
 {
-    Sb_TYPE(p)->tp_free(p);
+    SbTypeObject *type;
+
+    type = Sb_TYPE(p);
+    if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
+        Sb_CLEAR(SbObject_DICT(p));
+    }
+    type->tp_free(p);
 }
 
 SbObject *

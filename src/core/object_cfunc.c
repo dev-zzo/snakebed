@@ -70,5 +70,8 @@ _SbCFunction_BuiltinInit()
 int
 _SbCFunction_BuiltinInit2()
 {
-    return SbType_CreateMethods(SbCFunction_Type, cfunc_methods);
+    SbTypeObject *tp = SbCFunction_Type;
+
+    tp->tp_dict = SbDict_New();
+    return SbType_CreateMethods(tp, cfunc_methods);
 }

@@ -65,7 +65,7 @@ extern void _SbObject_DecRef(SbObject *op);
 
 /* Initialize the object's fields */
 #define SbObject_INIT(op, type) \
-    do { Sb_REFCNT(op) = 1; Sb_TYPE(op) = (type); } while(0)
+    do { Sb_REFCNT(op) = 1; Sb_TYPE(op) = (type); Sb_INCREF(type); } while(0)
 #define SbObject_INIT_VAR(op, type, count) \
     do { SbObject_INIT((op), (type)); Sb_COUNT(op) = (count); } while (0)
 

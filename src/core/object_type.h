@@ -60,13 +60,19 @@ enum {
 SbObject *
 SbType_GenericAlloc(SbTypeObject *type, Sb_ssize_t nitems);
 
+/* Generic implementation of the `__new__` method.
+   Do NOT call from C code directly. */
 SbObject *
-SbType_GenericNew(SbTypeObject *type, SbObject *args, SbObject *kwds);
+SbType_GenericNew(SbObject *dummy, SbObject *args, SbObject *kwds);
 
 /* Create a new type object.
    Returns: New reference. */
 SbTypeObject *
 SbType_New(const char *name, SbTypeObject *base_type);
+
+/* Check whether `a` is a subtype of `b`. */
+int
+SbType_IsSubtype(SbTypeObject *a, SbTypeObject *b);
 
 #define SbObject_DICT(p) \
     (*(SbObject **)(((char *)(p)) + Sb_TYPE(p)->tp_dictoffset))
