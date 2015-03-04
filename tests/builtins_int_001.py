@@ -1,0 +1,1 @@
+# Verify it can be created from another inttry:    a = int(42)except:    print('FAILED 1')else:    if a == 42:        print('PASSED')    else:        print('FAILED 2')
