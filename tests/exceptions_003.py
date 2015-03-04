@@ -1,5 +1,4 @@
 # Test that `else` executes.
-print('Test case 3:')
 try:
     pass
 except:

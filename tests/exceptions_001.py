@@ -1,5 +1,4 @@
 # Test that an exception can be raised and caught.
-print('Test case 1:')
 try:
     raise KeyError, 1234
 except KeyError as e:
