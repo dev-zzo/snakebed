@@ -76,18 +76,25 @@ _Sb_ModuleInit_Builtin()
         return -1;
     }
 
-    SbDict_SetItemString(dict, "Exception", SbErr_Exception);
-    SbDict_SetItemString(dict, "StandardError", SbErr_StandardError);
-    SbDict_SetItemString(dict, "AttributeError", SbErr_AttributeError);
-    SbDict_SetItemString(dict, "LookupError", SbErr_LookupError);
-    SbDict_SetItemString(dict, "IndexError", SbErr_IndexError);
-    SbDict_SetItemString(dict, "KeyError", SbErr_KeyError);
-    SbDict_SetItemString(dict, "MemoryError", SbErr_MemoryError);
-    SbDict_SetItemString(dict, "NameError", SbErr_NameError);
-    SbDict_SetItemString(dict, "UnboundLocalError", SbErr_UnboundLocalError);
-    SbDict_SetItemString(dict, "SystemError", SbErr_SystemError);
-    SbDict_SetItemString(dict, "TypeError", SbErr_TypeError);
-    SbDict_SetItemString(dict, "ValueError", SbErr_ValueError);
+    SbDict_SetItemString(dict, "Exception", (SbObject *)SbErr_Exception);
+    SbDict_SetItemString(dict, "StandardError", (SbObject *)SbErr_StandardError);
+    SbDict_SetItemString(dict, "AttributeError", (SbObject *)SbErr_AttributeError);
+    SbDict_SetItemString(dict, "LookupError", (SbObject *)SbErr_LookupError);
+    SbDict_SetItemString(dict, "IndexError", (SbObject *)SbErr_IndexError);
+    SbDict_SetItemString(dict, "KeyError", (SbObject *)SbErr_KeyError);
+    SbDict_SetItemString(dict, "MemoryError", (SbObject *)SbErr_MemoryError);
+    SbDict_SetItemString(dict, "NameError", (SbObject *)SbErr_NameError);
+    SbDict_SetItemString(dict, "UnboundLocalError", (SbObject *)SbErr_UnboundLocalError);
+    SbDict_SetItemString(dict, "SystemError", (SbObject *)SbErr_SystemError);
+    SbDict_SetItemString(dict, "TypeError", (SbObject *)SbErr_TypeError);
+    SbDict_SetItemString(dict, "ValueError", (SbObject *)SbErr_ValueError);
+
+    SbDict_SetItemString(dict, "type", (SbObject *)SbType_Type);
+    SbDict_SetItemString(dict, "int", (SbObject *)SbInt_Type);
+    SbDict_SetItemString(dict, "str", (SbObject *)SbStr_Type);
+    SbDict_SetItemString(dict, "tuple", (SbObject *)SbTuple_Type);
+    SbDict_SetItemString(dict, "list", (SbObject *)SbList_Type);
+    SbDict_SetItemString(dict, "dict", (SbObject *)SbDict_Type);
 
 #if SUPPORTS_BUILTIN_PRINT
     add_func(dict, "print", _builtin_print);
