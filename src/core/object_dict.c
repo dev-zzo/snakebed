@@ -437,7 +437,7 @@ SbObject *
 SbDict_Copy(SbObject *p)
 {
     SbObject *dict;
-    Sb_ssize_t state;
+    Sb_ssize_t state = 0;
 
     dict = SbDict_New();
     if (!dict) {
