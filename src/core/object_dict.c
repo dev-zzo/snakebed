@@ -1,19 +1,31 @@
 #include "snakebed.h"
 
-#define SbDict_BUCKET_COUNT 37U
+/* Dictionary implementation details discussion
 
-typedef struct _SbDictBucketEntry {
-    struct _SbDictBucketEntry *e_next;
+The implementation is your good old hash table. Since the hash function 
+is believed to be "random enough", the bucket count is chosen to be
+a power of 2, to avoid high cost modulo when looking up the bucket.
+
+Memory costs estimate (32-bit systems):
+- Base object: sizeof(void *) * (2 + 1 + BUCKET_COUNT) = sizeof(void *) * 35 = 140
+- Each entry: sizeof(void *) * 4 = 16
+
+*/
+
+#define BUCKET_COUNT 32U
+
+typedef struct _bucket_entry {
+    struct _bucket_entry *e_next;
     long e_hash;
     SbObject *e_key;
     SbObject *e_value;
-} SbDictBucketEntry;
+} bucket_entry;
 
 /* Define the dict object structure. */
 struct _SbDictObject {
     SbObject_HEAD;
     Sb_ssize_t count;
-    SbDictBucketEntry *buckets[SbDict_BUCKET_COUNT];
+    bucket_entry *buckets[BUCKET_COUNT];
 };
 
 /* Keep the type object here. */
@@ -22,29 +34,6 @@ SbTypeObject *SbDict_Type = NULL;
 /*
  * C interface implementations
  */
-
-int
-SbDict_CheckExact(SbObject *op)
-{
-    return Sb_TYPE(op) == SbDict_Type;
-}
-
-Sb_ssize_t
-SbDict_GetSize(SbObject *p)
-{
-    if (!SbDict_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
-        return -1;
-    }
-
-    return SbDict_GetSizeUnsafe(p);
-}
-
-Sb_ssize_t
-SbDict_GetSizeUnsafe(SbObject *p)
-{
-    return ((SbDictObject *)p)->count;
-}
 
 SbObject *
 SbDict_New(void)
@@ -65,128 +54,163 @@ dict_destroy(SbDictObject *self)
     SbObject_DefaultDestroy((SbObject *)self);
 }
 
-void
-_SbDict_Clear(SbDictObject *op)
+Sb_ssize_t
+SbDict_GetSize(SbObject *p)
 {
-    int bucket_index;
+#if SUPPORTS_BUILTIN_TYPECHECKS
+    if (!SbDict_CheckExact(p)) {
+        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        return -1;
+    }
+#endif
 
-    for (bucket_index = 0; bucket_index < SbDict_BUCKET_COUNT; ++bucket_index) {
-        SbDictBucketEntry *entry;
+    return SbDict_GetSizeUnsafe(p);
+}
 
-        entry = op->buckets[bucket_index];
+Sb_ssize_t
+SbDict_GetSizeUnsafe(SbObject *p)
+{
+    return ((SbDictObject *)p)->count;
+}
+
+void
+_SbDict_Clear(SbDictObject *myself)
+{
+    Sb_ssize_t bucket;
+
+    for (bucket = 0; bucket < BUCKET_COUNT; ++bucket) {
+        bucket_entry *entry;
+
+        entry = myself->buckets[bucket];
         while (entry) {
-            op->buckets[bucket_index] = entry->e_next;
+            myself->buckets[bucket] = entry->e_next;
             Sb_DECREF(entry->e_key);
             Sb_DECREF(entry->e_value);
             entry = entry->e_next;
         }
     }
 
-    op->count = 0;
+    myself->count = 0;
 }
 
 void
 SbDict_Clear(SbObject *p)
 {
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return;
     }
+#endif
+
     _SbDict_Clear((SbDictObject *)p);
 }
 
-static SbDictBucketEntry **
+static bucket_entry **
 dict_bucket_ptr(SbDictObject *op, long hash)
 {
-    return &op->buckets[((unsigned long)hash) % SbDict_BUCKET_COUNT];
+    return &op->buckets[((unsigned long)hash) % BUCKET_COUNT];
 }
 
-int 
-SbDict_Contains(SbObject *p, SbObject *key)
+static SbObject *
+dict_getitem(SbDictObject *myself, long hash, void *key, int (*cmp)(SbObject *e_key, void *key))
 {
-    SbDictObject *op = (SbDictObject *)p;
-    SbDictBucketEntry *entry;
-    long hash;
+    bucket_entry *entry;
 
-    if (!SbDict_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
-        return -1;
-    }
-
-    hash = SbObject_Hash(key);
-    if (hash == -1) {
-        return -1;
-    }
-
-    entry = *dict_bucket_ptr(op, hash);
+    entry = *dict_bucket_ptr(myself, hash);
     while (entry) {
-        if (entry->e_hash == hash && SbObject_CompareBool(entry->e_key, key, Sb_EQ) == 0) {
-            return 1;
-        }
-        entry = entry->e_next;
-    }
-
-    return 0;
-}
-
-static SbDictBucketEntry *
-dict_find_entry_string(SbDictObject *op, const char *key)
-{
-    long hash;
-    SbDictBucketEntry *entry;
-
-    hash = _SbStr_HashString(key, Sb_StrLen(key));
-    entry = *dict_bucket_ptr(op, hash);
-    while (entry) {
-        if (entry->e_hash == hash && _SbStr_EqString(entry->e_key, key) == 1) {
-            return entry;
+        if (entry->e_hash == hash) {
+            if (cmp(entry->e_key, key)) {
+                return entry->e_value;
+            }
         }
         entry = entry->e_next;
     }
 
     return NULL;
+}
+
+static int
+dict_getitemstring_cmp(SbObject *e_key, void *key)
+{
+    return SbStr_CheckExact(e_key) && _SbStr_EqString(e_key, (const char *)key) == 1;
 }
 
 SbObject *
 SbDict_GetItemString(SbObject *p, const char *key)
 {
-    SbDictObject *op = (SbDictObject *)p;
-    SbDictBucketEntry *entry;
+    SbDictObject *myself = (SbDictObject *)p;
+    long hash;
 
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return NULL;
     }
+#endif
 
-    entry = dict_find_entry_string(op, key);
-    if (entry) {
-        return entry->e_value;
-    }
-
-    return NULL;
+    hash = _SbStr_HashString(key, Sb_StrLen(key));
+    return dict_getitem(myself, hash, (void *)key, dict_getitemstring_cmp);
 }
+
+static int
+dict_getitem_cmp(SbObject *e_key, void *key)
+{
+    return SbObject_CompareBool(e_key, (SbObject *)key, Sb_EQ) == 1;
+}
+
+SbObject *
+SbDict_GetItem(SbObject *p, SbObject *key)
+{
+    SbDictObject *myself = (SbDictObject *)p;
+    long hash;
+
+#if SUPPORTS_BUILTIN_TYPECHECKS
+    if (!SbDict_CheckExact(p)) {
+        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        return NULL;
+    }
+#endif
+
+    hash = SbObject_Hash(key);
+    return dict_getitem(myself, hash, key, dict_getitem_cmp);
+}
+
 
 int
 SbDict_SetItemString(SbObject *p, const char *key, SbObject *value)
 {
-    SbDictObject *op = (SbDictObject *)p;
-    SbDictBucketEntry *entry;
-    SbDictBucketEntry **bucket;
+    SbDictObject *myself = (SbDictObject *)p;
+    bucket_entry *entry;
+    bucket_entry **bucket;
+    long hash;
 
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return -1;
     }
+#endif
 
     Sb_INCREF(value);
-    entry = dict_find_entry_string(op, key);
-    if (entry) {
-        Sb_CLEAR(entry->e_value);
-        entry->e_value = value;
-        return 0;
+
+    hash = _SbStr_HashString(key, Sb_StrLen(key));
+    bucket = dict_bucket_ptr(myself, hash);
+    entry = *bucket;
+    while (entry) {
+        if (entry->e_hash == hash) {
+            SbObject *o_key = entry->e_key;
+
+            if (SbStr_CheckExact(o_key) && _SbStr_EqString(o_key, key) == 1) {
+                Sb_CLEAR(entry->e_value);
+                entry->e_value = value;
+                return 0;
+            }
+        }
+        entry = entry->e_next;
     }
 
-    entry = (SbDictBucketEntry *)SbObject_Malloc(sizeof(*entry));
+    entry = (bucket_entry *)Sb_Malloc(sizeof(*entry));
     if (!entry) {
         SbErr_NoMemory();
         goto fail0;
@@ -197,49 +221,98 @@ SbDict_SetItemString(SbObject *p, const char *key, SbObject *value)
         goto fail1;
     }
     entry->e_value = value;
-    entry->e_hash = _SbStr_Hash(entry->e_key);
-    bucket = dict_bucket_ptr(op, entry->e_hash);
+    entry->e_hash = hash;
     entry->e_next = *bucket;
     *bucket = entry;
-
-    op->count++;
-
+    myself->count++;
     return 0;
 
 fail1:
-    SbObject_Free(entry);
+    Sb_Free(entry);
 fail0:
-    Sb_DECREF(value);
     return -1;
 }
 
 int
-SbDict_DelItemString(SbObject *p, const char *key)
+SbDict_SetItem(SbObject *p, SbObject *key, SbObject *value)
 {
-    SbDictObject *op = (SbDictObject *)p;
+    SbDictObject *myself = (SbDictObject *)p;
+    bucket_entry *entry;
+    bucket_entry **bucket;
     long hash;
-    SbDictBucketEntry **bucket;
-    SbDictBucketEntry *entry;
-    SbDictBucketEntry *prev_entry;
 
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return -1;
     }
+#endif
+
+    Sb_INCREF(value);
+
+    hash = SbObject_Hash(key);
+    bucket = dict_bucket_ptr(myself, hash);
+    entry = *bucket;
+    while (entry) {
+        if (entry->e_hash == hash) {
+            if (SbObject_CompareBool(entry->e_key, key, Sb_EQ) == 1) {
+                Sb_CLEAR(entry->e_value);
+                entry->e_value = value;
+                return 0;
+            }
+        }
+        entry = entry->e_next;
+    }
+
+    entry = (bucket_entry *)Sb_Malloc(sizeof(*entry));
+    if (!entry) {
+        SbErr_NoMemory();
+        return -1;
+    }
+    Sb_INCREF(key);
+    entry->e_key = key;
+    entry->e_value = value;
+    entry->e_hash = hash;
+    entry->e_next = *bucket;
+    *bucket = entry;
+    myself->count++;
+    return 0;
+}
+
+
+int
+SbDict_DelItemString(SbObject *p, const char *key)
+{
+    SbDictObject *myself = (SbDictObject *)p;
+    bucket_entry *entry;
+    bucket_entry **bucket;
+    long hash;
+    bucket_entry *prev_entry;
+
+#if SUPPORTS_BUILTIN_TYPECHECKS
+    if (!SbDict_CheckExact(p)) {
+        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        return -1;
+    }
+#endif
 
     hash = _SbStr_HashString(key, Sb_StrLen(key));
-    bucket = dict_bucket_ptr(op, hash);
+    bucket = dict_bucket_ptr(myself, hash);
     entry = *bucket;
     /* This exploits the fact that e_next is located at offset zero in entry. */
-    prev_entry = (SbDictBucketEntry *)bucket;
+    prev_entry = (bucket_entry *)bucket;
     while (entry) {
-        if (entry->e_hash == hash && _SbStr_EqString(entry->e_key, key) == 1) {
-            prev_entry->e_next = entry->e_next;
-            /* Safe to decref -- the entry is no longer in. */
-            Sb_DECREF(entry->e_key);
-            Sb_DECREF(entry->e_value);
-            op->count--;
-            return 0;
+        if (entry->e_hash == hash) {
+            SbObject *o_key = entry->e_key;
+
+            if (SbStr_CheckExact(o_key) && _SbStr_EqString(o_key, key) == 1) {
+                prev_entry->e_next = entry->e_next;
+                /* Safe to decref -- the entry is no longer in. */
+                Sb_DECREF(entry->e_key);
+                Sb_DECREF(entry->e_value);
+                myself->count--;
+                return 0;
+            }
         }
         prev_entry = entry;
         entry = entry->e_next;
@@ -249,22 +322,153 @@ SbDict_DelItemString(SbObject *p, const char *key)
     return -1;
 }
 
-#if 0
-SbObject *
-SbDict_GetItem(SbObject *p, SbObject *key)
-{
-}
-
-int
-SbDict_SetItem(SbObject *p, SbObject *key, SbObject *value)
-{
-}
-
 int
 SbDict_DelItem(SbObject *p, SbObject *key)
 {
-}
+    SbDictObject *myself = (SbDictObject *)p;
+    bucket_entry *entry;
+    bucket_entry **bucket;
+    long hash;
+    bucket_entry *prev_entry;
+
+#if SUPPORTS_BUILTIN_TYPECHECKS
+    if (!SbDict_CheckExact(p)) {
+        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        return -1;
+    }
 #endif
+
+    hash = SbObject_Hash(key);
+    bucket = dict_bucket_ptr(myself, hash);
+    entry = *bucket;
+    /* This exploits the fact that e_next is located at offset zero in entry. */
+    prev_entry = (bucket_entry *)bucket;
+    while (entry) {
+        if (entry->e_hash == hash) {
+            if (SbObject_CompareBool(entry->e_key, key, Sb_EQ) == 1) {
+                prev_entry->e_next = entry->e_next;
+                /* Safe to decref -- the entry is no longer in. */
+                Sb_DECREF(entry->e_key);
+                Sb_DECREF(entry->e_value);
+                myself->count--;
+                return 0;
+            }
+        }
+        prev_entry = entry;
+        entry = entry->e_next;
+    }
+
+    SbErr_RaiseWithObject(SbErr_KeyError, key);
+    return -1;
+}
+
+
+typedef struct _dict_iteration_state {
+    Sb_ssize_t bucket;
+    bucket_entry *entry;
+} dict_iteration_state;
+
+int
+SbDict_Next(SbObject *p, Sb_ssize_t *state, SbObject **key, SbObject **value)
+{
+    SbDictObject *myself = (SbDictObject *)p;
+    dict_iteration_state *s;
+    Sb_ssize_t bucket;
+    bucket_entry *entry;
+
+#if SUPPORTS_BUILTIN_TYPECHECKS
+    if (!SbDict_CheckExact(p)) {
+        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        return -1;
+    }
+#endif
+
+    /* Trivial case */
+    if (SbDict_GetSizeUnsafe(p) == 0) {
+        goto iteration_end0;
+    }
+
+    if (*state == 0) {
+        s = (dict_iteration_state *)Sb_Malloc(sizeof(*s));
+        if (!s) {
+            SbErr_NoMemory();
+            return -1;
+        }
+        *state = (Sb_ssize_t)s;
+
+        bucket = -1;
+        entry = NULL;
+        /* It is known there is at least one entry. */
+        goto search_buckets;
+    }
+
+    s = (dict_iteration_state *)*state;
+    bucket = s->bucket;
+    entry = s->entry->e_next;
+
+search_buckets:
+    if (!entry) {
+        do {
+            ++bucket;
+            if (bucket == BUCKET_COUNT) {
+                goto iteration_end;
+            }
+        } while (myself->buckets[bucket] == NULL);
+        entry = myself->buckets[bucket];
+    }
+
+    s->bucket = bucket;
+    s->entry = entry;
+    *key = entry->e_key;
+    *value = entry->e_value;
+    return 1;
+
+iteration_end:
+    Sb_Free(s);
+    *state = 0;
+
+iteration_end0:
+    *key = NULL;
+    *value = NULL;
+    return 0;
+}
+
+SbObject *
+SbDict_Copy(SbObject *p)
+{
+    SbObject *dict;
+    Sb_ssize_t state;
+
+    dict = SbDict_New();
+    if (!dict) {
+        goto fail0;
+    }
+
+    for (;;) {
+        int result;
+        SbObject *key;
+        SbObject *value;
+
+        result = SbDict_Next(p, &state, &key, &value);
+        if (result < 0) {
+            goto fail1;
+        }
+        if (!result) {
+            break;
+        }
+        if (SbDict_SetItem(dict, key, value) < 0) {
+            goto fail1;
+        }
+    }
+
+    return dict;
+
+fail1:
+    Sb_DECREF(dict);
+fail0:
+    return NULL;
+}
+
 
 /* Builtins initializer */
 

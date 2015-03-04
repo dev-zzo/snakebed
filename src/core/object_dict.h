@@ -11,8 +11,8 @@ extern SbTypeObject *SbDict_Type;
 
 /* Verify the given object is of type dict.
    Returns: 1 if true, 0 otherwise. */
-int
-SbDict_CheckExact(SbObject *p);
+#define SbDict_CheckExact(p) \
+    (Sb_TYPE(p) == SbDict_Type)
 
 /* Create a new dictionary object.
    Returns: New reference or NULL on failure. */
@@ -72,6 +72,19 @@ SbDict_SetItemString(SbObject *p, const char *key, SbObject *value);
    Returns: 0 if OK, -1 otherwise. */
 int
 SbDict_DelItemString(SbObject *p, const char *key);
+
+
+/* Iterates through all key-value pairs in the dict.
+   `state` must be initialized to 0 to start iteration.
+   Note: References in `key` and `value` are borrowed.
+   Returns: 0 when finished. */
+int
+SbDict_Next(SbObject *p, Sb_ssize_t *state, SbObject **key, SbObject **value);
+
+/* Build a shallow copy of the given dictionary.
+   Returns: New reference. */
+SbObject *
+SbDict_Copy(SbObject *p);
 
 #ifdef __cplusplus
 }

@@ -17,8 +17,8 @@ extern SbTypeObject *SbStr_Type;
 
 /* Verify the given object is of type str.
    Returns: 1 if true, 0 otherwise. */
-int
-SbStr_CheckExact(SbObject *p);
+#define SbStr_CheckExact(p) \
+    (Sb_TYPE(p) == SbStr_Type)
 
 /* Construct a str object from a C string.
    Returns: New reference. */

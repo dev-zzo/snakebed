@@ -7,12 +7,6 @@ SbTypeObject *SbStr_Type = NULL;
  * C interface implementations
  */
 
-int
-SbStr_CheckExact(SbObject *p)
-{
-    return Sb_TYPE(p) == SbStr_Type;
-}
-
 SbObject *
 SbStr_FromString(const char *v)
 {
