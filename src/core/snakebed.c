@@ -68,20 +68,21 @@ static typeinitfunc stage2_inits[] = {
 
 static typeinitfunc stage3_inits[] = {
     /* Types */
-    _SbErr_BuiltinInit,
     _SbTuple_BuiltinInit,
     _SbList_BuiltinInit,
     _SbInt_BuiltinInit,
-    _Sb_TypeInit_Bool,
     _SbNone_BuiltinInit,
     _SbNotImplemented_BuiltinInit,
     _SbPFunction_TypeInit,
     _SbMethod_BuiltinInit,
     _SbObject_TypeInit,
-    _SbModule_TypeInit,
     _SbFile_TypeInit,
     _SbCode_TypeInit,
     _SbFrame_TypeInit,
+    /* Subtypes */
+    _Sb_TypeInit_Bool,
+    _SbErr_BuiltinInit,
+    _SbModule_TypeInit,
     /* Modules */
     _Sb_ModuleInit_Builtin,
     _Sb_ModuleInit_Sys,
