@@ -266,6 +266,8 @@ _SbType_BuiltinInit2()
     SbTypeObject *tp = SbType_Type;
 
     tp->tp_flags = SbType_FLAGS_HAS_DICT;
+    tp->tp_dictoffset = Sb_OffsetOf(SbTypeObject, tp_dict);
     tp->tp_dict = SbDict_New();
+
     return SbType_CreateMethods(tp, type_methods);
 }
