@@ -5,8 +5,8 @@ def f(x):
         pass
     finally:
         return x
-
+    print('FAILED 1')
 if f(42) == 42:
     print('PASSED')
 else:
-    print('FAILED')
+    print('FAILED 2')
