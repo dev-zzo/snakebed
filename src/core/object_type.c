@@ -180,18 +180,10 @@ type_call(SbTypeObject *self, SbObject *args, SbObject *kwargs)
     SbObject *o;
     SbObject *m;
     SbObject *new_args;
-    Sb_ssize_t pos, count;
 
-    count = SbTuple_GetSizeUnsafe(args);
-    new_args = SbTuple_New(count + 1);
+    new_args = _SbTuple_Prepend((SbObject *)self, args);
     if (!new_args) {
         return NULL;
-    }
-    SbTuple_SetItemUnsafe(new_args, 0, (SbObject *)self);
-    for (pos = 0; pos < count; ++pos) {
-        o = SbTuple_GetItemUnsafe(args, pos);
-        Sb_INCREF(o);
-        SbTuple_SetItemUnsafe(new_args, pos, o);
     }
 
     m = SbDict_GetItemString(SbObject_DICT(self), "__new__");

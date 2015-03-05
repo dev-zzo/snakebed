@@ -31,6 +31,8 @@ extern "C" {
 #include "module_builtin.h"
 #include "module_sys.h"
 
+#include "internal.h"
+
 /* Nothing. */
 #define STATIC 
 

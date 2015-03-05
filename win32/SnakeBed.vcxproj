@@ -90,6 +90,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\core\exception.c" />
     <ClCompile Include="..\src\core\import.c" />
+    <ClCompile Include="..\src\core\internal.c" />
     <ClCompile Include="..\src\core\interp.c">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
     </ClCompile>
@@ -119,6 +120,7 @@
   <ItemGroup>
     <ClInclude Include="..\src\core\exception.h" />
     <ClInclude Include="..\src\core\import.h" />
+    <ClInclude Include="..\src\core\internal.h" />
     <ClInclude Include="..\src\core\interp.h" />
     <ClInclude Include="..\src\core\module_builtin.h" />
     <ClInclude Include="..\src\core\module_sys.h" />
