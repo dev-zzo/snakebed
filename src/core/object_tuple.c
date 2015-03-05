@@ -115,7 +115,7 @@ SbTuple_Unpack(SbObject *p, Sb_ssize_t count_min, Sb_ssize_t count_max, ...)
         return -1;
     }
 
-    va_start(va, count);
+    va_start(va, count_max);
     for (pos = 0; pos < count; ++pos) {
         SbObject **po;
 
