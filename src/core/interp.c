@@ -570,8 +570,6 @@ BinaryXxx_common:
             if (opcode_arg > 0) {
                 SbExceptionInfo exinfo = { NULL, NULL, NULL };
 
-                SbErr_Clear();
-
                 if (opcode_arg == 3) {
                     exinfo.traceback = STACK_POP();
                 }
