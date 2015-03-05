@@ -147,11 +147,13 @@ int_init(SbIntObject *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
-    if (SbInt_CheckExact(x)) {
-        self->value = SbInt_AsLongUnsafe(x);
-    }
-    else if (SbStr_CheckExact(x)) {
-        /* TODO */
+    if (x) {
+        if (SbInt_CheckExact(x)) {
+            self->value = SbInt_AsLongUnsafe(x);
+        }
+        else if (SbStr_CheckExact(x)) {
+            /* TODO */
+        }
     }
 
     Sb_RETURN_NONE;
