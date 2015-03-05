@@ -128,26 +128,13 @@ SbType_CreateMethods(SbTypeObject *type, const SbCMethodDef *methods)
 /* Python accessible methods */
 
 static SbObject *
-type_new(SbObject *dummy, SbObject *args, SbObject *kwargs)
+type_new(SbObject *cls, SbObject *args, SbObject *kwargs)
 {
-    Sb_ssize_t count;
     SbObject *name = NULL, *base = NULL, *dict = NULL;
     SbObject *result;
 
-    if (SbTuple_Unpack(args, 1, 3, &name, &base, &dict) < 0) {
+    if (SbTuple_Unpack(args, 4, 4, &cls, &name, &base, &dict) < 0) {
         return NULL;
-    }
-
-    count = SbTuple_GetSizeUnsafe(args);
-    if (count == 2) {
-        SbErr_RaiseWithString(SbErr_TypeError, "type() takes 1 or 3 parameters");
-        return NULL;
-    }
-
-    if (!base && !dict) {
-        result = (SbObject *)Sb_TYPE(name);
-        Sb_INCREF(result);
-        return result;
     }
 
     if (!SbStr_CheckExact(name)) {
@@ -175,18 +162,18 @@ type_init(SbTypeObject *self, SbObject *args, SbObject *kwargs)
 }
 
 static SbObject *
-type_call(SbTypeObject *self, SbObject *args, SbObject *kwargs)
+type_instantiate(SbTypeObject *type, SbObject *args, SbObject *kwargs)
 {
     SbObject *o;
     SbObject *m;
     SbObject *new_args;
 
-    new_args = _SbTuple_Prepend((SbObject *)self, args);
+    new_args = _SbTuple_Prepend((SbObject *)type, args);
     if (!new_args) {
         return NULL;
     }
 
-    m = SbDict_GetItemString(SbObject_DICT(self), "__new__");
+    m = SbDict_GetItemString(SbObject_DICT(type), "__new__");
     if (m) {
         o = SbObject_Call(m, new_args, kwargs);
     }
@@ -198,9 +185,11 @@ type_call(SbTypeObject *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
-    if (SbType_IsSubtype(Sb_TYPE(o), self)) {
+    /* If `__new__()` does not return an instance of cls, 
+     * then the new instance's `__init__()` method will not be invoked. */
+    if (SbType_IsSubtype(Sb_TYPE(o), type)) {
         /* Just don't call `__init__` if it's not there. */
-        m = SbDict_GetItemString(SbObject_DICT(self), "__init__");
+        m = SbDict_GetItemString(SbObject_DICT(type), "__init__");
         if (m) {
             SbObject *none;
 
@@ -212,8 +201,34 @@ type_call(SbTypeObject *self, SbObject *args, SbObject *kwargs)
             }
         }
     }
-
     return o;
+}
+
+static SbObject *
+type_call(SbTypeObject *self, SbObject *args, SbObject *kwargs)
+{
+    if (self == SbType_Type) {
+        Sb_ssize_t count;
+
+        count = SbTuple_GetSizeUnsafe(args);
+        if (count == 1) {
+            SbObject *tp;
+
+            tp = (SbObject *)Sb_TYPE(SbTuple_GetItemUnsafe(args, 0));
+            Sb_INCREF(tp);
+            return tp;
+        }
+        if (count != 3) {
+            SbErr_RaiseWithString(SbErr_TypeError, "type() takes 1 or 3 parameters");
+            return NULL;
+        }
+        /* Fall through */
+    }
+
+    /* Invoke `__new__()` and do with object construction.
+     * `self` is actually the type we need to construct.
+     */
+    return type_instantiate(self, args, kwargs);
 }
 
 /* Type initializer */
