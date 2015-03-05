@@ -11,11 +11,12 @@ _SbTuple_Prepend(SbObject *o, SbObject *tuple)
     if (!new_tuple) {
         return NULL;
     }
+    Sb_INCREF(o);
     SbTuple_SetItemUnsafe(new_tuple, 0, o);
     for (pos = 0; pos < count; ++pos) {
         o = SbTuple_GetItemUnsafe(tuple, pos);
         Sb_INCREF(o);
-        SbTuple_SetItemUnsafe(new_tuple, pos, o);
+        SbTuple_SetItemUnsafe(new_tuple, pos + 1, o);
     }
     return new_tuple;
 }
