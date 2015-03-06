@@ -73,6 +73,7 @@ SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObjec
     Sb_ssize_t passed_arg_count = 0;
     Sb_ssize_t defaults_count = 0;
     Sb_ssize_t va_name_pos;
+    Sb_ssize_t offset;
     SbCodeObject *code;
     SbObject *locals;
     SbObject *o;
@@ -84,21 +85,7 @@ SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObjec
     if (args) {
         passed_arg_count = SbTuple_GetSizeUnsafe(args);
     }
-
-    /* Apply default args, if any */
-    if (defaults) {
-        Sb_ssize_t offset;
-
-        defaults_count = SbTuple_GetSizeUnsafe(defaults);
-        offset = expected_arg_count - defaults_count;
-
-        for (arg_pos = 0; arg_pos < defaults_count; ++arg_pos) {
-            o = SbTuple_GetItemUnsafe(defaults, arg_pos);
-            SbDict_SetItemString(locals, 
-                SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, offset + arg_pos)),
-                o);
-        }
-    }
+    defaults_count = SbTuple_GetSizeUnsafe(defaults);
 
     /* Verify passed positional arg count is enough */
     if (passed_arg_count + defaults_count < expected_arg_count) {
@@ -107,6 +94,16 @@ SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObjec
             expected_arg_count - defaults_count,
             passed_arg_count);
         return -1;
+    }
+
+    /* Apply default args, if any */
+    offset = expected_arg_count - defaults_count;
+
+    for (arg_pos = 0; arg_pos < defaults_count; ++arg_pos) {
+        o = SbTuple_GetItemUnsafe(defaults, arg_pos);
+        SbDict_SetItemString(locals, 
+            SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, offset + arg_pos)),
+            o);
     }
 
     /* It seems this object needs to be created anyway. */
@@ -131,8 +128,11 @@ SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObjec
 
     /* Apply positional args, if any */
     if (args) {
+        Sb_ssize_t fill_limit;
+
+        fill_limit = expected_arg_count < passed_arg_count ? expected_arg_count : passed_arg_count;
         /* Fill in all expected positional args */
-        for (arg_pos = 0; arg_pos < expected_arg_count; ++arg_pos) {
+        for (arg_pos = 0; arg_pos < fill_limit; ++arg_pos) {
             o = SbTuple_GetItemUnsafe(args, arg_pos);
             SbDict_SetItemString(locals, 
                 SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, arg_pos)),
