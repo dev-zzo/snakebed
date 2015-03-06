@@ -610,6 +610,8 @@ BinaryXxx_common:
 
         default:
             /* Not implemented. */
+            SbErr_RaiseWithString(SbErr_SystemError, "opcode not implemented");
+            reason = Reason_Error;
             break;
 
 Xxx_drop2_check_oresult:
