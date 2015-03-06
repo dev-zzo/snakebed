@@ -143,6 +143,8 @@ int
 SbObject_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op);
 int
 SbObject_IsTrue(SbObject *p);
+int
+SbObject_Not(SbObject *p);
 
 SbObject *
 SbObject_Repr(SbObject *p);

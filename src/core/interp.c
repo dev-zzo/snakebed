@@ -421,6 +421,17 @@ BuildXxx_popargs:
             }
             break;
 
+        case UnaryNot:
+            /* X -> (not X) */
+            op1 = STACK_POP();
+            i_result = SbObject_Not(op1);
+            Sb_DECREF(op1);
+            if (i_result >= 0) {
+                STACK_PUSH(SbBool_FromLong(i_result));
+                continue;
+            }
+            reason = Reason_Error;
+            break;
         case UnaryPositive:
             /* X -> type(X).__pos__(X) */
             ufunc = SbNumber_Positive;
