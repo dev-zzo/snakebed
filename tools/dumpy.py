@@ -50,11 +50,11 @@ def dumpy_co(co, parent=None):
     output('  co_name:        %s' % co.co_name)
     
     # name of file in which this code object was created
-    output('  co_filename:    %s' % co.co_filename)
+#   output('  co_filename:    %s' % co.co_filename)
     # number of first line in Python source code
-    output('  co_firstlineno: %s' % co.co_firstlineno)
+#   output('  co_firstlineno: %s' % co.co_firstlineno)
     # encoded mapping of line numbers to bytecode indices
-    output('  co_lnotab:      %s' % repr(co.co_lnotab))
+#   output('  co_lnotab:      %s' % repr(co.co_lnotab))
     
     # bitmap: 1=optimized | 2=newlocals | 4=*arg | 8=**arg
     output('  co_flags:       %04X (%s)' % (co.co_flags, flags_text(co.co_flags)))
@@ -64,8 +64,10 @@ def dumpy_co(co, parent=None):
     output('  co_argcount:    %d' % co.co_argcount)
     # number of local variables
     output('  co_nlocals:     %d' % co.co_nlocals)
+    # Note that I am not sure how this is different from local var names
+    # unless we can have nameless local variables?
     if co.co_nlocals != len(co.co_varnames):
-        print 'WARNING!! co_nlocals and co_varnames differ!'
+        output('WARNING!! co_nlocals and co_varnames differ!')
 
     output('  co_varnames:    %d' % len(co.co_varnames))
     output_table(co.co_varnames)
