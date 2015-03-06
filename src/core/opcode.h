@@ -18,7 +18,7 @@ typedef enum _SbOpcode {
 
 /**/UnaryPositive           = 10,
 /**/UnaryNegative           = 11,
-    UnaryNot                = 12,
+/**/UnaryNot                = 12,
     UnaryConvert            = 13,
 /**/UnaryInvert             = 15,
 
