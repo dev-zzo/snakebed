@@ -63,9 +63,112 @@ SbFrame_SetPrevious(SbFrameObject *myself, SbFrameObject *prev)
     return 0;
 }
 
+/* https://docs.python.org/2/reference/compound_stmts.html#function-definitions
+ */
 int
 SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObject *defaults)
 {
+    Sb_ssize_t arg_pos;
+    Sb_ssize_t expected_arg_count;
+    Sb_ssize_t passed_arg_count = 0;
+    Sb_ssize_t defaults_count = 0;
+    Sb_ssize_t va_name_pos;
+    SbCodeObject *code;
+    SbObject *locals;
+    SbObject *o;
+    SbObject *varargs;
+
+    code = myself->code;
+    locals = myself->locals;
+    expected_arg_count = code->arg_count;
+    if (args) {
+        passed_arg_count = SbTuple_GetSizeUnsafe(args);
+    }
+
+    /* Apply default args, if any */
+    if (defaults) {
+        Sb_ssize_t offset;
+
+        defaults_count = SbTuple_GetSizeUnsafe(defaults);
+        offset = expected_arg_count - defaults_count;
+
+        for (arg_pos = 0; arg_pos < defaults_count; ++arg_pos) {
+            o = SbTuple_GetItemUnsafe(defaults, arg_pos);
+            SbDict_SetItemString(locals, 
+                SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, offset + arg_pos)),
+                o);
+        }
+    }
+
+    /* Verify passed positional arg count is enough */
+    if (passed_arg_count + defaults_count < expected_arg_count) {
+        SbErr_RaiseWithFormat(SbErr_TypeError,
+            "function expects minimum %d args (%d passed)",
+            expected_arg_count - defaults_count,
+            passed_arg_count);
+        return -1;
+    }
+
+    /* It seems this object needs to be created anyway. */
+    va_name_pos = expected_arg_count;
+    if (myself->code->flags & SbCode_VARARGS) {
+        Sb_ssize_t varargs_count = expected_arg_count - passed_arg_count;
+
+        if (varargs_count < 0) {
+            varargs_count = 0;
+        }
+        varargs = SbTuple_New(varargs_count);
+        if (!varargs) {
+            return -1;
+        }
+        SbDict_SetItemString(locals,
+            SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, va_name_pos)),
+            varargs);
+        Sb_DECREF(varargs);
+        /* `varargs` is a borrowed refernce now. */
+        va_name_pos += 1;
+    }
+
+    /* Apply positional args, if any */
+    if (args) {
+        /* Fill in all expected positional args */
+        for (arg_pos = 0; arg_pos < expected_arg_count; ++arg_pos) {
+            o = SbTuple_GetItemUnsafe(args, arg_pos);
+            SbDict_SetItemString(locals, 
+                SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, arg_pos)),
+                o);
+        }
+
+        /* If the form `*identifier` is present, it is initialized to a tuple
+         * receiving any excess positional parameters, defaulting to the empty tuple. */
+        while (arg_pos < passed_arg_count) {
+            o = SbTuple_GetItemUnsafe(args, arg_pos);
+            SbTuple_SetItemUnsafe(varargs, arg_pos - expected_arg_count, o);
+            ++arg_pos;
+        }
+    }
+
+#if SUPPORTS_KWARGS
+    /* If the form `**identifier` is present, it is initialized to a new dictionary 
+     * receiving any excess keyword arguments, defaulting to a new empty dictionary. */
+    if (myself->code->flags & SbCode_VARKWDS) {
+        if (kwds) {
+            o = kwds;
+            Sb_INCREF(o);
+        }
+        else {
+            o = SbDict_New();
+            if (!o) {
+                return -1;
+            }
+        }
+        SbDict_SetItemString(locals,
+            SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, va_name_pos)),
+            o);
+        Sb_DECREF(o);
+    }
+#endif
+
     return 0;
 }
 

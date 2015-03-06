@@ -1,6 +1,6 @@
 @echo off
 
-call compile_all.bat
+rem call compile_all.bat
 
 echo Running tests.
 
