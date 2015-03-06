@@ -48,13 +48,12 @@ SbInterp_Execute(SbFrameObject *frame)
         SbObject *op1, *op2, *op3;
         SbObject *scope;
         SbObject *name;
-        SbObject *result;
+        SbObject *o_result;
         int i_result;
         int test_value;
         Sb_ssize_t pos;
         SbUnaryFunc ufunc;
         SbBinaryFunc bfunc;
-        int failure;
 
         reason = Reason_Unknown;
 
@@ -107,15 +106,15 @@ SbInterp_Execute(SbFrameObject *frame)
             continue;
 
         case LoadConst:
-            result = SbTuple_GetItemUnsafe(code->consts, opcode_arg);
-            Sb_INCREF(result);
-            *--sp = result;
+            o_result = SbTuple_GetItemUnsafe(code->consts, opcode_arg);
+            Sb_INCREF(o_result);
+            *--sp = o_result;
             continue;
 
         case LoadLocals:
-            result = frame->locals;
-            Sb_INCREF(result);
-            *--sp = result;
+            o_result = frame->locals;
+            Sb_INCREF(o_result);
+            *--sp = o_result;
             continue;
 
         case JumpForward:
@@ -171,27 +170,27 @@ PopJumpIfXxx:
             }
 
             name = SbTuple_GetItem(code->varnames, opcode_arg);
-            result = SbDict_GetItemString(frame->locals, SbStr_AsStringUnsafe(name));
+            o_result = SbDict_GetItemString(frame->locals, SbStr_AsStringUnsafe(name));
             goto LoadXxx_common;
         case LoadName:
             name = SbTuple_GetItem(code->names, opcode_arg);
-            result = SbDict_GetItemString(frame->locals, SbStr_AsStringUnsafe(name));
-            if (!result) {
+            o_result = SbDict_GetItemString(frame->locals, SbStr_AsStringUnsafe(name));
+            if (!o_result) {
                 goto LoadGlobal_action;
             }
             goto LoadXxx_common;
         case LoadGlobal:
             name = SbTuple_GetItem(code->names, opcode_arg);
 LoadGlobal_action:
-            result = SbDict_GetItemString(frame->globals, SbStr_AsStringUnsafe(name));
-            if (!result) {
+            o_result = SbDict_GetItemString(frame->globals, SbStr_AsStringUnsafe(name));
+            if (!o_result) {
                 /* Try builtins */
-                result = SbDict_GetItemString(SbModule_GetDict(Sb_ModuleBuiltin), SbStr_AsStringUnsafe(name));
+                o_result = SbDict_GetItemString(SbModule_GetDict(Sb_ModuleBuiltin), SbStr_AsStringUnsafe(name));
             }
 LoadXxx_common:
-            if (result) {
-                Sb_INCREF(result);
-                STACK_PUSH(result);
+            if (o_result) {
+                Sb_INCREF(o_result);
+                STACK_PUSH(o_result);
                 continue;
             }
             SbErr_RaiseWithObject(SbErr_NameError, name);
@@ -212,15 +211,8 @@ LoadXxx_common:
 StoreXxx_common:
             name = SbTuple_GetItem(tmp, opcode_arg);
             op1 = STACK_POP();
-            failure = SbDict_SetItemString(scope, SbStr_AsStringUnsafe(name), op1) < 0;
-            Sb_DECREF(op1);
-            if (!failure) {
-                continue;
-            }
-            SbErr_Clear();
-            SbErr_RaiseWithObject(SbErr_NameError, name);
-            reason = Reason_Error;
-            break;
+            i_result = SbDict_SetItemString(scope, SbStr_AsStringUnsafe(name), op1);
+            goto XxxName_drop1_check_iresult;
 
         case DeleteFast:
             scope = frame->locals;
@@ -230,8 +222,8 @@ StoreXxx_common:
             scope = frame->locals;
             tmp = code->names;
             name = SbTuple_GetItem(frame->locals, opcode_arg);
-            failure = SbDict_DelItemString(code->names, SbStr_AsStringUnsafe(name)) < 0;
-            if (!failure) {
+            i_result = SbDict_DelItemString(code->names, SbStr_AsStringUnsafe(name));
+            if (i_result >= 0) {
                 continue;
             }
             if (!SbErr_Occurred() || !SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_KeyError)) {
@@ -244,26 +236,20 @@ StoreXxx_common:
             tmp = code->names;
 DeleteXxx_common:
             name = SbTuple_GetItem(tmp, opcode_arg);
-            failure = SbDict_DelItemString(scope, SbStr_AsStringUnsafe(name)) < 0;
-            if (!failure) {
-                continue;
-            }
-            SbErr_Clear();
-            SbErr_RaiseWithObject(SbErr_NameError, name);
-            reason = Reason_Error;
-            break;
+            i_result = SbDict_DelItemString(scope, SbStr_AsStringUnsafe(name));
+            goto XxxName_check_iresult;
 
         case LoadAttr:
             /* X -> X.attr */
             name = SbTuple_GetItem(code->names, opcode_arg);
             op1 = STACK_POP();
-            result = SbObject_GetAttrString(op1, SbStr_AsStringUnsafe(name));
+            o_result = SbObject_GetAttrString(op1, SbStr_AsStringUnsafe(name));
             Sb_DECREF(op1);
-            if (result) {
-                STACK_PUSH(result);
+            if (o_result) {
+                STACK_PUSH(o_result);
                 continue;
             }
-            /* No need to clear */
+            /* No need to clear - SbObject_GetAttrString() doesn't raise */
             SbErr_RaiseWithObject(SbErr_AttributeError, name);
             reason = Reason_Error;
             break;
@@ -272,23 +258,19 @@ DeleteXxx_common:
             name = SbTuple_GetItem(code->names, opcode_arg);
             op1 = STACK_POP();
             op2 = STACK_POP();
-            failure = SbObject_SetAttrString(op1, SbStr_AsStringUnsafe(name), op2) < 0;
+            i_result = SbObject_SetAttrString(op1, SbStr_AsStringUnsafe(name), op2);
             Sb_DECREF(op2);
-            Sb_DECREF(op1);
-            if (!failure) {
-                continue;
-            }
-            SbErr_Clear();
-            SbErr_RaiseWithObject(SbErr_AttributeError, name);
-            reason = Reason_Error;
-            break;
+            goto XxxName_drop1_check_iresult;
         case DeleteAttr:
             /* X -> */
             name = SbTuple_GetItem(code->names, opcode_arg);
             op1 = STACK_POP();
-            failure = SbObject_DelAttrString(op1, SbStr_AsStringUnsafe(name)) < 0;
+            i_result = SbObject_DelAttrString(op1, SbStr_AsStringUnsafe(name));
+
+XxxName_drop1_check_iresult:
             Sb_DECREF(op1);
-            if (!failure) {
+XxxName_check_iresult:
+            if (i_result >= 0) {
                 continue;
             }
             SbErr_Clear();
@@ -296,22 +278,24 @@ DeleteXxx_common:
             reason = Reason_Error;
             break;
 
+
+
         case BuildTuple:
-            result = SbTuple_New(opcode_arg);
-            if (!result) {
+            o_result = SbTuple_New(opcode_arg);
+            if (!o_result) {
                 goto BuildXxx_popargs;
             }
             pos = opcode_arg - 1;
             while (pos >= 0) {
                 tmp = STACK_POP();
-                SbTuple_SetItemUnsafe(result, pos, tmp);
+                SbTuple_SetItemUnsafe(o_result, pos, tmp);
                 --pos;
             }
-            STACK_PUSH(result);
+            STACK_PUSH(o_result);
             continue;
         case BuildList:
-            result = SbList_New(opcode_arg);
-            if (!result) {
+            o_result = SbList_New(opcode_arg);
+            if (!o_result) {
 BuildXxx_popargs:
                 while (opcode_arg--) {
                     tmp = STACK_POP();
@@ -323,10 +307,10 @@ BuildXxx_popargs:
             pos = opcode_arg - 1;
             while (pos >= 0) {
                 tmp = STACK_POP();
-                SbList_SetItemUnsafe(result, pos, tmp);
+                SbList_SetItemUnsafe(o_result, pos, tmp);
                 --pos;
             }
-            STACK_PUSH(result);
+            STACK_PUSH(o_result);
             continue;
 
         case MakeFunction:
@@ -344,15 +328,8 @@ BuildXxx_popargs:
                 --pos;
             }
 
-            result = SbPFunction_New((SbCodeObject *)op1, op2, frame->globals);
-            Sb_DECREF(op2);
-            Sb_DECREF(op1);
-            if (result) {
-                STACK_PUSH(result);
-                continue;
-            }
-            reason = Reason_Error;
-            break;
+            o_result = SbPFunction_New((SbCodeObject *)op1, op2, frame->globals);
+            goto Xxx_drop2_check_oresult;
 
         case CallFunction:
             {
@@ -407,17 +384,11 @@ BuildXxx_popargs:
 
                 op1 = STACK_POP();
 
-                result = SbObject_Call(op1, op2, op3);
+                o_result = SbObject_Call(op1, op2, op3);
 #if SUPPORTS_KWARGS
                 Sb_DECREF(op3);
 #endif
-                Sb_DECREF(op2);
-                Sb_DECREF(op1);
-                if (result) {
-                    STACK_PUSH(result);
-                    continue;
-                }
-                reason = Reason_Error;
+                goto Xxx_drop2_check_oresult;
             }
             break;
 
@@ -445,14 +416,8 @@ BuildXxx_popargs:
             ufunc = SbNumber_Invert;
 UnaryXxx_common:
             op1 = STACK_POP();
-            result = ufunc(op1);
-            Sb_DECREF(op1);
-            if (result) {
-                STACK_PUSH(result);
-                continue;
-            }
-            reason = Reason_Error;
-            break;
+            o_result = ufunc(op1);
+            goto Xxx_drop1_check_oresult;
 
         case CompareOp:
             /* X Y -> Y.__op__(X) */
@@ -460,7 +425,7 @@ UnaryXxx_common:
             op2 = STACK_POP();
 
             if (opcode_arg <= PyCmp_GE) {
-                result = SbObject_Compare(op2, op1, opcode_arg);
+                o_result = SbObject_Compare(op2, op1, opcode_arg);
             }
             else if (opcode_arg == PyCmp_EXC_MATCH) {
                 i_result = SbErr_ExceptionMatches((SbTypeObject *)op2, op1);
@@ -468,34 +433,14 @@ UnaryXxx_common:
                     reason = Reason_Error;
                     break;
                 }
-                result = SbBool_FromLong(i_result);
+                o_result = SbBool_FromLong(i_result);
             }
-
-            Sb_DECREF(op2);
-            Sb_DECREF(op1);
-            if (result) {
-                STACK_PUSH(result);
-                continue;
-            }
-            reason = Reason_Error;
-            break;
+            goto Xxx_drop2_check_oresult;
 
         case InPlaceAdd:
         case BinaryAdd:
             bfunc = &SbNumber_Add;
-BinaryXxx_common:
-            op1 = STACK_POP();
-            op2 = STACK_POP();
-            result = bfunc(op2, op1);
-            Sb_DECREF(op2);
-            Sb_DECREF(op1);
-            failure = result == NULL;
-            if (!failure) {
-                STACK_PUSH(result);
-                continue;
-            }
-            reason = Reason_Error;
-            break;
+            goto BinaryXxx_common;
         case InPlaceSubtract:
         case BinarySubtract:
             bfunc = &SbNumber_Subtract;
@@ -539,7 +484,11 @@ BinaryXxx_common:
         case InPlaceRightShift:
         case BinaryRightShift:
             bfunc = &SbNumber_Or;
-            goto BinaryXxx_common;
+BinaryXxx_common:
+            op1 = STACK_POP();
+            op2 = STACK_POP();
+            o_result = bfunc(op2, op1);
+            goto Xxx_drop2_check_oresult;
 
 
         case ReturnValue:
@@ -636,8 +585,54 @@ BinaryXxx_common:
             break;
 
 
+        case BinarySubscript:
+            /* X Y -> Y[X] */
+            op1 = STACK_POP();
+            op2 = STACK_POP();
+            o_result = SbObject_GetItem(op2, op1);
+            goto Xxx_drop2_check_oresult;
+
+        case StoreSubscript:
+            /* X Y Z -> */
+            op1 = STACK_POP();
+            op2 = STACK_POP();
+            op3 = STACK_POP();
+            i_result = SbObject_SetItem(op2, op1, op3);
+            goto Xxx_drop3_check_iresult;
+
+        case DeleteSubscript:
+            /* X Y -> */
+            op1 = STACK_POP();
+            op2 = STACK_POP();
+            i_result = SbObject_DelItem(op2, op1);
+            goto Xxx_drop2_check_iresult;
+
+
         default:
             /* Not implemented. */
+            break;
+
+Xxx_drop2_check_oresult:
+            Sb_DECREF(op2);
+Xxx_drop1_check_oresult:
+            Sb_DECREF(op1);
+            if (o_result) {
+                STACK_PUSH(o_result);
+                continue;
+            }
+            reason = Reason_Error;
+            break;
+
+Xxx_drop3_check_iresult:
+            Sb_DECREF(op3);
+Xxx_drop2_check_iresult:
+            Sb_DECREF(op2);
+            Sb_DECREF(op1);
+Xxx_check_iresult:
+            if (!i_result) {
+                continue;
+            }
+            reason = Reason_Error;
             break;
         }
 

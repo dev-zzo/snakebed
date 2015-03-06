@@ -113,7 +113,7 @@ dict_bucket_ptr(SbDictObject *op, long hash)
 }
 
 static SbObject *
-dict_getitem(SbDictObject *myself, long hash, void *key, int (*cmp)(SbObject *e_key, void *key))
+dict_getitem_common(SbDictObject *myself, long hash, void *key, int (*cmp)(SbObject *e_key, void *key))
 {
     bucket_entry *entry;
 
@@ -150,7 +150,7 @@ SbDict_GetItemString(SbObject *p, const char *key)
 #endif
 
     hash = _SbStr_HashString(key, Sb_StrLen(key));
-    return dict_getitem(myself, hash, (void *)key, dict_getitemstring_cmp);
+    return dict_getitem_common(myself, hash, (void *)key, dict_getitemstring_cmp);
 }
 
 static int
@@ -173,7 +173,7 @@ SbDict_GetItem(SbObject *p, SbObject *key)
 #endif
 
     hash = SbObject_Hash(key);
-    return dict_getitem(myself, hash, key, dict_getitem_cmp);
+    return dict_getitem_common(myself, hash, key, dict_getitem_cmp);
 }
 
 
@@ -470,10 +470,76 @@ fail0:
 }
 
 
-/* Builtins initializer */
+static SbObject *
+dict_len(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return SbInt_FromLong(SbDict_GetSizeUnsafe(self));
+}
+
+static SbObject *
+dict_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *key;
+    SbObject *result;
+
+    if (SbTuple_Unpack(args, 1, 1, &key) < 0) {
+        return NULL;
+    }
+
+    result = SbDict_GetItem(self, key);
+    if (result) {
+        Sb_INCREF(result);
+    }
+    return result;
+}
+
+static SbObject *
+dict_setitem(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *key;
+    SbObject *value;
+    int result;
+
+    if (SbTuple_Unpack(args, 2, 2, &key ,&value) < 0) {
+        return NULL;
+    }
+
+    result = SbDict_SetItem(self, key, value);
+    if (result < 0) {
+        return NULL;
+    }
+    Sb_RETURN_NONE;
+}
+
+static SbObject *
+dict_delitem(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *key;
+    int result;
+
+    if (SbTuple_Unpack(args, 1, 1, &key) < 0) {
+        return NULL;
+    }
+    result = SbDict_DelItem(self, key);
+    if (result < 0) {
+        return NULL;
+    }
+    Sb_RETURN_NONE;
+}
+
+/* Type initializer */
+
+static const SbCMethodDef dict_methods[] = {
+    { "__len__", dict_len },
+    { "__getitem__", dict_getitem },
+    { "__setitem__", dict_setitem },
+    { "__delitem__", dict_delitem },
+    /* Sentinel */
+    { NULL, NULL },
+};
 
 int
-_SbDict_BuiltinInit()
+_Sb_TypeInit_Dict()
 {
     SbTypeObject *tp;
 
@@ -490,11 +556,10 @@ _SbDict_BuiltinInit()
 }
 
 int
-_SbDict_BuiltinInit2()
+_Sb_TypeInit2_Dict()
 {
     SbTypeObject *tp = SbDict_Type;
 
     tp->tp_dict = SbDict_New();
-    //return SbType_CreateMethods(tp, cfunc_methods);
-    return 0;
+    return SbType_CreateMethods(tp, dict_methods);
 }

@@ -354,3 +354,49 @@ SbObject_CallMethodObjArgs(SbObject *o, const char *method, Sb_ssize_t count, ..
     Sb_DECREF(args);
     return result;
 }
+
+
+Sb_ssize_t
+SbObject_GetSize(SbObject *o)
+{
+    SbObject *result;
+
+    result = SbObject_CallMethod(o, "__len__", NULL, NULL);
+    if (SbInt_CheckExact(result)) {
+        return SbInt_AsLong(result);
+    }
+    return -1;
+}
+
+SbObject *
+SbObject_GetItem(SbObject *o, SbObject *key)
+{
+    return SbObject_CallMethodObjArgs(o, "__getitem__", 1, key);
+}
+
+int
+SbObject_SetItem(SbObject *o, SbObject *key, SbObject *value)
+{
+    SbObject *result;
+
+    result = SbObject_CallMethodObjArgs(o, "__setitem__", 2, key, value);
+    if (result == NULL) {
+        return -1;
+    }
+    return 0;
+}
+
+int
+SbObject_DelItem(SbObject *o, SbObject *key)
+{
+    SbObject *result;
+
+    result = SbObject_CallMethodObjArgs(o, "__delitem__", 1, key);
+    if (result == NULL) {
+        return -1;
+    }
+    return 0;
+}
+
+
+

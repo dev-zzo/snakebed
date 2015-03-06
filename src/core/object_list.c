@@ -185,9 +185,77 @@ fail0:
 }
 
 
-/* Builtins initializer */
+static SbObject *
+list_len(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return SbInt_FromLong(SbList_GetSizeUnsafe(self));
+}
+
+static SbObject *
+list_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *index;
+    SbObject *result;
+    Sb_ssize_t pos;
+
+    if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
+        return NULL;
+    }
+    if (SbInt_Check(index)) {
+        pos = SbInt_AsLongUnsafe(index);
+    }
+    /* Check for: long, slice */
+    else {
+        SbErr_RaiseWithString(SbErr_TypeError, "passed subscript is not an int");
+        return NULL;
+    }
+
+    result = SbList_GetItem(self, pos);
+    if (result) {
+        Sb_INCREF(result);
+    }
+    return result;
+}
+
+static SbObject *
+list_setitem(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *index;
+    SbObject *value;
+    int result;
+    Sb_ssize_t pos;
+
+    if (SbTuple_Unpack(args, 2, 2, &index ,&value) < 0) {
+        return NULL;
+    }
+    if (SbInt_Check(index)) {
+        pos = SbInt_AsLongUnsafe(index);
+    }
+    /* Check for: long, slice */
+    else {
+        SbErr_RaiseWithString(SbErr_TypeError, "passed subscript is not an int");
+        return NULL;
+    }
+
+    result = SbList_SetItem(self, pos, value);
+    if (result < 0) {
+        return NULL;
+    }
+    Sb_RETURN_NONE;
+}
+
+/* Type initializer */
+
+static const SbCMethodDef list_methods[] = {
+    { "__len__", list_len },
+    { "__getitem__", list_getitem },
+    { "__setitem__", list_setitem },
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
-_SbList_BuiltinInit()
+_Sb_TypeInit_List()
 {
     SbTypeObject *tp;
 
@@ -200,5 +268,5 @@ _SbList_BuiltinInit()
     tp->tp_destroy = (SbDestroyFunc)list_destroy;
 
     SbList_Type = tp;
-    return 0;
+    return SbType_CreateMethods(tp, list_methods);
 }

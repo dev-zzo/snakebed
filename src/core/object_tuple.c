@@ -185,16 +185,50 @@ SbTuple_SetItem(SbObject *p, Sb_ssize_t pos, SbObject *o)
     return 0;
 }
 
+
 static SbObject *
 tuple_len(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     return SbInt_FromLong(SbTuple_GetSizeUnsafe(self));
 }
 
+static SbObject *
+tuple_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *index;
+    SbObject *result;
+    Sb_ssize_t pos;
 
-/* Builtins initializer */
+    if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
+        return NULL;
+    }
+    if (SbInt_Check(index)) {
+        pos = SbInt_AsLongUnsafe(index);
+    }
+    /* Check for: long, slice */
+    else {
+        SbErr_RaiseWithString(SbErr_TypeError, "passed subscript is not an int");
+        return NULL;
+    }
+
+    result = SbTuple_GetItem(self, pos);
+    if (result) {
+        Sb_INCREF(result);
+    }
+    return result;
+}
+
+/* Type initializer */
+
+static const SbCMethodDef tuple_methods[] = {
+    { "__len__", tuple_len },
+    { "__getitem__", tuple_getitem },
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
-_SbTuple_BuiltinInit()
+_Sb_TypeInit_Tuple()
 {
     SbTypeObject *tp;
 
@@ -208,17 +242,5 @@ _SbTuple_BuiltinInit()
     tp->tp_destroy = (SbDestroyFunc)tuple_destroy;
 
     SbTuple_Type = tp;
-    return 0;
-}
-
-static const SbCMethodDef tuple_methods[] = {
-    { "__len__", tuple_len },
-    /* Sentinel */
-    { NULL, NULL },
-};
-
-int
-_SbTuple_BuiltinInit2()
-{
-    return SbType_CreateMethods(SbTuple_Type, tuple_methods);
+    return SbType_CreateMethods(tp, tuple_methods);
 }

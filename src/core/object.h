@@ -168,6 +168,15 @@ SbObject_CallMethod(SbObject *o, const char *method, SbObject *args, SbObject *k
 SbObject *
 SbObject_CallMethodObjArgs(SbObject *o, const char *method, Sb_ssize_t count, ...);
 
+Sb_ssize_t
+SbObject_GetSize(SbObject *o);
+SbObject *
+SbObject_GetItem(SbObject *o, SbObject *key);
+int
+SbObject_SetItem(SbObject *o, SbObject *key, SbObject *value);
+int
+SbObject_DelItem(SbObject *o, SbObject *key);
+
 /*
  Numeric protocol implementation
  */
