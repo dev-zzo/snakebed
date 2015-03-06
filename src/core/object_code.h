@@ -16,7 +16,7 @@ typedef struct _SbCodeObject {
     SbObject *code; /* str: bytecode itself */
     SbObject *consts; /* constants used */
     SbObject *names; /* names used (strs, pot. interned) */
-    SbObject *fastnames; /* these used with {Load|Store|Delete}Fast (strs, pot. interned) */
+    SbObject *varnames; /* these used with {Load|Store|Delete}Fast (strs, pot. interned) */
     /* TBD: closures */
 } SbCodeObject;
 
@@ -32,7 +32,7 @@ extern SbTypeObject *SbCode_Type;
     (Sb_TYPE(p) == SbCode_Type)
 
 SbObject *
-SbCode_New(SbObject *name, long flags, long stack_size, long arg_count, SbObject *code, SbObject *consts, SbObject *names, SbObject *fastnames);
+SbCode_New(SbObject *name, long flags, long stack_size, long arg_count, SbObject *code, SbObject *consts, SbObject *names, SbObject *varnames);
 
 #ifdef __cplusplus
 }

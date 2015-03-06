@@ -4,7 +4,7 @@
 SbTypeObject *SbCode_Type;
 
 SbObject *
-SbCode_New(SbObject *name, long flags, long stack_size, long arg_count, SbObject *code, SbObject *consts, SbObject *names, SbObject *fastnames)
+SbCode_New(SbObject *name, long flags, long stack_size, long arg_count, SbObject *code, SbObject *consts, SbObject *names, SbObject *varnames)
 {
     SbObject *self;
 
@@ -23,8 +23,8 @@ SbCode_New(SbObject *name, long flags, long stack_size, long arg_count, SbObject
         myself->consts = consts;
         Sb_INCREF(names);
         myself->names = names;
-        Sb_INCREF(fastnames);
-        myself->fastnames = fastnames;
+        Sb_INCREF(varnames);
+        myself->varnames = varnames;
     }
     return self;
 }
@@ -36,7 +36,7 @@ code_destroy(SbCodeObject *myself)
     Sb_XDECREF(myself->code);
     Sb_CLEAR(myself->consts);
     Sb_XDECREF(myself->names);
-    Sb_XDECREF(myself->fastnames);
+    Sb_XDECREF(myself->varnames);
     SbObject_DefaultDestroy((SbObject *)myself);
 }
 

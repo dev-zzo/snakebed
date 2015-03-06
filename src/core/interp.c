@@ -170,7 +170,7 @@ PopJumpIfXxx:
                 break;
             }
 
-            name = SbTuple_GetItem(code->fastnames, opcode_arg);
+            name = SbTuple_GetItem(code->varnames, opcode_arg);
             result = SbDict_GetItemString(frame->locals, SbStr_AsStringUnsafe(name));
             goto LoadXxx_common;
         case LoadName:
@@ -200,7 +200,7 @@ LoadXxx_common:
 
         case StoreFast:
             scope = frame->locals;
-            tmp = code->fastnames;
+            tmp = code->varnames;
             goto StoreXxx_common;
         case StoreName:
             scope = frame->locals;
@@ -224,7 +224,7 @@ StoreXxx_common:
 
         case DeleteFast:
             scope = frame->locals;
-            tmp = code->fastnames;
+            tmp = code->varnames;
             goto DeleteXxx_common;
         case DeleteName:
             scope = frame->locals;

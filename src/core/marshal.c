@@ -231,7 +231,7 @@ do_strref:
             SbObject *code;
             SbObject *consts;
             SbObject *names;
-            SbObject *fastnames;
+            SbObject *varnames;
 
             name = read_object(input, state);
             if (!name) {
@@ -270,18 +270,18 @@ do_strref:
             if (!SbTuple_CheckExact(names)) {
                 goto code_end_4;
             }
-            fastnames = read_object(input, state);
-            if (!fastnames) {
+            varnames = read_object(input, state);
+            if (!varnames) {
                 goto code_end_4;
             }
-            if (!SbTuple_CheckExact(fastnames)) {
+            if (!SbTuple_CheckExact(varnames)) {
                 goto code_end_5;
             }
 
-            result = SbCode_New(name, flags, stack_size, arg_count, code, consts, names, fastnames);
+            result = SbCode_New(name, flags, stack_size, arg_count, code, consts, names, varnames);
 
 code_end_5:
-            Sb_DECREF(fastnames);
+            Sb_DECREF(varnames);
 code_end_4:
             Sb_DECREF(names);
 code_end_3:
