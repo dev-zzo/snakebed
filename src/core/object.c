@@ -7,6 +7,7 @@ void _SbObject_DecRef(SbObject *op)
 {
     Sb_ssize_t new_refcount;
     SbExceptionInfo info;
+    SbTypeObject *tp;
 
     new_refcount = --op->ob_refcount;
     if (new_refcount) {
@@ -14,9 +15,11 @@ void _SbObject_DecRef(SbObject *op)
     }
 
     SbErr_Fetch(&info);
-    Sb_TYPE(op)->tp_destroy(op);
+    tp = Sb_TYPE(op);
+    tp->tp_destroy(op);
     /* `op` becomes invalid after this point. */
     SbErr_Restore(&info);
+    Sb_DECREF(tp);
 }
 
 SbObject *
