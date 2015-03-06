@@ -8,7 +8,22 @@ import sys
 import dis
 import __future__
 
+_flags_decode = (
+#   ( 'CO_OPTIMIZED', 0x0001),
+    ( 'CO_NEWLOCALS', 0x0002),
+    ( 'CO_VARARGS', 0x0004),
+    ( 'CO_VARKEYWORDS', 0x0008),
+    ( 'CO_NESTED', 0x0010),
+    ( 'CO_GENERATOR', 0x0020),
+    ( 'CO_NOFREE', 0x0040),
+    ( 'CO_FUTURE_DIVISION', 0x2000),
+    ( 'CO_FUTURE_ABSOLUTE_IMPORT', 0x4000),
+    ( 'CO_FUTURE_WITH_STATEMENT', 0x8000),
+#   ( 'CO_FUTURE_PRINT_FUNCTION', 0x10000),
+    ( 'CO_FUTURE_UNICODE_LITERALS', 0x20000),
+    )
 
+ 
 def output(text):
     print text
 
@@ -17,6 +32,14 @@ def output_table(tab):
     for item in tab:
         output('%5d: %s' % (i, item))
         i += 1
+
+def flags_text(f):
+    global _flags_decode
+    items = []
+    for e in _flags_decode:
+        if (e[1] & f) != 0:
+            items.append(e[0])
+    return ', '.join(items)
 
 def dumpy_co(co, parent=None):
     output('')
@@ -34,7 +57,7 @@ def dumpy_co(co, parent=None):
     output('  co_lnotab:      %s' % repr(co.co_lnotab))
     
     # bitmap: 1=optimized | 2=newlocals | 4=*arg | 8=**arg
-    output('  co_flags:       %04X' % co.co_flags)
+    output('  co_flags:       %04X (%s)' % (co.co_flags, flags_text(co.co_flags)))
     # virtual machine stack space required
     output('  co_stacksize:   %d' % co.co_stacksize)
     # number of arguments (not including * or ** args)
