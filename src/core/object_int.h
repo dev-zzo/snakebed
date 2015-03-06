@@ -19,7 +19,8 @@ extern SbTypeObject *SbInt_Type;
 #define SbInt_CheckExact(p) \
     (Sb_TYPE(p) == SbInt_Type)
 
-#define SbInt_Check SbInt_CheckExact
+#define SbInt_Check(p) \
+    (SbType_IsSubtype(Sb_TYPE(p), SbInt_Type))
 
 /* Returns the maximum value of the int object.
    Returns: Plain C data. */
