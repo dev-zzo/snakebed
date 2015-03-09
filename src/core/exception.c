@@ -1,6 +1,27 @@
 #include "snakebed.h"
 
+typedef struct _SbExceptionObject {
+    SbObject_HEAD;
+    SbObject *args;
+} SbExceptionObject;
+
+SbTypeObject *SbErr_Exception = NULL;
+SbTypeObject  *SbErr_StandardError = NULL;
+SbTypeObject   *SbErr_AttributeError = NULL;
+SbTypeObject   *SbErr_LookupError = NULL;
+SbTypeObject    *SbErr_IndexError = NULL;
+SbTypeObject    *SbErr_KeyError = NULL;
+SbTypeObject   *SbErr_MemoryError = NULL;
+SbTypeObject   *SbErr_NameError = NULL;
+SbTypeObject    *SbErr_UnboundLocalError = NULL;
+SbTypeObject   *SbErr_SystemError = NULL;
+SbTypeObject   *SbErr_TypeError = NULL;
+SbTypeObject   *SbErr_ValueError = NULL;
+
 static SbExceptionInfo exception = { NULL, NULL, NULL, };
+
+/* Cached MemoryError instance -- when we don't have memory to create another one */
+static SbObject *_memory_error_instance = NULL;
 
 SbTypeObject *
 SbErr_Occurred(void)
@@ -68,16 +89,51 @@ SbErr_Restore(SbExceptionInfo *info)
     exception = *info;
 }
 
+SbObject *
+_SbErr_Instantiate(SbTypeObject *type, SbObject *value)
+{
+    SbExceptionObject *e;
+    SbObject *args;
+
+    e = (SbExceptionObject *)SbObject_New(type);
+    if (!e) {
+        /* Whoopsie... */
+        return SbErr_NoMemory();
+    }
+
+    if (value) {
+        Sb_INCREF(value);
+        args = SbTuple_Pack(1, value);
+    }
+    else {
+        args = SbTuple_New(0);
+    }
+
+    if (!args) {
+        Sb_DECREF(e);
+        return SbErr_NoMemory();
+    }
+    e->args = args;
+
+    return (SbObject *)e;
+}
+
 
 void
 SbErr_RaiseWithObject(SbTypeObject *type, SbObject *value)
 {
+    SbObject *e;
+
     SbErr_Clear();
+
+    e = _SbErr_Instantiate(type, value);
+    if (!e) {
+        return;
+    }
 
     Sb_INCREF(type);
     exception.type = type;
-    Sb_INCREF(value);
-    exception.value = value;
+    exception.value = e;
 }
 
 void
@@ -86,7 +142,9 @@ SbErr_RaiseWithString(SbTypeObject *type, const char *value)
     SbObject *s;
 
     s = SbStr_FromString(value);
-    /* TODO: How to handle a double fault? */
+    if (!s) {
+        /* TODO: How to handle a double fault? */
+    }
     SbErr_RaiseWithObject(type, s);
     Sb_DECREF(s);
 }
@@ -97,33 +155,25 @@ SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...)
     SbErr_RaiseWithString(type, "{SbErr_RaiseWithFormat not properly implemented yet}");
 }
 
-
 SbObject *
 SbErr_NoMemory(void)
 {
-    SbErr_RaiseWithObject(SbErr_MemoryError, Sb_None);
+    /* This deserves special handling. */
+    SbErr_Clear();
+    Sb_INCREF(SbErr_MemoryError);
+    exception.type = SbErr_MemoryError;
+    Sb_INCREF(_memory_error_instance);
+    exception.value = _memory_error_instance;
     return NULL;
 }
 
 
-/* Dummy object -- these are never instantiated. */
-typedef struct _SbExceptionObject {
-    SbObject_HEAD;
-    SbObject *args;
-} SbExceptionObject;
-
-SbTypeObject *SbErr_Exception = NULL;
-SbTypeObject  *SbErr_StandardError = NULL;
-SbTypeObject   *SbErr_AttributeError = NULL;
-SbTypeObject   *SbErr_LookupError = NULL;
-SbTypeObject    *SbErr_IndexError = NULL;
-SbTypeObject    *SbErr_KeyError = NULL;
-SbTypeObject   *SbErr_MemoryError = NULL;
-SbTypeObject   *SbErr_NameError = NULL;
-SbTypeObject    *SbErr_UnboundLocalError = NULL;
-SbTypeObject   *SbErr_SystemError = NULL;
-SbTypeObject   *SbErr_TypeError = NULL;
-SbTypeObject   *SbErr_ValueError = NULL;
+static void
+exception_destroy(SbExceptionObject *self)
+{
+    Sb_CLEAR(self->args);
+    SbObject_DefaultDestroy((SbObject *)self);
+}
 
 SbTypeObject *
 SbErr_NewException(const char *name, SbTypeObject *base)
@@ -135,7 +185,7 @@ SbErr_NewException(const char *name, SbTypeObject *base)
         return NULL;
     }
     tp->tp_basicsize = sizeof(SbExceptionObject);
-    tp->tp_destroy = SbObject_DefaultDestroy;
+    tp->tp_destroy = (SbDestroyFunc)exception_destroy;
     return tp;
 }
 
@@ -190,6 +240,8 @@ _SbErr_BuiltinInit()
     SbErr_KeyError = SbErr_NewException("KeyError", SbErr_LookupError);
 
     SbErr_UnboundLocalError = SbErr_NewException("UnboundLocalError", SbErr_NameError);
+
+    _memory_error_instance = _SbErr_Instantiate(SbErr_MemoryError, NULL);
 
     return 0;
 }

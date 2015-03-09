@@ -241,7 +241,8 @@ _SbType_BuiltinInit()
 
     tp = (SbTypeObject *)SbObject_Malloc(size);
     if (!tp) {
-        /* OOM. */
+        /* Can't raise an exception -- there is no exceptions created yet. */
+        /* SbErr_NoMemory(); */
         return -1;
     }
 

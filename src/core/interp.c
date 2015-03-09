@@ -524,28 +524,32 @@ BinaryXxx_common:
 
 
         case RaiseVarArgs:
-            /* [TraceBack] [Value] [Type] -> */
+            /* X Y Z -> */
+            /* NOTE: raise Z, Y, X */
             reason = Reason_Error;
 
             if (opcode_arg > 0) {
-                SbExceptionInfo exinfo = { NULL, NULL, NULL };
+                op2 = NULL;
+                switch (opcode_arg) {
+                case 3:
+                    /* TODO: tracebacks */
+                    op3 = STACK_POP();
+                    Sb_XDECREF(op3);
+                    /* Fall through */
+                case 2:
+                    op2 = STACK_POP();
+                    /* Fall through */
+                case 1:
+                    op1 = STACK_POP();
+                    if (!SbType_Check(op1)) {
+                        Sb_XDECREF(op2);
+                        Sb_XDECREF(op1);
+                        SbErr_RaiseWithString(SbErr_TypeError, "only type objects can be passed at 1st parameter to raise");
+                        break;
+                    }
+                }
 
-                if (opcode_arg == 3) {
-                    exinfo.traceback = STACK_POP();
-                }
-                if (opcode_arg >= 2) {
-                    exinfo.value = STACK_POP();
-                }
-                op1 = STACK_POP();
-                if (!SbType_Check(op1)) {
-                    Sb_XDECREF(exinfo.traceback);
-                    Sb_XDECREF(exinfo.value);
-                    Sb_XDECREF(op1);
-                    SbErr_RaiseWithString(SbErr_TypeError, "only type objects can be passed at 1st parameter to raise");
-                    break;
-                }
-                exinfo.type = (SbTypeObject *)op1;
-                SbErr_Restore(&exinfo);
+                SbErr_RaiseWithObject(op1, op2);
             }
             break;
 
