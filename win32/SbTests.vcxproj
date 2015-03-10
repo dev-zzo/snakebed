@@ -22,6 +22,7 @@
     <ClCompile Include="..\tests\main.c" />
     <ClCompile Include="..\tests\test_dicts.c" />
     <ClCompile Include="..\tests\test_lists.c" />
+    <ClCompile Include="..\tests\test_str.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{66A18750-1476-482B-8267-87AEEBC3FEB7}</ProjectGuid>

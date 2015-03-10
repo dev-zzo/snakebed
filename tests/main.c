@@ -5,6 +5,8 @@ int
 test_lists_main(int which);
 int
 test_dicts_main(int which);
+int
+test_str_main(int which);
 
 typedef int (*testsuiteproc)(int which);
 
@@ -30,6 +32,7 @@ int main()
 {
     Sb_Initialize();
 
+    do_tests(test_str_main);
     do_tests(test_lists_main);
     do_tests(test_dicts_main);
 

@@ -130,7 +130,7 @@ SbObject *
 SbObject_DefaultStr(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     /* Provide the "<`type` instance at %p>" boilerplate representation */
-    return SbStr_FromString("<boilerplate str result>");
+    return SbStr_FromFormat("<%s instance at %p>", Sb_TYPE(self)->tp_name, self);
 }
 
 /* Type initializer */

@@ -86,6 +86,7 @@
     <ClInclude Include="..\src\bstrap\platform_win32.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\bstrap\conv.c" />
     <ClCompile Include="..\src\bstrap\string.c" />
     <ClCompile Include="..\src\bstrap\thunks.c" />
     <ClCompile Include="..\src\bstrap\win32\files.c" />

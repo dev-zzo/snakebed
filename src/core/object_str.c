@@ -1,5 +1,8 @@
 #include "snakebed.h"
 
+/* Relying on compiler here. */
+#include <stdarg.h>
+
 /* Keep the type object here. */
 SbTypeObject *SbStr_Type = NULL;
 
@@ -30,6 +33,149 @@ SbStr_FromStringAndSize(const void *v, Sb_ssize_t len)
         }
     }
     return (SbObject *)op;
+}
+
+Sb_ssize_t
+str_format_internal_va(char *buffer, const char *format, va_list va)
+{
+    const char *p;
+    int got_format;
+    char *cursor;
+    char temp_buf[32];
+
+    got_format = 0;
+    cursor = buffer;
+    for (p = format; *p; ++p) {
+        if (got_format) {
+            const char *s;
+
+            got_format = 0;
+            switch (*p) {
+            case '%':
+                s = "%";
+                break;
+
+            case 'c':
+                temp_buf[0] = (char)va_arg(va, int);
+                temp_buf[1] = '\0';
+                s = temp_buf;
+                break;
+
+            case 's':
+                s = va_arg(va, const char *);
+                break;
+
+            case 'd':
+            case 'i':
+                s = Sb_LtoA(va_arg(va, int), 10);
+                break;
+
+            case 'u':
+                s = Sb_ULtoA(va_arg(va, unsigned int), 10);
+                break;
+
+            case 'p':
+                {
+                    Sb_size_t len;
+
+                    /* This is the only one that needs alignment... */
+                    s = Sb_ULtoA((unsigned long)va_arg(va, void *), 16);
+                    if (buffer) {
+                        cursor[0] = '0';
+                        cursor[1] = 'x';
+                    }
+                    cursor += 2;
+                    len = Sb_StrLen(s);
+                    if (buffer) {
+                        while (len < 8) {
+                            *cursor++ = '0';
+                            ++len;
+                        }
+                    }
+                    else {
+                        if (len < 8) {
+                            cursor += 8 - len;
+                        }
+                    }
+                }
+                break;
+
+            case 'x':
+                s = Sb_ULtoA(va_arg(va, unsigned int), 16);
+                break;
+
+            case 'l':
+            case 'z':
+            default:
+                /* Invalid format specifier */
+                /* NOTE: This differs from CPython. */
+                continue;
+            }
+
+            if (buffer) {
+                while (*cursor = *s++) {
+                    ++cursor;
+                }
+            }
+            else {
+                while (*s++) {
+                    ++cursor;
+                }
+            }
+            continue;
+        }
+
+        if (*p == '%') {
+            got_format = 1;
+            continue;
+        }
+
+        if (buffer) {
+            *cursor = *p;
+        }
+        cursor++;
+    }
+    if (buffer) {
+        *cursor = '\0';
+    }
+    cursor++;
+
+    return cursor - buffer;
+}
+SbObject *
+SbStr_FromFormatVa(const char *format, va_list va)
+{
+    Sb_ssize_t max_length;
+    SbObject *result;
+    char *buffer;
+
+    /* Determine maximum required size */
+    max_length = str_format_internal_va(NULL, format, va);
+
+    /* Allocate */
+    result = SbStr_FromStringAndSize(NULL, max_length);
+    if (!result) {
+        return result;
+    }
+    buffer = SbStr_AsStringUnsafe(result);
+
+    /* Write out */
+    str_format_internal_va(buffer, format, va);
+
+    return result;
+}
+
+SbObject *
+SbStr_FromFormat(const char *format, ...)
+{
+    va_list va;
+    SbObject *result;
+
+    va_start(va, format);
+    result = SbStr_FromFormatVa(format, va);
+    va_end(va);
+
+    return result;
 }
 
 Sb_ssize_t

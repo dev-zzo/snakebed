@@ -71,7 +71,6 @@ test_dicts_main(int which)
     switch (which) {
     case 0: return test_dict_new();
     case 1: return test_dict_getsetstring();
-    default:
-        return 1;
+    default: return 1;
     }
 }

@@ -24,4 +24,9 @@ int
 Sb_MemCmp(const void *p1, const void *p2, Sb_size_t count);
 
 
+char *
+Sb_ULtoA(unsigned long x, unsigned radix);
+char *
+Sb_LtoA(long x, int radix);
+
 #endif // __SNAKEBED_BSTRAP_H

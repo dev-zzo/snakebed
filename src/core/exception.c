@@ -1,5 +1,8 @@
 #include "snakebed.h"
 
+/* Relying on compiler here. */
+#include <stdarg.h>
+
 static SbExceptionInfo exception = { NULL, NULL, NULL, };
 
 /* Cached MemoryError instance -- when we don't have memory to create another one */
@@ -104,6 +107,7 @@ SbErr_RaiseWithString(SbTypeObject *type, const char *value)
     if (!s) {
         /* TODO: How to handle a double fault? */
     }
+
     SbErr_RaiseWithObject(type, s);
     Sb_DECREF(s);
 }
@@ -111,7 +115,18 @@ SbErr_RaiseWithString(SbTypeObject *type, const char *value)
 void
 SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...)
 {
-    SbErr_RaiseWithString(type, "{SbErr_RaiseWithFormat not properly implemented yet}");
+    va_list va;
+    SbObject *s;
+
+    va_start(va, format);
+    s = SbStr_FromFormatVa(format, va);
+    va_end(va);
+    if (!s) {
+        /* TODO: How to handle a double fault? */
+    }
+
+    SbErr_RaiseWithObject(type, s);
+    Sb_DECREF(s);
 }
 
 SbObject *

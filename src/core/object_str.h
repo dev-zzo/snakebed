@@ -4,8 +4,6 @@
 extern "C" {
 #endif
 
-#include "object.h"
-
 /* Define the str object structure. */
 typedef struct _SbStrObject {
     SbObject_HEAD_VAR;
@@ -30,6 +28,13 @@ SbStr_FromString(const char *v);
    Returns: New reference. */
 SbObject *
 SbStr_FromStringAndSize(const void *v, Sb_ssize_t len);
+
+/* Construct a str object from a printf-like format string.
+   Returns: New reference. */
+SbObject *
+SbStr_FromFormat(const char *format, ...);
+SbObject *
+SbStr_FromFormatVa(const char *format, va_list va);
 
 /* Obtain the str's length.
    WARNING: no type checks are performed. */
