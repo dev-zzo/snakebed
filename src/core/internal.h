@@ -11,6 +11,8 @@ extern "C" {
 SbObject *
 _SbTuple_Prepend(SbObject *o, SbObject *tuple);
 
+SbObject *
+_SbErr_IncorrectSubscriptType(SbObject *sub);
 
 #ifdef __cplusplus
 }

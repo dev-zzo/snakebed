@@ -21,3 +21,10 @@ _SbTuple_Prepend(SbObject *o, SbObject *tuple)
     return new_tuple;
 }
 
+SbObject *
+_SbErr_IncorrectSubscriptType(SbObject *sub)
+{
+    SbErr_RaiseWithFormat(SbErr_TypeError, "passed subscript type (%s) is not supported", Sb_TYPE(sub)->tp_name);
+    return NULL;
+}
+

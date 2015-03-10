@@ -306,7 +306,68 @@ str_ne(SbObject *self, SbObject *args, SbObject *kwargs)
     return NULL;
 }
 
-/* Builtins initializer */
+static SbObject *
+str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *index;
+    SbObject *result;
+    Sb_ssize_t pos;
+
+    if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
+        return NULL;
+    }
+    if (SbSlice_Check(index)) {
+        Sb_ssize_t start, end, step, slice_length;
+        char *src_buffer;
+        char *dst_buffer;
+
+        if (SbSlice_GetIndices(index, SbList_GetSizeUnsafe(self), &start, &end, &step, &slice_length) < 0) {
+            return NULL;
+        }
+
+        src_buffer = SbStr_AsStringUnsafe(self);
+        result = SbStr_FromStringAndSize(NULL, slice_length);
+        dst_buffer = SbStr_AsStringUnsafe(result);
+        pos = 0;
+        for ( ; start < end; start += step) {
+            dst_buffer[pos++] = src_buffer[start];
+        }
+        /* SAFE: we overallocate by 1 */
+        dst_buffer[pos] = '\0';
+
+        return result;
+    }
+    if (SbInt_Check(index)) {
+        pos = SbInt_AsLongUnsafe(index);
+        result = SbStr_FromStringAndSize(NULL, 1);
+        if (result) {
+            char *dst_buffer;
+
+            Sb_INCREF(result);
+            dst_buffer = SbStr_AsStringUnsafe(result);
+            dst_buffer[0] = SbStr_AsStringUnsafe(self)[pos];
+            /* SAFE: we overallocate by 1 */
+            dst_buffer[1] = '\0';
+        }
+        return result;
+    }
+    return _SbErr_IncorrectSubscriptType(index);
+}
+
+/* Type initializer */
+
+static const SbCMethodDef str_methods[] = {
+    { "__hash__", str_hash },
+    { "__str__", str_str },
+    { "__len__", str_len },
+    { "__eq__", str_eq },
+    { "__ne__", str_ne },
+    { "__getitem__", str_getitem },
+
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
 _SbStr_BuiltinInit()
 {
@@ -325,17 +386,6 @@ _SbStr_BuiltinInit()
     SbStr_Type = tp;
     return 0;
 }
-
-static const SbCMethodDef str_methods[] = {
-    { "__hash__", str_hash },
-    { "__str__", str_str },
-    { "__len__", str_len },
-    { "__eq__", str_eq },
-    { "__ne__", str_ne },
-
-    /* Sentinel */
-    { NULL, NULL },
-};
 
 int
 _SbStr_BuiltinInit2()

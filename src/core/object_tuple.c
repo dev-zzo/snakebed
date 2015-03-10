@@ -202,20 +202,30 @@ tuple_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
         return NULL;
     }
+    if (SbSlice_Check(index)) {
+        Sb_ssize_t start, end, step, slice_length;
+
+        if (SbSlice_GetIndices(index, SbList_GetSizeUnsafe(self), &start, &end, &step, &slice_length) < 0) {
+            return NULL;
+        }
+
+        result = SbTuple_New(slice_length);
+        pos = 0;
+        for ( ; start < end; start += step) {
+            SbTuple_SetItemUnsafe(result, pos++, SbTuple_GetItemUnsafe(self, start));
+        }
+
+        return result;
+    }
     if (SbInt_Check(index)) {
         pos = SbInt_AsLongUnsafe(index);
+        result = SbTuple_GetItem(self, pos);
+        if (result) {
+            Sb_INCREF(result);
+        }
+        return result;
     }
-    /* Check for: long, slice */
-    else {
-        SbErr_RaiseWithString(SbErr_TypeError, "passed subscript is not an int");
-        return NULL;
-    }
-
-    result = SbTuple_GetItem(self, pos);
-    if (result) {
-        Sb_INCREF(result);
-    }
-    return result;
+    return _SbErr_IncorrectSubscriptType(index);
 }
 
 /* Type initializer */
