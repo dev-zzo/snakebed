@@ -24,6 +24,7 @@ extern "C" {
 #include "object_frame.h"
 #include "object_module.h"
 #include "object_file.h"
+#include "object_slice.h"
 
 #include "interp.h"
 #include "import.h"

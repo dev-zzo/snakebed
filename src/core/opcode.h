@@ -34,13 +34,13 @@ typedef enum _SbOpcode {
 /**/InPlaceFloorDivide      = 28,
 /**/InPlaceTrueDivide       = 29,
 
-    Slice                   = 30,
+/**/Slice                   = 30,
     /* Also uses 31-33 */
 
-    StoreSlice              = 40,
+/**/StoreSlice              = 40,
     /* Also uses 41-43 */
 
-    DeleteSlice             = 50,
+/**/DeleteSlice             = 50,
     /* Also uses 51-53 */
 
     StoreMap                = 54,
@@ -124,7 +124,7 @@ typedef enum _SbOpcode {
 /**/RaiseVarArgs            = 130, /* Number of raise arguments (1, 2 or 3) */
 /**/CallFunction            = 131, /* #args + (#kwargs<<8) */
 /**/MakeFunction            = 132, /* #defaults */
-    BuildSlice              = 133, /* Number of items */
+/**/BuildSlice              = 133, /* Number of items */
 
     MakeClosure             = 134, /* #free vars */
     /* Load free variable from closure */

@@ -45,7 +45,7 @@ SbInterp_Execute(SbFrameObject *frame)
         SbOpcode opcode;
         unsigned opcode_arg;
         SbObject *tmp;
-        SbObject *op1, *op2, *op3;
+        SbObject *op1, *op2, *op3, *op4;
         SbObject *scope;
         SbObject *name;
         SbObject *o_result;
@@ -637,12 +637,122 @@ BinaryXxx_common:
             goto Xxx_drop2_check_iresult;
 
 
+        case BuildSlice:
+            op3 = STACK_POP();
+            op2 = STACK_POP();
+            op1 = STACK_POP();
+            o_result = SbSlice_New(op1, op2, op3);
+            goto Xxx_drop3_check_oresult;
+
+        case Slice:
+            /* X -> X[:] */
+            op3 = NULL;
+            op2 = NULL;
+            op1 = STACK_POP();
+            goto SliceXxx;
+        case Slice+1:
+            /* X Y -> Y[X:] */
+            op3 = NULL;
+            op2 = STACK_POP();
+            op1 = STACK_POP();
+            goto SliceXxx;
+        case Slice+2:
+            /* X Y -> Y[:X] */
+            op3 = STACK_POP();
+            op2 = NULL;
+            op1 = STACK_POP();
+            goto SliceXxx;
+        case Slice+3:
+            /* X Y Z -> Z[Y:X] */
+            op3 = STACK_POP();
+            op2 = STACK_POP();
+            op1 = STACK_POP();
+SliceXxx:
+            tmp = SbSlice_New(op2, op3, NULL);
+            Sb_XDECREF(op3);
+            Sb_XDECREF(op2);
+            if (!tmp) {
+                reason = Reason_Error;
+                break;
+            }
+            op2 = tmp;
+            o_result = SbObject_GetItem(op1, op2);
+            goto Xxx_drop2_check_oresult;
+
+        case StoreSlice:
+            op4 = NULL;
+            op3 = NULL;
+            goto StoreSliceXxx;
+        case StoreSlice+1:
+            op4 = NULL;
+            op3 = STACK_POP();
+            goto StoreSliceXxx;
+        case StoreSlice+2:
+            op4 = STACK_POP();
+            op3 = NULL;
+            goto StoreSliceXxx;
+        case StoreSlice+3:
+            op4 = STACK_POP();
+            op3 = STACK_POP();
+StoreSliceXxx:
+            op2 = STACK_POP();
+            op1 = STACK_POP();
+            /* op1 = val, op2 = obj, op3 = start, op4 = end */
+            tmp = SbSlice_New(op3, op4, NULL);
+            Sb_XDECREF(op4);
+            Sb_XDECREF(op3);
+            if (!tmp) {
+                reason = Reason_Error;
+                break;
+            }
+            op3 = tmp;
+            i_result = SbObject_SetItem(op2, op1, op3);
+            goto Xxx_drop3_check_oresult;
+
+        case DeleteSlice:
+            /* X -> */
+            op3 = NULL;
+            op2 = NULL;
+            op1 = STACK_POP();
+            goto DeleteSliceXxx;
+        case DeleteSlice+1:
+            /* X Y -> */
+            op3 = NULL;
+            op2 = STACK_POP();
+            op1 = STACK_POP();
+            goto DeleteSliceXxx;
+        case DeleteSlice+2:
+            /* X Y -> */
+            op3 = STACK_POP();
+            op2 = NULL;
+            op1 = STACK_POP();
+            goto DeleteSliceXxx;
+        case DeleteSlice+3:
+            /* X Y Z -> */
+            op3 = STACK_POP();
+            op2 = STACK_POP();
+            op1 = STACK_POP();
+DeleteSliceXxx:
+            tmp = SbSlice_New(op2, op3, NULL);
+            Sb_XDECREF(op3);
+            Sb_XDECREF(op2);
+            if (!tmp) {
+                reason = Reason_Error;
+                break;
+            }
+            op2 = tmp;
+            i_result = SbObject_DelItem(op1, op2);
+            goto Xxx_drop2_check_iresult;
+
+
         default:
             /* Not implemented. */
-            SbErr_RaiseWithString(SbErr_SystemError, "opcode not implemented");
+            SbErr_RaiseWithFormat(SbErr_SystemError, "opcode %d not implemented", opcode);
             reason = Reason_Error;
             break;
 
+Xxx_drop3_check_oresult:
+            Sb_DECREF(op3);
 Xxx_drop2_check_oresult:
             Sb_DECREF(op2);
 Xxx_drop1_check_oresult:

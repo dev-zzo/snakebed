@@ -111,6 +111,7 @@
     <ClCompile Include="..\src\core\object_method.c" />
     <ClCompile Include="..\src\core\object_module.c" />
     <ClCompile Include="..\src\core\object_pfunc.c" />
+    <ClCompile Include="..\src\core\object_slice.c" />
     <ClCompile Include="..\src\core\object_str.c" />
     <ClCompile Include="..\src\core\object_tuple.c" />
     <ClCompile Include="..\src\core\object_type.c" />
@@ -137,6 +138,7 @@
     <ClInclude Include="..\src\core\object_method.h" />
     <ClInclude Include="..\src\core\object_module.h" />
     <ClInclude Include="..\src\core\object_pfunc.h" />
+    <ClInclude Include="..\src\core\object_slice.h" />
     <ClInclude Include="..\src\core\object_str.h" />
     <ClInclude Include="..\src\core\object_tuple.h" />
     <ClInclude Include="..\src\core\object_type.h" />
