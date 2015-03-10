@@ -24,9 +24,6 @@ typedef long Sb_ssize_t;
 typedef long long Sb_long64_t;
 typedef unsigned long long Sb_ulong64_t;
 
-#define Sb_BZero(ptr, size) \
-    memset(ptr, 0, size)
-
 #define Sb_Mul32x32As64(a, b) \
     ((Sb_long64_t)__emul((a), (b)))
 

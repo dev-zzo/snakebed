@@ -1,5 +1,14 @@
 #include "bstrap.h"
 
+void
+Sb_BZero(void *ptr, Sb_size_t size)
+{
+    char *p = (char *)ptr;
+    while (size--) {
+        *p++ = 0;
+    }
+}
+
 Sb_size_t
 Sb_StrLen(const char *s)
 {
@@ -25,8 +34,12 @@ Sb_StrCmp(const char *s1, const char *s2)
 void
 Sb_MemCpy(void *dst, const void *src, Sb_size_t count)
 {
-    /* TODO: implement me. */
-    memcpy(dst, src, count);
+    char *d = (char *)dst;
+    const char *s = (const char *)src;
+
+    while (count--) {
+        *d++ = *s++;
+    }
 }
 
 int
