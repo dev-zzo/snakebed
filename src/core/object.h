@@ -109,8 +109,7 @@ SbObject_DefaultStr(SbObject *self, SbObject *args, SbObject *kwargs);
 extern SbObject *Sb_None;
 
 #define Sb_RETURN_NONE \
-    Sb_INCREF(Sb_None); \
-    return Sb_None
+    do { SbObject *__tmp = Sb_None; Sb_INCREF(__tmp); return __tmp; } while(0)
 
 extern SbObject *Sb_NotImplemented;
 
