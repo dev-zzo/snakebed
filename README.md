@@ -8,6 +8,7 @@ A toy implementation of Python 2.7 subset designed for compilation freedom and s
 * Types:
   * "New style" classes only.
   * No descriptor support (yet).
+  * `__getslice__()`, `__setslice__()`, and `__delslice__()` are not supported. Slice objects are supported as parameters to `__getitem__()`, `__setitem__()`, and `__delitem__()` magic methods.
 * Exceptions:
   * Raising and handling an exception within `except` will overwrite the last exception being handled.
   * Only raising types (e.g. `raise KeyError`) is supported.
