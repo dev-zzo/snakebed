@@ -1,5 +1,11 @@
 #include "snakebed.h"
 
+#define __TRACE_ALLOCS 0
+
+#if __TRACE_ALLOCS
+#include <stdio.h>
+#endif /* __TRACE_ALLOCS */
+
 /* Keep the type object here. */
 SbTypeObject *SbObject_Type = NULL;
 
@@ -25,25 +31,31 @@ void _SbObject_DecRef(SbObject *op)
 SbObject *
 SbObject_New(SbTypeObject *type)
 {
-    SbObject *op;
-    op = (SbObject *)type->tp_alloc(type, 0);
-    SbObject_INIT(op, type);
+    SbObject *p;
+    p = (SbObject *)type->tp_alloc(type, 0);
+    SbObject_INIT(p, type);
     if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
-        SbObject_DICT(op) = SbDict_New();
+        SbObject_DICT(p) = SbDict_New();
     }
-    return op;
+#if __TRACE_ALLOCS
+    printf("Object at %p (type %s) allocated.\n", p, type->tp_name);
+#endif /* __TRACE_ALLOCS */
+    return p;
 }
 
 SbVarObject *
 SbObject_NewVar(SbTypeObject *type, Sb_ssize_t count)
 {
-    SbVarObject *op;
-    op = (SbVarObject *)type->tp_alloc(type, count);
-    SbObject_INIT_VAR(op, type, count);
+    SbVarObject *p;
+    p = (SbVarObject *)type->tp_alloc(type, count);
+    SbObject_INIT_VAR(p, type, count);
     if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
-        SbObject_DICT(op) = SbDict_New();
+        SbObject_DICT(p) = SbDict_New();
     }
-    return op;
+#if __TRACE_ALLOCS
+    printf("Object at %p (type %s) allocated.\n", p, type->tp_name);
+#endif /* __TRACE_ALLOCS */
+    return p;
 }
 
 void
@@ -55,6 +67,9 @@ SbObject_DefaultDestroy(SbObject *p)
     if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
         Sb_CLEAR(SbObject_DICT(p));
     }
+#if __TRACE_ALLOCS
+    printf("Object at %p (type %s) being freed.\n", p, type->tp_name);
+#endif /* __TRACE_ALLOCS */
     type->tp_free(p);
 }
 

@@ -103,6 +103,7 @@
     <ClCompile Include="..\src\core\object_cfunc.c" />
     <ClCompile Include="..\src\core\object_code.c" />
     <ClCompile Include="..\src\core\object_dict.c" />
+    <ClCompile Include="..\src\core\object_exc.c" />
     <ClCompile Include="..\src\core\object_file.c" />
     <ClCompile Include="..\src\core\object_frame.c" />
     <ClCompile Include="..\src\core\object_int.c" />
@@ -139,6 +140,7 @@
     <ClInclude Include="..\src\core\object_str.h" />
     <ClInclude Include="..\src\core\object_tuple.h" />
     <ClInclude Include="..\src\core\object_type.h" />
+    <ClInclude Include="..\src\core\object_exc.h" />
     <ClInclude Include="..\src\core\opcode.h" />
     <ClInclude Include="..\src\core\snakebed.h" />
     <ClInclude Include="..\src\core\supports.h" />

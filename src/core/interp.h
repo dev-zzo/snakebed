@@ -4,6 +4,8 @@
 extern "C" {
 #endif
 
+extern SbFrameObject *SbInterp_TopFrame;
+
 /* Execute instructions in the frame.
    Returns: New refernce to the return value. */
 SbObject *

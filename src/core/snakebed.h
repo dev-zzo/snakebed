@@ -14,16 +14,16 @@ extern "C" {
 #include "object_dict.h"
 #include "object_list.h"
 #include "object_int.h"
+#include "object_exc.h"
 #include "object_bool.h"
 #include "object_code.h"
 #include "object_cfunc.h"
 #include "object_pfunc.h"
 #include "object_method.h"
+#include "exception.h"
 #include "object_frame.h"
 #include "object_module.h"
 #include "object_file.h"
-
-#include "exception.h"
 
 #include "interp.h"
 #include "import.h"

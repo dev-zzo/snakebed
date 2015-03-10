@@ -529,6 +529,8 @@ BinaryXxx_common:
             reason = Reason_Error;
 
             if (opcode_arg > 0) {
+                /* Raise a new exception. */
+
                 op2 = NULL;
                 switch (opcode_arg) {
                 case 3:
@@ -549,7 +551,21 @@ BinaryXxx_common:
                     }
                 }
 
-                SbErr_RaiseWithObject(op1, op2);
+                SbErr_RaiseWithObject((SbTypeObject *)op1, op2);
+            }
+            else {
+                SbExceptionInfo *exc_info = &frame->exc_info;
+
+                /* Reraise the previous exception */
+                if (exc_info->type) {
+                    SbErr_RaiseWithString(SbErr_ValueError, "cannot reraise if no exception has been raised");
+                    break;
+                }
+
+                SbErr_Restore(exc_info);
+                exc_info->type = NULL;
+                exc_info->value = NULL;
+                exc_info->traceback = NULL;
             }
             break;
 
@@ -560,12 +576,15 @@ BinaryXxx_common:
 
         case EndFinally:
             op1 = STACK_POP();
+
             /* None -> */
             if (op1 == Sb_None) {
                 /* No exception occurred or it was handled */
                 Sb_DECREF(op1);
+                _SbErr_Clear(&frame->exc_info);
                 continue;
             }
+
             /* Reason [RetVal] -> */
             if (SbInt_CheckExact(op1)) {
                 /* Restore unwind reason and go on with unwinding */
@@ -576,16 +595,22 @@ BinaryXxx_common:
                 }
                 break;
             }
-            {
-                SbExceptionInfo exinfo;
 
-                /* Type Value TraceBack -> */
-                exinfo.type = (SbTypeObject *)op1;
-                exinfo.value = STACK_POP();
-                exinfo.traceback = STACK_POP();
-                SbErr_Restore(&exinfo);
-            }
             reason = Reason_Error;
+
+            /* Type Value Traceback -> */
+            if (SbType_Check(op1)) {
+                SbExceptionInfo exc_info;
+
+                exc_info.type = (SbTypeObject *)op1;
+                exc_info.value = STACK_POP();
+                exc_info.traceback = STACK_POP();
+                _SbErr_Clear(&frame->exc_info);
+                SbErr_Restore(&exc_info);
+                break;
+            }
+
+            SbErr_RaiseWithString(SbErr_SystemError, "END_FINALLY found something odd on the stack");
             break;
 
 
@@ -634,7 +659,6 @@ Xxx_drop3_check_iresult:
 Xxx_drop2_check_iresult:
             Sb_DECREF(op2);
             Sb_DECREF(op1);
-Xxx_check_iresult:
             if (!i_result) {
                 continue;
             }
@@ -678,23 +702,26 @@ Xxx_check_iresult:
 
             /* The `finally` handler is always executed. */
             if (insn == SetupFinally || (insn == SetupExcept && reason == Reason_Error)) {
-                tmp = Sb_None;
                 if (reason == Reason_Error) {
-                    SbExceptionInfo exinfo;
+                    SbExceptionInfo *exc_info = &frame->exc_info;
+
+                    /* The frame now owns references to exception info. */
+                    SbErr_Fetch(exc_info);
 
                     /* Both `finally` and `except`: Type Value TraceBack -> */
-                    SbErr_FetchCopy(&exinfo);
-                    if (!exinfo.traceback) {
-                        exinfo.traceback = tmp;
-                        Sb_INCREF(tmp);
+                    tmp = Sb_None;
+                    if (!exc_info->traceback) {
+                        exc_info->traceback = tmp;
                     }
-                    STACK_PUSH(exinfo.traceback);
-                    if (!exinfo.value) {
-                        exinfo.value = tmp;
-                        Sb_INCREF(tmp);
+                    Sb_INCREF(exc_info->traceback);
+                    STACK_PUSH(exc_info->traceback);
+                    if (!exc_info->value) {
+                        exc_info->value = tmp;
                     }
-                    STACK_PUSH(exinfo.value);
-                    STACK_PUSH((SbObject *)exinfo.type);
+                    Sb_INCREF(exc_info->value);
+                    STACK_PUSH(exc_info->value);
+                    Sb_INCREF(exc_info->type);
+                    STACK_PUSH((SbObject *)exc_info->type);
                 }
                 else {
                     if (reason == Reason_Return) {

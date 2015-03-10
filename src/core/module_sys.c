@@ -21,26 +21,19 @@ static SbObject *
 exc_info(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *result;
-    SbExceptionInfo info;
+    SbExceptionInfo* info;
 
     result = SbTuple_New(3);
     if (!result) {
         return NULL;
     }
 
-    SbErr_FetchCopy(&info);
-    set_item_or_none(result, 0, (SbObject *)info.type);
-    set_item_or_none(result, 1, (SbObject *)info.value);
-    set_item_or_none(result, 2, (SbObject *)info.traceback);
+    info = &SbInterp_TopFrame->exc_info;
+    set_item_or_none(result, 0, (SbObject *)info->type);
+    set_item_or_none(result, 1, (SbObject *)info->value);
+    set_item_or_none(result, 2, (SbObject *)info->traceback);
 
     return result;
-}
-
-static SbObject *
-exc_clear(SbObject *self, SbObject *args, SbObject *kwargs)
-{
-    SbErr_Clear();
-    Sb_RETURN_NONE;
 }
 
 static int
@@ -82,7 +75,6 @@ _Sb_ModuleInit_Sys()
     SbDict_SetItemString(dict, "stdout", o);
 
     add_func(dict, "exc_info", exc_info);
-    add_func(dict, "exc_clear", exc_clear);
 
     Sb_ModuleSys = m;
     return 0;

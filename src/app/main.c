@@ -9,6 +9,9 @@ int main(int argc, const char *argv[])
     }
 
     Sb_LoadModule("__main__", argv[1]);
+    if (SbErr_Occurred()) {
+        __asm int 3;
+    }
 
     return 0;
 }

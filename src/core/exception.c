@@ -1,27 +1,9 @@
 #include "snakebed.h"
 
-typedef struct _SbExceptionObject {
-    SbObject_HEAD;
-    SbObject *args;
-} SbExceptionObject;
-
-SbTypeObject *SbErr_Exception = NULL;
-SbTypeObject  *SbErr_StandardError = NULL;
-SbTypeObject   *SbErr_AttributeError = NULL;
-SbTypeObject   *SbErr_LookupError = NULL;
-SbTypeObject    *SbErr_IndexError = NULL;
-SbTypeObject    *SbErr_KeyError = NULL;
-SbTypeObject   *SbErr_MemoryError = NULL;
-SbTypeObject   *SbErr_NameError = NULL;
-SbTypeObject    *SbErr_UnboundLocalError = NULL;
-SbTypeObject   *SbErr_SystemError = NULL;
-SbTypeObject   *SbErr_TypeError = NULL;
-SbTypeObject   *SbErr_ValueError = NULL;
-
 static SbExceptionInfo exception = { NULL, NULL, NULL, };
 
 /* Cached MemoryError instance -- when we don't have memory to create another one */
-static SbObject *_memory_error_instance = NULL;
+extern SbObject *_SbErr_MemoryErrorInstance;
 
 SbTypeObject *
 SbErr_Occurred(void)
@@ -54,11 +36,17 @@ SbErr_ExceptionMatches(SbTypeObject *exc, SbObject *what)
 }
 
 void
+_SbErr_Clear(SbExceptionInfo *info)
+{
+    Sb_CLEAR(info->type);
+    Sb_CLEAR(info->value);
+    Sb_CLEAR(info->traceback);
+}
+
+void
 SbErr_Clear(void)
 {
-    Sb_CLEAR(exception.type);
-    Sb_CLEAR(exception.value);
-    Sb_CLEAR(exception.traceback);
+    _SbErr_Clear(&exception);
 }
 
 void
@@ -87,35 +75,6 @@ SbErr_Restore(SbExceptionInfo *info)
 {
     SbErr_Clear();
     exception = *info;
-}
-
-SbObject *
-_SbErr_Instantiate(SbTypeObject *type, SbObject *value)
-{
-    SbExceptionObject *e;
-    SbObject *args;
-
-    e = (SbExceptionObject *)SbObject_New(type);
-    if (!e) {
-        /* Whoopsie... */
-        return SbErr_NoMemory();
-    }
-
-    if (value) {
-        Sb_INCREF(value);
-        args = SbTuple_Pack(1, value);
-    }
-    else {
-        args = SbTuple_New(0);
-    }
-
-    if (!args) {
-        Sb_DECREF(e);
-        return SbErr_NoMemory();
-    }
-    e->args = args;
-
-    return (SbObject *)e;
 }
 
 
@@ -162,86 +121,8 @@ SbErr_NoMemory(void)
     SbErr_Clear();
     Sb_INCREF(SbErr_MemoryError);
     exception.type = SbErr_MemoryError;
-    Sb_INCREF(_memory_error_instance);
-    exception.value = _memory_error_instance;
+    Sb_INCREF(_SbErr_MemoryErrorInstance);
+    exception.value = _SbErr_MemoryErrorInstance;
     return NULL;
 }
 
-
-static void
-exception_destroy(SbExceptionObject *self)
-{
-    Sb_CLEAR(self->args);
-    SbObject_DefaultDestroy((SbObject *)self);
-}
-
-SbTypeObject *
-SbErr_NewException(const char *name, SbTypeObject *base)
-{
-    SbTypeObject *tp;
-
-    tp = SbType_New(name, base);
-    if (!tp) {
-        return NULL;
-    }
-    tp->tp_basicsize = sizeof(SbExceptionObject);
-    tp->tp_destroy = (SbDestroyFunc)exception_destroy;
-    return tp;
-}
-
-static SbObject *
-exception_getattribute(SbExceptionObject *self, SbObject *args, SbObject *kwargs)
-{
-    SbObject *attr_name;
-    const char *attr_str;
-    SbObject *value;
-
-    if (SbTuple_Unpack(args, 1, 1, &attr_name) < 0) {
-        return NULL;
-    }
-    if (!SbStr_CheckExact(attr_name)) {
-        SbErr_RaiseWithString(SbErr_TypeError, "attribute name must be a string");
-        return NULL;
-    }
-
-    attr_str = SbStr_AsStringUnsafe(attr_name);
-    if (!Sb_StrCmp(attr_str, "args")) {
-        value = self->args;
-        Sb_INCREF(value);
-        return value;
-    }
-
-    return NULL;
-}
-
-static const SbCMethodDef exception_methods[] = {
-    { "__getattribute__", (SbCFunction)exception_getattribute },
-    /* Sentinel */
-    { NULL, NULL },
-};
-
-int
-_SbErr_BuiltinInit()
-{
-    SbErr_Exception = SbErr_NewException("Exception", NULL);
-    SbType_CreateMethods(SbErr_Exception, exception_methods);
-
-    SbErr_StandardError = SbErr_NewException("StandardError", SbErr_Exception);
-
-    SbErr_AttributeError = SbErr_NewException("AttributeError", SbErr_StandardError);
-    SbErr_LookupError = SbErr_NewException("LookupError", SbErr_StandardError);
-    SbErr_MemoryError = SbErr_NewException("MemoryError", SbErr_StandardError);
-    SbErr_NameError = SbErr_NewException("NameError", SbErr_StandardError);
-    SbErr_SystemError = SbErr_NewException("SystemError", SbErr_StandardError);
-    SbErr_TypeError = SbErr_NewException("TypeError", SbErr_StandardError);
-    SbErr_ValueError = SbErr_NewException("ValueError", SbErr_StandardError);
-
-    SbErr_IndexError = SbErr_NewException("IndexError", SbErr_LookupError);
-    SbErr_KeyError = SbErr_NewException("KeyError", SbErr_LookupError);
-
-    SbErr_UnboundLocalError = SbErr_NewException("UnboundLocalError", SbErr_NameError);
-
-    _memory_error_instance = _SbErr_Instantiate(SbErr_MemoryError, NULL);
-
-    return 0;
-}

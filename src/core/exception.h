@@ -4,20 +4,6 @@
 extern "C" {
 #endif
 
-/* Built-in exception types. */
-extern SbTypeObject *SbErr_Exception;
-extern SbTypeObject  *SbErr_StandardError;
-extern SbTypeObject   *SbErr_AttributeError;
-extern SbTypeObject   *SbErr_LookupError;
-extern SbTypeObject    *SbErr_IndexError;
-extern SbTypeObject    *SbErr_KeyError;
-extern SbTypeObject   *SbErr_MemoryError;
-extern SbTypeObject   *SbErr_NameError;
-extern SbTypeObject    *SbErr_UnboundLocalError;
-extern SbTypeObject   *SbErr_SystemError;
-extern SbTypeObject   *SbErr_TypeError;
-extern SbTypeObject   *SbErr_ValueError;
-
 /* NOTE: this is not tracked with refcounts. */
 typedef struct {
     SbTypeObject *type;
@@ -39,6 +25,8 @@ SbErr_ExceptionMatches(SbTypeObject *exc, SbObject *what);
 /* Clear error indicator. */
 void
 SbErr_Clear(void);
+void
+_SbErr_Clear(SbExceptionInfo *info);
 
 /* Retrieve exception information, clearing the current state.
    Note: you own the references. */
@@ -68,9 +56,6 @@ SbErr_RaiseWithString(SbTypeObject *type, const char *value);
 void
 SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...);
 
-
-SbTypeObject *
-SbErr_NewException(const char *name, SbTypeObject *base);
 
 /* Raises a MemoryError.
    Returns: always NULL. */

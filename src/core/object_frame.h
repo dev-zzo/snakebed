@@ -25,6 +25,7 @@ typedef struct _SbFrameObject {
     SbObject *globals; /* dict -- global namespace associated with current frame */
     SbObject *locals; /* dict -- local namespace associated with current frame */
     SbCodeBlock *blocks;
+    SbExceptionInfo exc_info; /* required to be accessible from `sys.exc_info()` */
     const Sb_byte_t *ip;
     SbObject **sp; /* topmost in stack */
     SbObject *stack[1]; /* stack */

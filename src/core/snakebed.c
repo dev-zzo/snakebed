@@ -36,7 +36,7 @@ _SbPFunction_TypeInit();
 extern int
 _SbMethod_BuiltinInit();
 extern int
-_SbErr_BuiltinInit();
+_Sb_TypeInit_Exceptions();
 extern int
 _SbModule_TypeInit();
 extern int
@@ -86,7 +86,7 @@ static typeinitfunc stage3_inits[] = {
     _SbFrame_TypeInit,
     /* Subtypes */
     _Sb_TypeInit_Bool,
-    _SbErr_BuiltinInit,
+    _Sb_TypeInit_Exceptions,
     _SbModule_TypeInit,
     /* Modules */
     _Sb_ModuleInit_Builtin,

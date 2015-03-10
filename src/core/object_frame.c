@@ -45,6 +45,7 @@ SbFrame_New(SbCodeObject *code, SbObject *globals, SbObject *locals)
 static void
 frame_destroy(SbFrameObject *f)
 {
+    /* TODO: verify f->exc_info is all NULLs */
     Sb_CLEAR(f->code);
     Sb_CLEAR(f->globals);
     Sb_CLEAR(f->locals);
