@@ -31,9 +31,6 @@ typedef struct {
     SbCFunction func;
 } SbCMethodDef;
 
-int
-SbType_CreateMethods(SbTypeObject *type, const SbCMethodDef *methods);
-
 #ifdef __cplusplus
 }
 #endif

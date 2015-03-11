@@ -242,15 +242,14 @@ _Sb_TypeInit_Tuple()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("tuple", NULL);
+    tp = _SbType_FromCDefs("tuple", NULL, tuple_methods, sizeof(SbTupleObject));
     if (!tp) {
         return -1;
     }
 
-    tp->tp_basicsize = sizeof(SbTupleObject) - sizeof(SbObject *);
     tp->tp_itemsize = sizeof(SbObject *);
     tp->tp_destroy = (SbDestroyFunc)tuple_destroy;
 
     SbTuple_Type = tp;
-    return SbType_CreateMethods(tp, tuple_methods);
+    return 0;
 }

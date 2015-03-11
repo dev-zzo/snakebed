@@ -9,9 +9,9 @@ _SbStr_BuiltinInit();
 extern int
 _SbStr_BuiltinInit2();
 extern int
-_SbCFunction_BuiltinInit();
+_Sb_TypeInit_CFunction();
 extern int
-_SbCFunction_BuiltinInit2();
+_Sb_TypeInit2_CFunction();
 extern int
 _Sb_TypeInit_Dict();
 extern int
@@ -38,7 +38,7 @@ _SbMethod_BuiltinInit();
 extern int
 _Sb_TypeInit_Exceptions();
 extern int
-_SbModule_TypeInit();
+_Sb_TypeInit_Module();
 extern int
 _SbFile_TypeInit();
 extern int
@@ -55,7 +55,7 @@ typedef int (*typeinitfunc)();
 
 static typeinitfunc stage1_inits[] = {
     _SbType_BuiltinInit,
-    _SbCFunction_BuiltinInit,
+    _Sb_TypeInit_CFunction,
     _SbStr_BuiltinInit,
     _Sb_TypeInit_Dict,
     /* Sentinel */
@@ -65,7 +65,7 @@ static typeinitfunc stage1_inits[] = {
 static typeinitfunc stage2_inits[] = {
     _SbType_BuiltinInit2,
     _SbStr_BuiltinInit2,
-    _SbCFunction_BuiltinInit2,
+    _Sb_TypeInit2_CFunction,
     _Sb_TypeInit2_Dict,
     /* Sentinel */
     NULL
@@ -84,10 +84,10 @@ static typeinitfunc stage3_inits[] = {
     _SbFile_TypeInit,
     _SbCode_TypeInit,
     _SbFrame_TypeInit,
+    _Sb_TypeInit_Module,
     /* Subtypes */
     _Sb_TypeInit_Bool,
     _Sb_TypeInit_Exceptions,
-    _SbModule_TypeInit,
     /* Modules */
     _Sb_ModuleInit_Builtin,
     _Sb_ModuleInit_Sys,

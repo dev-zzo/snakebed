@@ -92,14 +92,13 @@ _SbPFunction_TypeInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("function", NULL);
+    tp = _SbType_FromCDefs("function", NULL, pfunction_methods, sizeof(SbPFunctionObject));
     if (!tp) {
         return -1;
     }
 
-    tp->tp_basicsize = sizeof(SbPFunctionObject);
     tp->tp_destroy = (SbDestroyFunc)pfunction_destroy;
 
     SbPFunction_Type = tp;
-    return SbType_CreateMethods(SbPFunction_Type, pfunction_methods);
+    return 0;
 }

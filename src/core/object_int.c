@@ -398,14 +398,10 @@ _SbInt_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("int", NULL);
+    tp = _SbType_FromCDefs("int", NULL, int_methods, sizeof(SbIntObject));
     if (!tp) {
         return -1;
     }
-
-    tp->tp_basicsize = sizeof(SbIntObject);
-    tp->tp_destroy = SbObject_DefaultDestroy;
-
     SbInt_Type = tp;
-    return SbType_CreateMethods(SbInt_Type, int_methods);
+    return 0;
 }

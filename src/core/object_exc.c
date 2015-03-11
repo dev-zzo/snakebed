@@ -38,7 +38,7 @@ _SbErr_Instantiate(SbTypeObject *type, SbObject *value)
 
     if (!args) {
         Sb_DECREF(e);
-        return SbErr_NoMemory();
+        return NULL;
     }
     e->args = args;
 
@@ -89,8 +89,11 @@ static const SbCMethodDef exception_methods[] = {
 int
 _Sb_TypeInit_Exceptions()
 {
-    SbErr_Exception = SbErr_NewException("Exception", NULL);
-    SbType_CreateMethods(SbErr_Exception, exception_methods);
+    SbTypeObject *tp;
+
+    tp = _SbType_FromCDefs("Exception", NULL, exception_methods, sizeof(SbExceptionObject));
+    tp->tp_destroy = (SbDestroyFunc)exception_destroy;
+    SbErr_Exception = tp;
 
     SbErr_StandardError = SbErr_NewException("StandardError", SbErr_Exception);
 
@@ -118,11 +121,9 @@ SbErr_NewException(const char *name, SbTypeObject *base)
 {
     SbTypeObject *tp;
 
-    tp = SbType_New(name, base);
+    tp = SbType_New(name, base, NULL);
     if (!tp) {
         return NULL;
     }
-    tp->tp_basicsize = sizeof(SbExceptionObject);
-    tp->tp_destroy = (SbDestroyFunc)exception_destroy;
     return tp;
 }

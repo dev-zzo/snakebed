@@ -373,7 +373,7 @@ _SbStr_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("str", NULL);
+    tp = SbType_New("str", NULL, NULL);
     if (!tp) {
         return -1;
     }
@@ -390,8 +390,9 @@ _SbStr_BuiltinInit()
 int
 _SbStr_BuiltinInit2()
 {
-    SbTypeObject *tp = SbStr_Type;
+    SbObject *dict;
 
-    tp->tp_dict = SbDict_New();
-    return SbType_CreateMethods(tp, str_methods);
+    dict = _SbType_BuildMethodDict(str_methods);
+    SbStr_Type->tp_dict = dict;
+    return dict ? 0 : -1;
 }

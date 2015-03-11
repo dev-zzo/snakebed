@@ -42,21 +42,21 @@ SbType_GenericNew(SbObject *dummy, SbObject *args, SbObject *kwds)
     return o;
 }
 
-
+/*
 static int
 type_inherit(SbTypeObject *tp, SbTypeObject *base_type)
 {
-    Sb_INCREF(base_type);
-    tp->tp_base = base_type;
     tp->tp_basicsize = base_type->tp_basicsize;
     tp->tp_itemsize = base_type->tp_itemsize;
     tp->tp_destroy = base_type->tp_destroy;
     tp->tp_dict = SbDict_Copy(base_type->tp_dict);
     return 0;
 }
+*/
 
-SbTypeObject *
-SbType_New(const char *name, SbTypeObject *base_type)
+/* The part that corresponds to `__new__()` */
+static SbTypeObject *
+type_do_new(const char *name, SbTypeObject *base_type)
 {
     SbTypeObject *tp;
 
@@ -68,16 +68,43 @@ SbType_New(const char *name, SbTypeObject *base_type)
     tp->tp_name = name;
     tp->tp_alloc = SbType_GenericAlloc;
     tp->tp_free = SbObject_Free;
-    tp->tp_dictoffset = Sb_OffsetOf(SbTypeObject, tp_dict);
-    if (SbDict_Type) {
-        tp->tp_dict = SbDict_New();
-    }
-
-    /* If we have a base -- inherit what's inheritable. */
     if (base_type) {
-        type_inherit(tp, base_type);
+        Sb_INCREF(base_type);
+        tp->tp_base = base_type;
     }
 
+    return tp;
+}
+
+/* The part that corresponds to `__init__()` */
+int
+_SbType_Init(SbTypeObject *tp, SbObject *dict)
+{
+    SbTypeObject *base = tp->tp_base;
+
+    if (!dict && SbDict_Type) {
+        dict = SbDict_New();
+    }
+    tp->tp_dict = dict;
+    if (base) {
+        tp->tp_basicsize = base->tp_basicsize;
+        tp->tp_itemsize = base->tp_itemsize;
+        tp->tp_destroy = base->tp_destroy;
+        SbDict_Merge(tp->tp_dict, base->tp_dict, 0);
+    }
+    return 0;
+}
+
+SbTypeObject *
+SbType_New(const char *name, SbTypeObject *base_type, SbObject *dict)
+{
+    SbTypeObject *tp;
+
+    tp = type_do_new(name, base_type);
+    if (!tp) {
+        return NULL;
+    }
+    _SbType_Init(tp, dict);
     return tp;
 }
 
@@ -103,28 +130,6 @@ SbType_IsSubtype(SbTypeObject *a, SbTypeObject *b)
     return 0;
 }
 
-int
-SbType_CreateMethods(SbTypeObject *type, const SbCMethodDef *methods)
-{
-    SbObject *dict;
-    SbObject *func;
-
-    dict = type->tp_dict;
-    while (methods->name) {
-        func = SbCFunction_New(methods->func);
-        if (!func) {
-            return 1;
-        }
-        if (SbDict_SetItemString(dict, methods->name, func) < 0) {
-            return -1;
-        }
-        Sb_DECREF(func);
-        methods++;
-    }
-
-    return 0;
-}
-
 /* Python accessible methods */
 
 static SbObject *
@@ -141,8 +146,12 @@ type_new(SbObject *cls, SbObject *args, SbObject *kwargs)
         SbErr_RaiseWithString(SbErr_TypeError, "expected `name` to be a str");
         return NULL;
     }
-    if (!SbStr_CheckExact(base)) {
-        SbErr_RaiseWithString(SbErr_TypeError, "expected `base` to be a type");
+    if (!SbTuple_CheckExact(base)) {
+        SbErr_RaiseWithString(SbErr_TypeError, "expected `base` to be a tuple");
+        return NULL;
+    }
+    if (SbTuple_GetSizeUnsafe(base) > 1) {
+        SbErr_RaiseWithString(SbErr_TypeError, "expected `base` to contain only one type");
         return NULL;
     }
     if (!SbDict_CheckExact(dict)) {
@@ -150,7 +159,8 @@ type_new(SbObject *cls, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
-    result = (SbObject *)SbType_New(SbStr_AsStringUnsafe(name), (SbTypeObject *)base);
+    base = SbTuple_GetItemUnsafe(base, 0);
+    result = (SbObject *)type_do_new(SbStr_AsStringUnsafe(name), (SbTypeObject *)base);
     return result;
 }
 
@@ -273,9 +283,11 @@ _SbType_BuiltinInit2()
 {
     SbTypeObject *tp = SbType_Type;
 
+    /* Inhibit dictionary creation
     tp->tp_flags = SbType_FLAGS_HAS_DICT;
+    */
     tp->tp_dictoffset = Sb_OffsetOf(SbTypeObject, tp_dict);
-    tp->tp_dict = SbDict_New();
+    tp->tp_dict = _SbType_BuildMethodDict(type_methods);
 
-    return SbType_CreateMethods(tp, type_methods);
+    return 0;
 }

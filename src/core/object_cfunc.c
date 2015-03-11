@@ -45,17 +45,16 @@ cfunction_call(SbObject *self, SbObject *args, SbObject *kwargs)
 
 static const SbCMethodDef cfunc_methods[] = {
     { "__call__", cfunction_call },
-
     /* Sentinel */
     { NULL, NULL },
 };
 
 int
-_SbCFunction_BuiltinInit()
+_Sb_TypeInit_CFunction()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("<C function>", NULL);
+    tp = SbType_New("<C function>", NULL, NULL);
     if (!tp) {
         return -1;
     }
@@ -68,10 +67,11 @@ _SbCFunction_BuiltinInit()
 }
 
 int
-_SbCFunction_BuiltinInit2()
+_Sb_TypeInit2_CFunction()
 {
-    SbTypeObject *tp = SbCFunction_Type;
+    SbObject *dict;
 
-    tp->tp_dict = SbDict_New();
-    return SbType_CreateMethods(tp, cfunc_methods);
+    dict = _SbType_BuildMethodDict(cfunc_methods);
+    SbCFunction_Type->tp_dict = dict;
+    return dict ? 0 : -1;
 }

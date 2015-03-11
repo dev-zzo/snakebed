@@ -34,9 +34,11 @@ SbObject_New(SbTypeObject *type)
     SbObject *p;
     p = (SbObject *)type->tp_alloc(type, 0);
     SbObject_INIT(p, type);
+    /*
     if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
         SbObject_DICT(p) = SbDict_New();
     }
+    */
 #if __TRACE_ALLOCS
     printf("Object at %p (type %s) allocated.\n", p, type->tp_name);
 #endif /* __TRACE_ALLOCS */
@@ -49,9 +51,11 @@ SbObject_NewVar(SbTypeObject *type, Sb_ssize_t count)
     SbVarObject *p;
     p = (SbVarObject *)type->tp_alloc(type, count);
     SbObject_INIT_VAR(p, type, count);
+    /*
     if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
         SbObject_DICT(p) = SbDict_New();
     }
+    */
 #if __TRACE_ALLOCS
     printf("Object at %p (type %s) allocated.\n", p, type->tp_name);
 #endif /* __TRACE_ALLOCS */
@@ -149,15 +153,11 @@ _SbObject_TypeInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("object", NULL);
+    tp = _SbType_FromCDefs("object", NULL, object_methods, sizeof(SbObject));
     if (!tp) {
         return -1;
     }
-
-    tp->tp_basicsize = sizeof(SbObject);
     tp->tp_flags = SbType_FLAGS_HAS_DICT;
-    tp->tp_destroy = SbObject_DefaultDestroy;
-
     SbObject_Type = tp;
-    return SbType_CreateMethods(tp, object_methods);
+    return 0;
 }

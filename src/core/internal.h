@@ -14,6 +14,12 @@ _SbTuple_Prepend(SbObject *o, SbObject *tuple);
 SbObject *
 _SbErr_IncorrectSubscriptType(SbObject *sub);
 
+SbObject *
+_SbType_BuildMethodDict(const SbCMethodDef *methods);
+
+SbTypeObject *
+_SbType_FromCDefs(const char *name, SbTypeObject *base_type, const SbCMethodDef *methods, Sb_size_t basic_size);
+
 #ifdef __cplusplus
 }
 #endif

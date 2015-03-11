@@ -18,9 +18,9 @@ struct _SbTypeObject {
     const char *tp_name;
 
     /* Instance's basic size */
-    size_t tp_basicsize;
+    Sb_size_t tp_basicsize;
     /* Instance's item size (for var-objects) */
-    size_t tp_itemsize;
+    Sb_size_t tp_itemsize;
 
     long tp_flags;
 
@@ -65,10 +65,10 @@ SbType_GenericAlloc(SbTypeObject *type, Sb_ssize_t nitems);
 SbObject *
 SbType_GenericNew(SbObject *dummy, SbObject *args, SbObject *kwds);
 
-/* Create a new type object.
+/* Creates a new type object.
    Returns: New reference. */
 SbTypeObject *
-SbType_New(const char *name, SbTypeObject *base_type);
+SbType_New(const char *name, SbTypeObject *base_type, SbObject *dict);
 
 /* Check whether `a` is a subtype of `b`. */
 int

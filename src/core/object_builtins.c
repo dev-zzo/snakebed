@@ -21,13 +21,10 @@ _SbNone_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("None", SbObject_Type);
+    tp = _SbType_FromCDefs("None", NULL, NULL, sizeof(SbNoneObject));
     if (!tp) {
         return -1;
     }
-    tp->tp_basicsize = sizeof(SbNoneObject);
-    tp->tp_destroy = SbObject_DefaultDestroy;
-
     SbNone_Type = tp;
 
     Sb_None = SbObject_New(SbNone_Type);
@@ -57,13 +54,10 @@ _SbNotImplemented_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("NotImplemented", SbObject_Type);
+    tp = _SbType_FromCDefs("NotImplemented", NULL, NULL, sizeof(SbNotImplementedObject));
     if (!tp) {
         return -1;
     }
-    tp->tp_basicsize = sizeof(SbNotImplementedObject);
-    tp->tp_destroy = SbObject_DefaultDestroy;
-
     SbNotImplemented_Type = tp;
 
     Sb_NotImplemented = SbObject_New(SbNotImplemented_Type);

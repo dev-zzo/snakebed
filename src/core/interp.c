@@ -745,6 +745,14 @@ DeleteSliceXxx:
             goto Xxx_drop2_check_iresult;
 
 
+        case BuildClass:
+            /* PropsDict Bases Name -> Type */
+            op3 = STACK_POP();
+            op2 = STACK_POP();
+            op1 = STACK_POP();
+            break;
+
+
         default:
             /* Not implemented. */
             SbErr_RaiseWithFormat(SbErr_SystemError, "opcode %d not implemented", opcode);

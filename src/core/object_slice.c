@@ -51,12 +51,11 @@ _Sb_TypeInit_Slice()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("slice", NULL);
+    tp = _SbType_FromCDefs("file", NULL, NULL, sizeof(SbSliceObject));
     if (!tp) {
         return -1;
     }
 
-    tp->tp_basicsize = sizeof(SbSliceObject);
     tp->tp_destroy = (SbDestroyFunc)slice_destroy;
 
     SbSlice_Type = tp;

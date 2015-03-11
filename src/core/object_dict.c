@@ -456,10 +456,13 @@ SbDict_Merge(SbObject *dst, SbObject *src, int update)
 
             o = SbDict_GetItem(dst, src_entry->e_key);
             if (!o || update) {
-                SbDict_SetItem(dst, src_entry->e_key, src_entry->e_value);
+                if (SbDict_SetItem(dst, src_entry->e_key, src_entry->e_value) < 0) {
+                    return -1;
+                }
             }
         }
     }
+    return 0;
 }
 
 SbObject *
@@ -560,7 +563,7 @@ _Sb_TypeInit_Dict()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("dict", NULL);
+    tp = SbType_New("dict", NULL, NULL);
     if (!tp) {
         return -1;
     }
@@ -575,8 +578,9 @@ _Sb_TypeInit_Dict()
 int
 _Sb_TypeInit2_Dict()
 {
-    SbTypeObject *tp = SbDict_Type;
+    SbObject *dict;
 
-    tp->tp_dict = SbDict_New();
-    return SbType_CreateMethods(tp, dict_methods);
+    dict = _SbType_BuildMethodDict(dict_methods);
+    SbDict_Type->tp_dict = dict;
+    return dict ? 0 : -1;
 }

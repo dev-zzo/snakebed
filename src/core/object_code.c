@@ -42,17 +42,21 @@ code_destroy(SbCodeObject *myself)
 
 /* Type initializer */
 
+static const SbCMethodDef code_methods[] = {
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
 _SbCode_TypeInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("<code>", NULL);
+    tp = _SbType_FromCDefs("<code>", NULL, code_methods, sizeof(SbCodeObject));
     if (!tp) {
         return -1;
     }
 
-    tp->tp_basicsize = sizeof(SbCodeObject);
     tp->tp_destroy = (SbDestroyFunc)code_destroy;
 
     SbCode_Type = tp;

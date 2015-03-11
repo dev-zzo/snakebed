@@ -89,15 +89,14 @@ _SbMethod_BuiltinInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("method", NULL);
+    tp = _SbType_FromCDefs("method", NULL, method_methods, sizeof(SbMethodObject));
     if (!tp) {
         return -1;
     }
 
-    tp->tp_basicsize = sizeof(SbMethodObject);
     tp->tp_destroy = (SbDestroyFunc)method_destroy;
 
     SbMethod_Type = tp;
-    return SbType_CreateMethods(tp, method_methods);
+    return 0;
 }
 

@@ -274,14 +274,13 @@ _Sb_TypeInit_List()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("list", NULL);
+    tp = _SbType_FromCDefs("list", NULL, list_methods, sizeof(SbListObject));
     if (!tp) {
         return -1;
     }
 
-    tp->tp_basicsize = sizeof(SbListObject);
     tp->tp_destroy = (SbDestroyFunc)list_destroy;
 
     SbList_Type = tp;
-    return SbType_CreateMethods(tp, list_methods);
+    return 0;
 }

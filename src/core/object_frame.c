@@ -212,7 +212,7 @@ _SbFrame_TypeInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("frame", NULL);
+    tp = SbType_New("frame", NULL, NULL);
     if (!tp) {
         return -1;
     }

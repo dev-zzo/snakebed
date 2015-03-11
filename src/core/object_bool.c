@@ -17,8 +17,6 @@ SbBool_FromLong(long x)
     }
 }
 
-/* Type initializer */
-
 static SbObject *
 bool_new(long val)
 {
@@ -30,12 +28,19 @@ bool_new(long val)
     return (SbObject *)op;
 }
 
+/* Type initializer */
+
+static const SbCMethodDef bool_methods[] = {
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
 _Sb_TypeInit_Bool()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("bool", SbInt_Type);
+    tp = _SbType_FromCDefs("bool", SbInt_Type, bool_methods, sizeof(SbBoolObject));
     if (!tp) {
         return -1;
     }
@@ -44,6 +49,5 @@ _Sb_TypeInit_Bool()
 
     Sb_False = bool_new(0);
     Sb_True = bool_new(1);
-
     return 0;
 }

@@ -246,14 +246,13 @@ _SbFile_TypeInit()
 {
     SbTypeObject *tp;
 
-    tp = SbType_New("file", NULL);
+    tp = _SbType_FromCDefs("file", NULL, file_methods, sizeof(SbFileObject));
     if (!tp) {
         return -1;
     }
 
-    tp->tp_basicsize = sizeof(SbFileObject);
     tp->tp_destroy = (SbDestroyFunc)file_destroy;
 
     SbFile_Type = tp;
-    return SbType_CreateMethods(SbFile_Type, file_methods);
+    return 0;
 }
