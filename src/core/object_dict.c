@@ -443,28 +443,23 @@ iteration_end0:
 }
 
 int
-SbDict_Update(SbObject *dst, SbObject *src)
+SbDict_Merge(SbObject *dst, SbObject *src, int update)
 {
-    Sb_ssize_t state = 0;
+    Sb_ssize_t bucket;
+    SbDictObject *_src = (SbDictObject *)src;
 
-    for (;;) {
-        int result;
-        SbObject *key;
-        SbObject *value;
+    for (bucket = 0; bucket < BUCKET_COUNT; ++bucket) {
+        bucket_entry *src_entry;
 
-        result = SbDict_Next(src, &state, &key, &value);
-        if (result < 0) {
-            return -1;
-        }
-        if (!result) {
-            break;
-        }
-        if (SbDict_SetItem(dst, key, value) < 0) {
-            return -1;
+        for (src_entry = _src->buckets[bucket]; src_entry; src_entry = src_entry->e_next) {
+            SbObject *o;
+
+            o = SbDict_GetItem(dst, src_entry->e_key);
+            if (!o || update) {
+                SbDict_SetItem(dst, src_entry->e_key, src_entry->e_value);
+            }
         }
     }
-
-    return 0;
 }
 
 SbObject *
@@ -477,7 +472,7 @@ SbDict_Copy(SbObject *p)
         goto fail0;
     }
 
-    if (SbDict_Update(dict, p) < 0) {
+    if (SbDict_Merge(dict, p, 1) < 0) {
         goto fail1;
     }
 

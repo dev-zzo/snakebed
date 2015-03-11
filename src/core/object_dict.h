@@ -89,7 +89,7 @@ SbDict_Copy(SbObject *p);
 /* Update the `dst` with items from `src`.
    Returns: 0 if OK, -1 otherwise. */
 int
-SbDict_Update(SbObject *dst, SbObject *src);
+SbDict_Merge(SbObject *dst, SbObject *src, int update);
 
 #ifdef __cplusplus
 }
