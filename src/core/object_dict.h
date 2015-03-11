@@ -86,6 +86,11 @@ SbDict_Next(SbObject *p, Sb_ssize_t *state, SbObject **key, SbObject **value);
 SbObject *
 SbDict_Copy(SbObject *p);
 
+/* Update the `dst` with items from `src`.
+   Returns: 0 if OK, -1 otherwise. */
+int
+SbDict_Update(SbObject *dst, SbObject *src);
+
 #ifdef __cplusplus
 }
 #endif

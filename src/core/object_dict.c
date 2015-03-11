@@ -442,32 +442,43 @@ iteration_end0:
     return 0;
 }
 
-SbObject *
-SbDict_Copy(SbObject *p)
+int
+SbDict_Update(SbObject *dst, SbObject *src)
 {
-    SbObject *dict;
     Sb_ssize_t state = 0;
-
-    dict = SbDict_New();
-    if (!dict) {
-        goto fail0;
-    }
 
     for (;;) {
         int result;
         SbObject *key;
         SbObject *value;
 
-        result = SbDict_Next(p, &state, &key, &value);
+        result = SbDict_Next(src, &state, &key, &value);
         if (result < 0) {
-            goto fail1;
+            return -1;
         }
         if (!result) {
             break;
         }
-        if (SbDict_SetItem(dict, key, value) < 0) {
-            goto fail1;
+        if (SbDict_SetItem(dst, key, value) < 0) {
+            return -1;
         }
+    }
+
+    return 0;
+}
+
+SbObject *
+SbDict_Copy(SbObject *p)
+{
+    SbObject *dict;
+
+    dict = SbDict_New();
+    if (!dict) {
+        goto fail0;
+    }
+
+    if (SbDict_Update(dict, p) < 0) {
+        goto fail1;
     }
 
     return dict;
@@ -478,6 +489,8 @@ fail0:
     return NULL;
 }
 
+
+/* Python method thunks */
 
 static SbObject *
 dict_len(SbObject *self, SbObject *args, SbObject *kwargs)
