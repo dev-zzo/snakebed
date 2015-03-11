@@ -53,6 +53,25 @@ SbMethod_Call(SbObject *p, SbObject *args, SbObject *kwargs)
             return SbCFunction_Call(func, m->self, args, kwargs);
         }
     }
+    if (SbPFunction_Check(func)) {
+        if (!m->self || m->self == Sb_None) {
+            return SbPFunction_Call(func, args, kwargs);
+        }
+        else {
+            /* Inject self */
+            SbObject *new_args;
+            SbObject *result;
+
+            new_args = _SbTuple_Prepend(m->self, args);
+            if (!new_args) {
+                return NULL;
+            }
+
+            result =  SbPFunction_Call(func, new_args, kwargs);
+            Sb_DECREF(new_args);
+            return result;
+        }
+    }
     return NULL;
 }
 
