@@ -431,6 +431,14 @@ UnaryXxx_common:
                 o_result = SbObject_Compare(op2, op1, opcode_arg);
                 goto Xxx_drop2_check_oresult;
             }
+            if (opcode_arg == SbCmp_IS) {
+                o_result = SbBool_FromLong(op1 == op2);
+                goto Xxx_drop2_check_oresult;
+            }
+            if (opcode_arg == SbCmp_IS_NOT) {
+                o_result = SbBool_FromLong(op1 != op2);
+                goto Xxx_drop2_check_oresult;
+            }
             if (opcode_arg == SbCmp_EXC_MATCH) {
                 i_result = SbErr_ExceptionMatches((SbTypeObject *)op2, op1);
                 if (i_result < 0) {
