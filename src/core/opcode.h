@@ -82,7 +82,7 @@ typedef enum _SbOpcode {
     YieldValue              = 86,
 /**/PopBlock                = 87,
 /**/EndFinally              = 88,
-    BuildClass              = 89,
+/**/BuildClass              = 89,
 
     HaveArgument            = 90,
     /* Opcodes from here have an argument: */
