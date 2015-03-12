@@ -427,11 +427,11 @@ UnaryXxx_common:
             op1 = STACK_POP();
             op2 = STACK_POP();
 
-            if (opcode_arg <= PyCmp_GE) {
+            if (opcode_arg <= SbCmp_GE) {
                 o_result = SbObject_Compare(op2, op1, opcode_arg);
                 goto Xxx_drop2_check_oresult;
             }
-            if (opcode_arg == PyCmp_EXC_MATCH) {
+            if (opcode_arg == SbCmp_EXC_MATCH) {
                 i_result = SbErr_ExceptionMatches((SbTypeObject *)op2, op1);
                 if (i_result < 0) {
                     goto Xxx_check_error;

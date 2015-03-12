@@ -146,20 +146,20 @@ typedef enum _SbOpcode {
 } SbOpcode;
 
 typedef enum _SbCompareCode {
-    PyCmp_LT = 0,
-    PyCmp_LE = 1,
-    PyCmp_EQ = 2,
-    PyCmp_NE = 3,
-    PyCmp_GT = 4,
-    PyCmp_GE = 5,
+    SbCmp_LT = 0,
+    SbCmp_LE = 1,
+    SbCmp_EQ = 2,
+    SbCmp_NE = 3,
+    SbCmp_GT = 4,
+    SbCmp_GE = 5,
 
-    PyCmp_IN,
-    PyCmp_NOT_IN,
-    PyCmp_IS,
-    PyCmp_IS_NOT,
-    PyCmp_EXC_MATCH,
+    SbCmp_IN,
+    SbCmp_NOT_IN,
+    SbCmp_IS,
+    SbCmp_IS_NOT,
+    SbCmp_EXC_MATCH,
 
-    PyCmp_BAD,
+    SbCmp_BAD,
 } SbCompareCode;
 
 #define SbOpcodeHasArg(op) ((op) >= HaveArgument)
