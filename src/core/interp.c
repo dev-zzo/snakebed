@@ -750,7 +750,8 @@ DeleteSliceXxx:
             op3 = STACK_POP();
             op2 = STACK_POP();
             op1 = STACK_POP();
-            break;
+            o_result = _SbType_New(op1, op2, op3);
+            goto Xxx_drop3_check_oresult;
 
 
         default:

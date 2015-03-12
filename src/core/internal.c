@@ -84,8 +84,8 @@ _SbType_FromCDefs(const char *name, SbTypeObject *base_type, const SbCMethodDef 
     }
 
     tp = SbType_New(name, base_type, dict);
+    Sb_DECREF(dict);
     if (!tp) {
-        Sb_DECREF(dict);
         return NULL;
     }
 

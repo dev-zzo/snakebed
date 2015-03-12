@@ -22,6 +22,7 @@ typedef struct _SbTypeObject SbTypeObject;
 
 struct _SbObject {
     SbObject_HEAD;
+    SbObject *dict;
 };
 
 /* Objects that do support the "variable" part. */

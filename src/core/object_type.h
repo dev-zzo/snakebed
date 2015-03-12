@@ -69,6 +69,8 @@ SbType_GenericNew(SbObject *dummy, SbObject *args, SbObject *kwds);
    Returns: New reference. */
 SbTypeObject *
 SbType_New(const char *name, SbTypeObject *base_type, SbObject *dict);
+SbObject *
+_SbType_New(SbObject *name, SbObject *base, SbObject *dict);
 
 /* Check whether `a` is a subtype of `b`. */
 int
