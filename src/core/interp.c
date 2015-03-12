@@ -718,7 +718,7 @@ StoreSliceXxx:
             }
             op3 = tmp;
             i_result = SbObject_SetItem(op2, op1, op3);
-            goto Xxx_drop3_check_oresult;
+            goto Xxx_drop3_check_iresult;
 
         case DeleteSlice:
             /* X -> */
