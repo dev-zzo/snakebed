@@ -54,58 +54,42 @@ type_inherit(SbTypeObject *tp, SbTypeObject *base_type)
 }
 */
 
-/* The part that corresponds to `__new__()` */
-static SbTypeObject *
-type_do_new(const char *name, SbTypeObject *base_type)
-{
-    SbTypeObject *tp;
-
-    tp = (SbTypeObject *)SbObject_New(SbType_Type);
-    if (!tp) {
-        return NULL;
-    }
-
-    tp->tp_name = name;
-    tp->tp_alloc = SbType_GenericAlloc;
-    tp->tp_free = SbObject_Free;
-    if (base_type) {
-        Sb_INCREF(base_type);
-        tp->tp_base = base_type;
-    }
-
-    return tp;
-}
-
-/* The part that corresponds to `__init__()` */
-int
-_SbType_Init(SbTypeObject *tp, SbObject *dict)
-{
-    SbTypeObject *base = tp->tp_base;
-
-    if (!dict && SbDict_Type) {
-        dict = SbDict_New();
-    }
-    tp->tp_dict = dict;
-    if (base) {
-        tp->tp_basicsize = base->tp_basicsize;
-        tp->tp_itemsize = base->tp_itemsize;
-        tp->tp_destroy = base->tp_destroy;
-        SbDict_Merge(tp->tp_dict, base->tp_dict, 0);
-    }
-    return 0;
-}
-
 SbTypeObject *
 SbType_New(const char *name, SbTypeObject *base_type, SbObject *dict)
 {
     SbTypeObject *tp;
 
-    tp = type_do_new(name, base_type);
+    tp = (SbTypeObject *)SbObject_New(SbType_Type);
     if (!tp) {
-        return NULL;
+        goto fail0;
     }
-    _SbType_Init(tp, dict);
+
+    tp->tp_name = name;
+    tp->tp_alloc = SbType_GenericAlloc;
+    tp->tp_free = SbObject_Free;
+    if (!dict && SbDict_Type) {
+        dict = SbDict_New();
+        if (!dict) {
+            goto fail1;
+        }
+    }
+    tp->tp_dict = dict;
+    if (base_type) {
+        Sb_INCREF(base_type);
+        tp->tp_base = base_type;
+        tp->tp_basicsize = base_type->tp_basicsize;
+        tp->tp_itemsize = base_type->tp_itemsize;
+        tp->tp_destroy = base_type->tp_destroy;
+        if (SbDict_Merge(tp->tp_dict, base_type->tp_dict, 0) < 0) {
+            goto fail1;
+        }
+    }
     return tp;
+
+fail1:
+    Sb_DECREF(tp);
+fail0:
+    return NULL;
 }
 
 /* Handle destruction of type instances */
@@ -160,14 +144,14 @@ type_new(SbObject *cls, SbObject *args, SbObject *kwargs)
     }
 
     base = SbTuple_GetItemUnsafe(base, 0);
-    result = (SbObject *)type_do_new(SbStr_AsStringUnsafe(name), (SbTypeObject *)base);
+    result = (SbObject *)SbType_New(SbStr_AsStringUnsafe(name), (SbTypeObject *)base, dict);
     return result;
 }
 
 static SbObject *
 type_init(SbTypeObject *self, SbObject *args, SbObject *kwargs)
 {
-    /* TODO */
+    /* Empty! Should verify that args/kwds are empty, but... */
     Sb_RETURN_NONE;
 }
 
