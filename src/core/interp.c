@@ -55,6 +55,17 @@ SbInterp_Execute(SbFrameObject *frame)
         SbUnaryFunc ufunc;
         SbBinaryFunc bfunc;
 
+#ifdef _DEBUG
+        /* Wipe previous values */
+        tmp = NULL;
+        op1 = op2 = op3 = op4 = NULL;
+        scope = name = NULL;
+        o_result = NULL;
+        i_result = -1;
+        ufunc = NULL;
+        bfunc = NULL;
+#endif
+
         reason = Reason_Unknown;
 
         opcode = (SbOpcode)(*ip++);
