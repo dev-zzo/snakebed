@@ -29,7 +29,6 @@ SbInterp_Execute(SbFrameObject *frame)
     SbObject **sp;
     SbObject **sp_base;
     enum SbUnwindReason reason;
-    const Sb_byte_t *continue_ip;
 
     /* Link the new frame into frame chain. */
     SbFrame_SetPrevious(frame, SbInterp_TopFrame);
@@ -54,6 +53,7 @@ SbInterp_Execute(SbFrameObject *frame)
         Sb_ssize_t pos;
         SbUnaryFunc ufunc;
         SbBinaryFunc bfunc;
+        const Sb_byte_t *continue_ip;
 
 #ifdef _DEBUG
         /* Wipe previous values */
@@ -64,6 +64,7 @@ SbInterp_Execute(SbFrameObject *frame)
         i_result = -1;
         ufunc = NULL;
         bfunc = NULL;
+        continue_ip = NULL;
 #endif
 
         reason = Reason_Unknown;
@@ -119,13 +120,13 @@ SbInterp_Execute(SbFrameObject *frame)
         case LoadConst:
             o_result = SbTuple_GetItemUnsafe(code->consts, opcode_arg);
             Sb_INCREF(o_result);
-            *--sp = o_result;
+            STACK_PUSH(o_result);
             continue;
 
         case LoadLocals:
             o_result = frame->locals;
             Sb_INCREF(o_result);
-            *--sp = o_result;
+            STACK_PUSH(o_result);
             continue;
 
         case JumpForward:
@@ -145,8 +146,7 @@ JumpIfXxxOrPop:
             op1 = STACK_TOP();
             i_result = SbObject_IsTrue(op1);
             if (i_result < 0) {
-                reason = Reason_Error;
-                break;
+                goto Xxx_check_error;
             }
             if (i_result == test_value) {
                 ip = SbStr_AsStringUnsafe(code->code) + opcode_arg;
@@ -167,7 +167,7 @@ PopJumpIfXxx:
             i_result = SbObject_IsTrue(op1);
             Sb_DECREF(op1);
             if (i_result < 0) {
-                break;
+                goto Xxx_check_error;
             }
             if (i_result == test_value) {
                 ip = SbStr_AsStringUnsafe(code->code) + opcode_arg;
@@ -290,11 +290,11 @@ XxxName_check_iresult:
             break;
 
 
-
         case BuildTuple:
             o_result = SbTuple_New(opcode_arg);
             if (!o_result) {
-                goto BuildXxx_popargs;
+                /* NOTE: excessive args will be popped either on function exit or exception handling */
+                goto Xxx_check_error;
             }
             pos = opcode_arg - 1;
             while (pos >= 0) {
@@ -307,13 +307,8 @@ XxxName_check_iresult:
         case BuildList:
             o_result = SbList_New(opcode_arg);
             if (!o_result) {
-BuildXxx_popargs:
-                while (opcode_arg--) {
-                    tmp = STACK_POP();
-                    Sb_DECREF(tmp);
-                }
-                reason = Reason_Error;
-                break;
+                /* NOTE: excessive args will be popped either on function exit or exception handling */
+                goto Xxx_check_error;
             }
             pos = opcode_arg - 1;
             while (pos >= 0) {
@@ -325,13 +320,13 @@ BuildXxx_popargs:
             continue;
 
         case MakeFunction:
-            /* C DN DN-1 ... -> F */
+            /* C DefaultN DefaultN-1 ... -> F */
             op1 = STACK_POP();
             op2 = SbTuple_New(opcode_arg);
             if (!op2) {
-                goto BuildXxx_popargs;
+                /* NOTE: excessive args will be popped either on function exit or exception handling */
+                goto Xxx_check_error;
             }
-
             pos = opcode_arg - 1;
             while (pos >= 0) {
                 tmp = STACK_POP();
@@ -353,8 +348,7 @@ BuildXxx_popargs:
                 */
                 op3 = SbDict_New();
                 if (!op3) {
-                    reason = Reason_Error;
-                    break;
+                    goto Xxx_check_error;
                 }
                 pos = 0;
                 while (pos < kwargs_passed) {
@@ -384,8 +378,7 @@ BuildXxx_popargs:
 #if SUPPORTS_KWARGS
                     Sb_DECREF(op3);
 #endif
-                    reason = Reason_Error;
-                    break;
+                    goto Xxx_check_error;
                 }
                 pos = posargs_passed - 1;
                 while (pos >= 0) {
@@ -408,12 +401,11 @@ BuildXxx_popargs:
             op1 = STACK_POP();
             i_result = SbObject_Not(op1);
             Sb_DECREF(op1);
-            if (i_result >= 0) {
-                STACK_PUSH(SbBool_FromLong(i_result));
-                continue;
+            if (i_result < 0) {
+                goto Xxx_check_error;
             }
-            reason = Reason_Error;
-            break;
+            STACK_PUSH(SbBool_FromLong(i_result));
+            continue;
         case UnaryPositive:
             /* X -> type(X).__pos__(X) */
             ufunc = SbNumber_Positive;
@@ -437,16 +429,19 @@ UnaryXxx_common:
 
             if (opcode_arg <= PyCmp_GE) {
                 o_result = SbObject_Compare(op2, op1, opcode_arg);
+                goto Xxx_drop2_check_oresult;
             }
-            else if (opcode_arg == PyCmp_EXC_MATCH) {
+            if (opcode_arg == PyCmp_EXC_MATCH) {
                 i_result = SbErr_ExceptionMatches((SbTypeObject *)op2, op1);
                 if (i_result < 0) {
-                    reason = Reason_Error;
-                    break;
+                    goto Xxx_check_error;
                 }
                 o_result = SbBool_FromLong(i_result);
+                goto Xxx_drop2_check_oresult;
             }
-            goto Xxx_drop2_check_oresult;
+            SbErr_RaiseWithFormat(SbErr_SystemError, "compare op %d not implemented", opcode_arg);
+            reason = Reason_Error;
+            break;
 
         case InPlaceAdd:
         case BinaryAdd:
@@ -582,7 +577,10 @@ BinaryXxx_common:
 
         case SetupExcept:
         case SetupFinally:
-            SbFrame_PushBlock(frame, ip + opcode_arg, sp, opcode);
+            i_result = SbFrame_PushBlock(frame, ip + opcode_arg, sp, opcode);
+            if (i_result < 0) {
+                goto Xxx_check_error;
+            }
             continue;
 
         case EndFinally:
@@ -683,8 +681,7 @@ SliceXxx:
             Sb_XDECREF(op3);
             Sb_XDECREF(op2);
             if (!tmp) {
-                reason = Reason_Error;
-                break;
+                goto Xxx_check_error;
             }
             op2 = tmp;
             o_result = SbObject_GetItem(op1, op2);
@@ -713,8 +710,7 @@ StoreSliceXxx:
             Sb_XDECREF(op4);
             Sb_XDECREF(op3);
             if (!tmp) {
-                reason = Reason_Error;
-                break;
+                goto Xxx_check_error;
             }
             op3 = tmp;
             i_result = SbObject_SetItem(op2, op1, op3);
@@ -748,8 +744,7 @@ DeleteSliceXxx:
             Sb_XDECREF(op3);
             Sb_XDECREF(op2);
             if (!tmp) {
-                reason = Reason_Error;
-                break;
+                goto Xxx_check_error;
             }
             op2 = tmp;
             i_result = SbObject_DelItem(op1, op2);
@@ -781,8 +776,7 @@ Xxx_drop1_check_oresult:
                 STACK_PUSH(o_result);
                 continue;
             }
-            reason = Reason_Error;
-            break;
+            goto Xxx_check_error;
 
 Xxx_drop3_check_iresult:
             Sb_DECREF(op3);
@@ -791,6 +785,10 @@ Xxx_drop2_check_iresult:
             Sb_DECREF(op1);
             if (!i_result) {
                 continue;
+            }
+Xxx_check_error:
+            if (!SbErr_Occurred()) {
+                SbErr_RaiseWithString(SbErr_SystemError, "call result is NULL or -1 but no error is set");
             }
             reason = Reason_Error;
             break;
