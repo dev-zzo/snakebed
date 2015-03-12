@@ -135,34 +135,39 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='sbcompile.py: bytecode compiler for SnakeBed.')
     parser.add_argument('input',
         help='the input Python file to be compiled')
+    parser.add_argument('--verbose', action='store_true')
     args = parser.parse_args()
 
     input_path = os.path.abspath(args.input)
-    print 'Input file: %s' % input_path
+    if args.verbose:
+        print 'Input file: %s' % input_path
     input = open(input_path, 'r')
     head = os.path.splitext(input_path)[0]
     output_path = head + '.sb'
-    print 'Output file: %s' % output_path
+    if args.verbose:
+        print 'Output file: %s' % output_path
     output = open(output_path, 'wb')
     
     module_name = os.path.basename(head)
-    print 'Module name: %s' % module_name
-    print
+    if args.verbose:
+        print 'Module name: %s' % module_name
+        print
     
     do_compile(module_name, input, output)
     
-    print 'Done.'
-    print 'Compiled file size: %d bytes' % output.tell()
-    print 'Objects in file by type:'
-    print '  int:    %d, of those:' % _count_ints
-    print '    byte-sized: %d' % _count_small_ints
-    print '    proper:     %d' % _count_proper_ints
-    print '  str:    %d' % len(_strtab)
-    print '  strref: %d' % _count_strrefs
-    print '  tuple:  %d' % _count_tuples
-    print '  list:   %d' % _count_lists
-    print '  dict:   %d' % _count_dicts
-    print '  code:   %d' % _count_codes
+    if args.verbose:
+        print 'Done.'
+        print 'Compiled file size: %d bytes' % output.tell()
+        print 'Objects in file by type:'
+        print '  int:    %d, of those:' % _count_ints
+        print '    byte-sized: %d' % _count_small_ints
+        print '    proper:     %d' % _count_proper_ints
+        print '  str:    %d' % len(_strtab)
+        print '  strref: %d' % _count_strrefs
+        print '  tuple:  %d' % _count_tuples
+        print '  list:   %d' % _count_lists
+        print '  dict:   %d' % _count_dicts
+        print '  code:   %d' % _count_codes
 
     input.close()
     output.close()
