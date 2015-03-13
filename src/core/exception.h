@@ -56,11 +56,13 @@ SbErr_RaiseWithString(SbTypeObject *type, const char *value);
 void
 SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...);
 
-
-/* Raises a MemoryError.
+/* Special cases where only one instance of exception exists ever.
    Returns: always NULL. */
+
 SbObject *
 SbErr_NoMemory(void);
+SbObject *
+SbErr_NoMoreItems(void);
     
 #ifdef __cplusplus
 }

@@ -12,8 +12,10 @@ SbTypeObject    *SbErr_UnboundLocalError = NULL;
 SbTypeObject   *SbErr_SystemError = NULL;
 SbTypeObject   *SbErr_TypeError = NULL;
 SbTypeObject   *SbErr_ValueError = NULL;
+SbTypeObject  *SbErr_StopIteration = NULL;
 
 SbObject *_SbErr_MemoryErrorInstance = NULL;
+SbObject *_SbErr_StopIterationInstance = NULL;
 
 
 SbObject *
@@ -110,7 +112,10 @@ _Sb_TypeInit_Exceptions()
 
     SbErr_UnboundLocalError = SbErr_NewException("UnboundLocalError", SbErr_NameError);
 
+    SbErr_StopIteration = SbErr_NewException("StopIteration", SbErr_Exception);
+
     _SbErr_MemoryErrorInstance = _SbErr_Instantiate(SbErr_MemoryError, NULL);
+    _SbErr_StopIterationInstance = _SbErr_Instantiate(SbErr_StopIteration, NULL);
 
     return 0;
 }

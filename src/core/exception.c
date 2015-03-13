@@ -7,6 +7,7 @@ static SbExceptionInfo exception = { NULL, NULL, NULL, };
 
 /* Cached MemoryError instance -- when we don't have memory to create another one */
 extern SbObject *_SbErr_MemoryErrorInstance;
+extern SbObject *_SbErr_StopIterationInstance;
 
 SbTypeObject *
 SbErr_Occurred(void)
@@ -129,15 +130,25 @@ SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...)
     Sb_DECREF(s);
 }
 
-SbObject *
-SbErr_NoMemory(void)
+static SbObject *
+err_raise_singleton(SbObject *which)
 {
-    /* This deserves special handling. */
     SbErr_Clear();
-    Sb_INCREF(SbErr_MemoryError);
-    exception.type = SbErr_MemoryError;
-    Sb_INCREF(_SbErr_MemoryErrorInstance);
-    exception.value = _SbErr_MemoryErrorInstance;
+    Sb_INCREF(Sb_TYPE(which));
+    exception.type = Sb_TYPE(which);
+    Sb_INCREF(which);
+    exception.value = which;
     return NULL;
 }
 
+SbObject *
+SbErr_NoMemory(void)
+{
+    return err_raise_singleton(_SbErr_MemoryErrorInstance);
+}
+
+SbObject *
+SbErr_NoMoreItems(void)
+{
+    return err_raise_singleton(_SbErr_StopIterationInstance);
+}

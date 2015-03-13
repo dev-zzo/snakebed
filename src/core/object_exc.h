@@ -22,6 +22,7 @@ extern SbTypeObject    *SbErr_UnboundLocalError;
 extern SbTypeObject   *SbErr_SystemError;
 extern SbTypeObject   *SbErr_TypeError;
 extern SbTypeObject   *SbErr_ValueError;
+extern SbTypeObject  *SbErr_StopIteration;
 
 /* Create a new exception type.
    Returns: New reference. */
