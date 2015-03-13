@@ -8,7 +8,7 @@ SbSlice_New(SbObject *start, SbObject *end, SbObject *step)
 {
     SbObject *self;
 
-    self = SbObject_New(SbFile_Type);
+    self = SbObject_New(SbSlice_Type);
     if (self) {
         SbSliceObject *myself = (SbSliceObject *)self;
 
@@ -51,7 +51,7 @@ _Sb_TypeInit_Slice()
 {
     SbTypeObject *tp;
 
-    tp = _SbType_FromCDefs("file", NULL, NULL, sizeof(SbSliceObject));
+    tp = _SbType_FromCDefs("slice", NULL, NULL, sizeof(SbSliceObject));
     if (!tp) {
         return -1;
     }
