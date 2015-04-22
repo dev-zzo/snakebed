@@ -10,6 +10,8 @@ Release
 # MSVC crap
 *.suo
 *.vcxproj.user
+*.sdf
+*.opensdf
 
 # Temporary scripts
 tools/dummy.*
