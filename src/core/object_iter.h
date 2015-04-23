@@ -13,6 +13,10 @@ typedef struct _SbIterObject {
 
 extern SbTypeObject *SbIter_Type;
 
+/* Return the next value from the iteration `o`.
+   Returns: New reference or NULL on failure. */
+SbObject *
+SbIter_Next(SbObject *o);
 
 #ifdef __cplusplus
 }

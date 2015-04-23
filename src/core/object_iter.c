@@ -22,6 +22,36 @@ SbIter_New(SbObject *o, SbObject *sentinel)
     return self;
 }
 
+SbObject *
+SbIter_Next(SbObject *o)
+{
+    SbIterObject *myself = (SbIterObject *)o;
+    SbObject *result;
+
+    if (myself->sentinel) {
+        result = SbObject_Call(myself->iterable, NULL, NULL);
+        if (!result) {
+            return NULL;
+        }
+        if (result == myself->sentinel) {
+            Sb_DECREF(result);
+            return NULL;
+        }
+    }
+    else {
+        result = SbObject_GetItem(myself->iterable, SbInt_FromNative(myself->index));
+        ++myself->index;
+        if (result) {
+            return result;
+        }
+        if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_IndexError)) {
+            SbErr_Clear();
+            return NULL;
+        }
+    }
+    return result;
+}
+
 static void
 iter_destroy(SbIterObject *self)
 {
@@ -72,31 +102,17 @@ iter_new(SbObject *cls, SbObject *args, SbObject *kwargs)
 static SbObject *
 iter_next(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbIterObject *myself = (SbIterObject *)self;
     SbObject *result;
 
-    if (myself->sentinel) {
-        result = SbObject_Call(myself->iterable, NULL, NULL);
-        if (!result) {
-            return NULL;
-        }
-        if (result == myself->sentinel) {
-            Sb_DECREF(result);
-            return SbErr_NoMoreItems();
-        }
+    result = SbIter_Next(self);
+    if (result) {
+        return result;
     }
-    else {
-        result = SbObject_CallMethodObjArgs(myself->iterable, "__getitem__", 1, SbInt_FromNative(myself->index));
-        ++myself->index;
-        if (result) {
-            return result;
-        }
-        if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_IndexError)) {
-            SbErr_Clear();
-            return SbErr_NoMoreItems();
-        }
+
+    if (!SbErr_Occurred()) {
+        return SbErr_NoMoreItems();
     }
-    return result;
+    return NULL;
 }
 
 
