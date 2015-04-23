@@ -325,9 +325,9 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
             return NULL;
         }
 
-        src_buffer = SbStr_AsStringUnsafe(self);
+        src_buffer = (char *)SbStr_AsStringUnsafe(self);
         result = SbStr_FromStringAndSize(NULL, slice_length);
-        dst_buffer = SbStr_AsStringUnsafe(result);
+        dst_buffer = (char *)SbStr_AsStringUnsafe(result);
         pos = 0;
         for ( ; start < end; start += step) {
             dst_buffer[pos++] = src_buffer[start];
@@ -343,8 +343,7 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
         if (result) {
             char *dst_buffer;
 
-            Sb_INCREF(result);
-            dst_buffer = SbStr_AsStringUnsafe(result);
+            dst_buffer = (char *)SbStr_AsStringUnsafe(result);
             dst_buffer[0] = SbStr_AsStringUnsafe(self)[pos];
             /* SAFE: we overallocate by 1 */
             dst_buffer[1] = '\0';

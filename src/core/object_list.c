@@ -15,7 +15,7 @@ list_resize(SbListObject *self, Sb_ssize_t new_length)
         SbObject **new_items;
         
         new_allocated = new_length + 4;
-        new_items = SbObject_Realloc(self->items, new_allocated * sizeof(SbObject *));
+        new_items = (SbObject **)SbObject_Realloc(self->items, new_allocated * sizeof(SbObject *));
         if (!new_items) {
             /* OOM */
             SbErr_NoMemory();
@@ -31,6 +31,27 @@ list_resize(SbListObject *self, Sb_ssize_t new_length)
     }
     self->count = new_length;
     return 0;
+}
+
+static void
+list_compact(SbObject *self, SbInt_Native_t offset)
+{
+    SbListObject * const myself = (SbListObject *)self;
+    SbObject **dst, **src;
+    SbObject **items;
+    SbObject **limit;
+
+    items = myself->items;
+    limit = items + myself->count;
+    dst = src = items + offset;
+    while (src != limit) {
+        if (*src) {
+            *dst = *src;
+            ++dst;
+        }
+        ++src;
+    }
+    myself->count = dst - items;
 }
 
 static int
@@ -196,13 +217,13 @@ list_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *index;
     SbObject *result;
-    SbInt_Native_t pos;
 
     if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {
-        Sb_ssize_t start, end, step, slice_length;
+        SbInt_Native_t start, end, step, slice_length;
+        SbInt_Native_t my_pos, result_pos;
 
         if (SbSlice_GetIndices(index, SbList_GetSizeUnsafe(self), &start, &end, &step, &slice_length) < 0) {
             return NULL;
@@ -213,16 +234,18 @@ list_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
             return NULL;
         }
 
-        pos = 0;
-        for ( ; start < end; start += step) {
-            SbList_SetItemUnsafe(result, pos++, SbList_GetItemUnsafe(self, start));
+        result_pos = 0;
+        my_pos = start;
+        while (my_pos < end) {
+            SbList_SetItemUnsafe(result, result_pos, SbList_GetItemUnsafe(self, my_pos));
+            result_pos += 1;
+            my_pos += step;
         }
 
         return result;
     }
     if (SbInt_Check(index)) {
-        pos = SbInt_AsNativeUnsafe(index);
-        result = SbList_GetItem(self, pos);
+        result = SbList_GetItem(self, SbInt_AsNativeUnsafe(index));
         if (result) {
             Sb_INCREF(result);
         }
@@ -236,28 +259,90 @@ list_setitem(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *index;
     SbObject *value;
-    int result;
-    SbInt_Native_t pos;
 
     if (SbTuple_Unpack(args, 2, 2, &index, &value) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {
-        Sb_ssize_t start, end, step, slice_length;
+        SbInt_Native_t start, end, step, slice_length;
+        SbInt_Native_t my_pos;
+        SbObject *it;
 
         if (SbSlice_GetIndices(index, SbList_GetSizeUnsafe(self), &start, &end, &step, &slice_length) < 0) {
             return NULL;
         }
 
-        /* TODO */
-        return NULL;
+        it = SbObject_GetIter(value);
+        if (!it) {
+            return NULL;
+        }
+
+        my_pos = start;
+        while (my_pos < end) {
+            SbObject *o;
+
+            o = SbIter_Next(it);
+            if (!o) {
+                if (SbErr_Occurred()) {
+                    return NULL;
+                }
+                /* TODO: CPython starts appending items here. */
+                break;
+            }
+            SbList_SetItemUnsafe(self, my_pos, o);
+            my_pos += step;
+        }
+
+        Sb_RETURN_NONE;
     }
     if (SbInt_Check(index)) {
-        pos = SbInt_AsNativeUnsafe(index);
-        result = SbList_SetItem(self, pos, value);
+        int result;
+
+        Sb_INCREF(value);
+        result = SbList_SetItem(self, SbInt_AsNativeUnsafe(index), value);
         if (result < 0) {
             return NULL;
         }
+        Sb_RETURN_NONE;
+    }
+    return _SbErr_IncorrectSubscriptType(index);
+}
+
+static SbObject *
+list_delitem(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *index;
+
+    if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
+        return NULL;
+    }
+    if (SbSlice_Check(index)) {
+        SbInt_Native_t start, end, step, slice_length;
+        SbInt_Native_t my_pos;
+
+        if (SbSlice_GetIndices(index, SbList_GetSizeUnsafe(self), &start, &end, &step, &slice_length) < 0) {
+            return NULL;
+        }
+
+        my_pos = start;
+        while (my_pos < end) {
+            SbList_SetItemUnsafe(self, my_pos, NULL);
+            my_pos += step;
+        }
+
+        list_compact(self, start);
+        Sb_RETURN_NONE;
+    }
+    if (SbInt_Check(index)) {
+        SbInt_Native_t my_pos;
+        int result;
+
+        my_pos = SbInt_AsNativeUnsafe(index);
+        result = SbList_SetItem(self, my_pos, NULL);
+        if (result < 0) {
+            return NULL;
+        }
+        list_compact(self, my_pos);
         Sb_RETURN_NONE;
     }
     return _SbErr_IncorrectSubscriptType(index);
@@ -269,6 +354,7 @@ static const SbCMethodDef list_methods[] = {
     { "__len__", list_len },
     { "__getitem__", list_getitem },
     { "__setitem__", list_setitem },
+    { "__delitem__", list_delitem },
     /* Sentinel */
     { NULL, NULL },
 };

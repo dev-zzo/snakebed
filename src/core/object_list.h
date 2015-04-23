@@ -39,13 +39,13 @@ SbList_Pack(Sb_ssize_t count, ...);
 /* Return an item at the given position.
    WARNING: no type/range checks are performed. */
 #define SbList_GetItemUnsafe(p, pos) \
-    ((SbListObject *)p)->items[pos]
+    ((SbListObject *)(p))->items[pos]
 
 /* Set the list's item at a given position.
    Note: This function "steals" a reference to `o`.
    WARNING: no type/range checks are performed. */
 #define SbList_SetItemUnsafe(p, pos, o) \
-    ((SbListObject *)p)->items[pos] = o
+    ((SbListObject *)(p))->items[pos] = (o)
 
 /* Return the list's size.
    Returns: size if OK, -1 otherwise. */

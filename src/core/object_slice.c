@@ -39,8 +39,8 @@ slice_destroy(SbSliceObject *myself)
 }
 
 int
-SbSlice_GetIndices(SbObject *self, Sb_ssize_t seq_length, 
-    Sb_ssize_t *start, Sb_ssize_t *end, Sb_ssize_t *step, Sb_ssize_t *slice_length)
+SbSlice_GetIndices(SbObject *self, SbInt_Native_t seq_length, 
+    SbInt_Native_t *start, SbInt_Native_t *end, SbInt_Native_t *step, SbInt_Native_t *slice_length)
 {
     return -1;
 }
