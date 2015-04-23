@@ -139,7 +139,7 @@ file_read(SbObject *self, SbObject *args, SbObject *kwargs)
 
     if (o_maxcount) {
         /* TODO: fix this! */
-        maxcount = SbInt_AsLong(o_maxcount);
+        maxcount = SbInt_AsNative(o_maxcount);
     }
     else {
         /* Some sensible default?
@@ -191,7 +191,7 @@ file_write(SbObject *self, SbObject *args, SbObject *kwargs)
     }
 
     /* TODO: fix this! */
-    return SbInt_FromLong(transferred);
+    return SbInt_FromNative(transferred);
 }
 
 static SbObject *
@@ -207,9 +207,9 @@ file_seek(SbObject *self, SbObject *args, SbObject *kwargs)
     }
 
     /* TODO: fix this! */
-    offset = SbInt_AsLong(o_offset);
+    offset = SbInt_AsNative(o_offset);
     if (o_whence) {
-        whence = SbInt_AsLong(o_whence);
+        whence = SbInt_AsNative(o_whence);
     }
 
     return NULL;
@@ -219,7 +219,7 @@ static SbObject *
 file_tell(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     /* TODO: fix this! */
-    return SbInt_FromLong((long)SbFile_Tell(self));
+    return SbInt_FromNative((long)SbFile_Tell(self));
 }
 
 static SbObject *

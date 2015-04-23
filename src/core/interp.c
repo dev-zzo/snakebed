@@ -605,7 +605,7 @@ BinaryXxx_common:
             /* Reason [RetVal] -> */
             if (SbInt_CheckExact(op1)) {
                 /* Restore unwind reason and go on with unwinding */
-                reason = SbInt_AsLongUnsafe(op1);
+                reason = SbInt_AsNativeUnsafe(op1);
                 Sb_DECREF(op1);
                 if (reason == Reason_Return) {
                     return_value = STACK_POP();
@@ -865,7 +865,7 @@ Xxx_check_error:
                         return_value = NULL;
                     }
 
-                    tmp = SbInt_FromLong(reason);
+                    tmp = SbInt_FromNative(reason);
                     STACK_PUSH(tmp);
                 }
                 ip = handler;

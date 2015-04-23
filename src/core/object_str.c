@@ -266,7 +266,7 @@ _SbStr_EqString(SbObject *p1, const char *p2)
 static SbObject *
 str_hash(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return SbInt_FromLong(_SbStr_Hash(self));
+    return SbInt_FromNative(_SbStr_Hash(self));
 }
 
 static SbObject *
@@ -279,7 +279,7 @@ str_str(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 str_len(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return SbInt_FromLong(SbStr_GetSizeUnsafe(self));
+    return SbInt_FromNative(SbStr_GetSizeUnsafe(self));
 }
 
 static SbObject *
@@ -311,7 +311,7 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *index;
     SbObject *result;
-    Sb_ssize_t pos;
+    SbInt_Native_t pos;
 
     if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
         return NULL;
@@ -338,7 +338,7 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
         return result;
     }
     if (SbInt_Check(index)) {
-        pos = SbInt_AsLongUnsafe(index);
+        pos = SbInt_AsNativeUnsafe(index);
         result = SbStr_FromStringAndSize(NULL, 1);
         if (result) {
             char *dst_buffer;

@@ -29,8 +29,8 @@ test_dict_getsetstring(void)
         return -1;
     }
 
-    i1 = SbInt_FromLong(1);
-    i2 = SbInt_FromLong(2);
+    i1 = SbInt_FromNative(1);
+    i2 = SbInt_FromNative(2);
 
     /* Setting values */
     if (SbDict_SetItemString(dict, "a", i1) < 0) {

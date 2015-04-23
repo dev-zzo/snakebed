@@ -189,7 +189,7 @@ SbTuple_SetItem(SbObject *p, Sb_ssize_t pos, SbObject *o)
 static SbObject *
 tuple_len(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return SbInt_FromLong(SbTuple_GetSizeUnsafe(self));
+    return SbInt_FromNative(SbTuple_GetSizeUnsafe(self));
 }
 
 static SbObject *
@@ -197,7 +197,7 @@ tuple_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *index;
     SbObject *result;
-    Sb_ssize_t pos;
+    SbInt_Native_t pos;
 
     if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
         return NULL;
@@ -218,7 +218,7 @@ tuple_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
         return result;
     }
     if (SbInt_Check(index)) {
-        pos = SbInt_AsLongUnsafe(index);
+        pos = SbInt_AsNativeUnsafe(index);
         result = SbTuple_GetItem(self, pos);
         if (result) {
             Sb_INCREF(result);

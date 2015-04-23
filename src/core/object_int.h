@@ -4,12 +4,13 @@
 extern "C" {
 #endif
 
-#include "object.h"
+/* NOTE: this should actually be a fixed-size 32-bit signed integer. */
+typedef Sb_ssize_t SbInt_Native_t;
 
 /* Define the int object structure. */
 typedef struct _SbIntObject {
     SbObject_HEAD;
-    long value;
+    SbInt_Native_t value;
 } SbIntObject;
 
 extern SbTypeObject *SbInt_Type;
@@ -24,27 +25,27 @@ extern SbTypeObject *SbInt_Type;
 
 /* Returns the maximum value of the int object.
    Returns: Plain C data. */
-long
+SbInt_Native_t
 SbInt_GetMax(void);
 
 /* Returns the minimum value of the int object.
    Returns: Plain C data. */
-long
+SbInt_Native_t
 SbInt_GetMin(void);
 
 /* Construct an int object from a C long.
    Returns: New reference. */
 SbObject *
-SbInt_FromLong(long ival);
+SbInt_FromNative(SbInt_Native_t ival);
 
-#define SbInt_AsLongUnsafe(p) \
+#define SbInt_AsNativeUnsafe(p) \
     (((SbIntObject *)p)->value)
 
-/* Return the object's value as C long.
+/* Return the object's value as C SbInt_Native_t.
    WARNING: No conversions are performed.
    Returns: Plain C data. */
-long
-SbInt_AsLong(SbObject *op);
+SbInt_Native_t
+SbInt_AsNative(SbObject *op);
 
 /* Construct an int object from a C string.
    Returns: New reference. */

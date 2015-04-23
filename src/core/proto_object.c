@@ -1,13 +1,13 @@
 #include "snakebed.h"
 
-long
+SbInt_Native_t
 SbObject_Hash(SbObject *p)
 {
     SbObject *result;
 
     result = SbObject_CallMethod(p, "__hash__", NULL, NULL);
 
-    return result ? SbInt_AsLong(result) : -1;
+    return result ? SbInt_AsNative(result) : -1;
 }
 
 int
@@ -47,7 +47,7 @@ SbObject_IsTrue(SbObject *p)
     if (SbInt_CheckExact(result)) {
         long val;
 
-        val = SbInt_AsLong(result);
+        val = SbInt_AsNative(result);
         Sb_DECREF(result);
         return val != 0;
     }
@@ -355,7 +355,6 @@ SbObject_CallMethodObjArgs(SbObject *o, const char *method, Sb_ssize_t count, ..
     return result;
 }
 
-
 Sb_ssize_t
 SbObject_GetSize(SbObject *o)
 {
@@ -363,7 +362,7 @@ SbObject_GetSize(SbObject *o)
 
     result = SbObject_CallMethod(o, "__len__", NULL, NULL);
     if (SbInt_CheckExact(result)) {
-        return SbInt_AsLong(result);
+        return SbInt_AsNative(result);
     }
     return -1;
 }
@@ -371,6 +370,7 @@ SbObject_GetSize(SbObject *o)
 SbObject *
 SbObject_GetItem(SbObject *o, SbObject *key)
 {
+    Sb_INCREF(key);
     return SbObject_CallMethodObjArgs(o, "__getitem__", 1, key);
 }
 
@@ -379,6 +379,8 @@ SbObject_SetItem(SbObject *o, SbObject *key, SbObject *value)
 {
     SbObject *result;
 
+    Sb_INCREF(key);
+    Sb_INCREF(value);
     result = SbObject_CallMethodObjArgs(o, "__setitem__", 2, key, value);
     if (result == NULL) {
         return -1;
@@ -391,6 +393,7 @@ SbObject_DelItem(SbObject *o, SbObject *key)
 {
     SbObject *result;
 
+    Sb_INCREF(key);
     result = SbObject_CallMethodObjArgs(o, "__delitem__", 1, key);
     if (result == NULL) {
         return -1;

@@ -86,7 +86,7 @@ iter_next(SbObject *self, SbObject *args, SbObject *kwargs)
         }
     }
     else {
-        result = SbObject_CallMethodObjArgs(myself->iterable, "__getitem__", 1, SbInt_FromLong(myself->index));
+        result = SbObject_CallMethodObjArgs(myself->iterable, "__getitem__", 1, SbInt_FromNative(myself->index));
         ++myself->index;
         if (result) {
             return result;

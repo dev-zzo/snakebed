@@ -39,7 +39,7 @@ test_list_dtor(void)
     SbObject *i1;
     SbObject *list;
 
-    i1 = SbInt_FromLong(1);
+    i1 = SbInt_FromNative(1);
     list = SbList_New(1);
     if (!list) {
         return -1;
@@ -64,10 +64,10 @@ test_list_getset(void)
     SbObject *i1, *i2, *i3, *i4;
     SbObject *list;
 
-    i1 = SbInt_FromLong(1);
-    i2 = SbInt_FromLong(2);
-    i3 = SbInt_FromLong(3);
-    i4 = SbInt_FromLong(4);
+    i1 = SbInt_FromNative(1);
+    i2 = SbInt_FromNative(2);
+    i3 = SbInt_FromNative(3);
+    i4 = SbInt_FromNative(4);
 
     list = SbList_Pack(3, i1, i2, i3);
     if (!list) {

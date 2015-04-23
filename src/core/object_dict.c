@@ -493,7 +493,7 @@ fail0:
 static SbObject *
 dict_len(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return SbInt_FromLong(SbDict_GetSizeUnsafe(self));
+    return SbInt_FromNative(SbDict_GetSizeUnsafe(self));
 }
 
 static SbObject *

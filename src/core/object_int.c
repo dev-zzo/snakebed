@@ -7,20 +7,20 @@ SbTypeObject *SbInt_Type = NULL;
  * C interface implementations
  */
 
-long
+SbInt_Native_t
 SbInt_GetMax(void)
 {
     return LONG_MAX;
 }
 
-long
+SbInt_Native_t
 SbInt_GetMin(void)
 {
     return LONG_MIN;
 }
 
 SbObject *
-SbInt_FromLong(long ival)
+SbInt_FromNative(SbInt_Native_t ival)
 {
     SbIntObject *op;
     op = (SbIntObject *)SbObject_New(SbInt_Type);
@@ -30,21 +30,21 @@ SbInt_FromLong(long ival)
     return (SbObject *)op;
 }
 
-long
-SbInt_AsLong(SbObject *op)
+SbInt_Native_t
+SbInt_AsNative(SbObject *op)
 {
     if (!SbInt_Check(op)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-int object passed to an int method");
         return -1;
     }
 
-    return SbInt_AsLongUnsafe(op);
+    return SbInt_AsNativeUnsafe(op);
 }
 
-static long
+static SbInt_Native_t
 convert_digit(char ch, int base)
 {
-    long value;
+    SbInt_Native_t value;
     
     value = ch - 0x30;
     if (value < (base < 10 ? base : 10))
@@ -55,10 +55,10 @@ convert_digit(char ch, int base)
     return value;
 }
 
-SbObject *
-SbInt_FromString(const char *str, const char **pend, unsigned base)
+static int
+int_parse_string(const char *str, const char **pend, unsigned base, SbInt_Native_t *result)
 {
-    long value = 0;
+    SbInt_Native_t value = 0;
     const char *str_start;
 
     if (base == 0) {
@@ -75,8 +75,8 @@ SbInt_FromString(const char *str, const char **pend, unsigned base)
         }
     }
     else if (base > 36 || base < 2) {
-        /* raise ValueError */
-        return NULL;
+        SbErr_RaiseWithString(SbErr_ValueError, "incorrect `base` value (expected 2<=base<=36)");
+        return -1;
     }
 
     while (*str && *str == ' ' || *str == '\t') {
@@ -93,29 +93,44 @@ SbInt_FromString(const char *str, const char **pend, unsigned base)
     }
 
     if (str_start == str) {
-        /* raise ValueError */
-        return NULL;
+        SbErr_RaiseWithString(SbErr_ValueError, "incorrect input string");
+        return -1;
     }
 
     if (pend) {
         *pend = str;
     }
 
-    return SbInt_FromLong(value);
+    if (result) {
+        *result = value;
+    }
+    return 0;
+}
+
+SbObject *
+SbInt_FromString(const char *str, const char **pend, unsigned base)
+{
+    SbInt_Native_t value;
+
+    if (int_parse_string(str, pend, base, &value) < 0) {
+        return NULL;
+    }
+
+    return SbInt_FromNative(value);
 }
 
 int
 SbInt_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
 {
-    long v1, v2;
+    SbInt_Native_t v1, v2;
 
     if (!SbInt_CheckExact(p1) || !SbInt_CheckExact(p2)) {
-        /* raise TypeError */
+        SbErr_RaiseWithString(SbErr_SystemError, "non-int object passed to an int method");
         return -1;
     }
 
-    v1 = SbInt_AsLong(p1);
-    v2 = SbInt_AsLong(p2);
+    v1 = SbInt_AsNativeUnsafe(p1);
+    v2 = SbInt_AsNativeUnsafe(p2);
 
     switch(op) {
     case Sb_LT:
@@ -149,10 +164,24 @@ int_init(SbIntObject *self, SbObject *args, SbObject *kwargs)
 
     if (x) {
         if (SbInt_CheckExact(x)) {
-            self->value = SbInt_AsLongUnsafe(x);
+            self->value = SbInt_AsNativeUnsafe(x);
         }
         else if (SbStr_CheckExact(x)) {
-            /* TODO */
+            const char *str;
+            SbInt_Native_t base_conv = 0;
+
+            str = (const char *)SbStr_AsStringUnsafe(x);
+            if (base) {
+                if (!SbInt_CheckExact(base)) {
+                    SbErr_RaiseWithString(SbErr_ValueError, "incorrect `base` type");
+                    return NULL;
+                }
+                base_conv = SbInt_AsNativeUnsafe(base);
+            }
+
+            if (int_parse_string(str, NULL, base_conv, &self->value) < 0) {
+                return NULL;
+            }
         }
     }
 
@@ -169,7 +198,7 @@ int_hash(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_nonzero(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return SbBool_FromLong(SbInt_AsLongUnsafe(self));
+    return SbBool_FromLong(SbInt_AsNativeUnsafe(self));
 }
 
 static SbObject *
@@ -227,7 +256,7 @@ int_ge(SbObject *self, SbObject *args, SbObject *kwargs)
 }
 
 static SbObject *
-int_arith_wrap_binary(SbObject *self, SbObject *args, long (*func)(long lhs, long rhs))
+int_arith_wrap_binary(SbObject *self, SbObject *args, SbInt_Native_t (*func)(SbInt_Native_t lhs, SbInt_Native_t rhs))
 {
     SbObject *other;
 
@@ -241,11 +270,11 @@ int_arith_wrap_binary(SbObject *self, SbObject *args, long (*func)(long lhs, lon
         return Sb_NotImplemented;
     }
 
-    return SbInt_FromLong(func(SbInt_AsLong(self), SbInt_AsLong(other)));
+    return SbInt_FromNative(func(SbInt_AsNative(self), SbInt_AsNative(other)));
 }
 
-static long
-int_add_func(long lhs, long rhs)
+static SbInt_Native_t
+int_add_func(SbInt_Native_t lhs, SbInt_Native_t rhs)
 {
     return lhs + rhs;
 }
@@ -256,8 +285,8 @@ int_add(SbObject *self, SbObject *args, SbObject *kwargs)
     return int_arith_wrap_binary(self, args, int_add_func);
 }
 
-static long
-int_sub_func(long lhs, long rhs)
+static SbInt_Native_t
+int_sub_func(SbInt_Native_t lhs, SbInt_Native_t rhs)
 {
     return lhs - rhs;
 }
@@ -284,16 +313,16 @@ int_mul(SbObject *self, SbObject *args, SbObject *kwargs)
         return Sb_NotImplemented;
     }
 
-    result = Sb_Mul32x32As64(SbInt_AsLongUnsafe(self), SbInt_AsLongUnsafe(other));
+    result = Sb_Mul32x32As64(SbInt_AsNativeUnsafe(self), SbInt_AsNativeUnsafe(other));
     if (result > SbInt_GetMax() || result < SbInt_GetMin()) {
         /* TODO: Convert result to long */
         return NULL;
     }
-    return SbInt_FromLong((long)result);
+    return SbInt_FromNative((SbInt_Native_t)result);
 }
 
-static long
-int_fdiv_func(long lhs, long rhs)
+static SbInt_Native_t
+int_fdiv_func(SbInt_Native_t lhs, SbInt_Native_t rhs)
 {
     return lhs / rhs;
 }
@@ -304,8 +333,8 @@ int_fdiv(SbObject *self, SbObject *args, SbObject *kwargs)
     return int_arith_wrap_binary(self, args, int_fdiv_func);
 }
 
-static long
-int_shl_func(long lhs, long rhs)
+static SbInt_Native_t
+int_shl_func(SbInt_Native_t lhs, SbInt_Native_t rhs)
 {
     return lhs << rhs;
 }
@@ -316,8 +345,8 @@ int_shl(SbObject *self, SbObject *args, SbObject *kwargs)
     return int_arith_wrap_binary(self, args, int_shl_func);
 }
 
-static long
-int_shr_func(long lhs, long rhs)
+static SbInt_Native_t
+int_shr_func(SbInt_Native_t lhs, SbInt_Native_t rhs)
 {
     return lhs >> rhs;
 }
@@ -331,7 +360,7 @@ int_shr(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_neg(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return SbInt_FromLong(-SbInt_AsLongUnsafe(self));
+    return SbInt_FromNative(-SbInt_AsNativeUnsafe(self));
 }
 
 static SbObject *
@@ -344,8 +373,8 @@ int_pos(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_abs(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    if (SbInt_AsLongUnsafe(self) < 0) {
-        return SbInt_FromLong(-SbInt_AsLongUnsafe(self));
+    if (SbInt_AsNativeUnsafe(self) < 0) {
+        return SbInt_FromNative(-SbInt_AsNativeUnsafe(self));
     }
     Sb_INCREF(self);
     return self;
@@ -354,7 +383,7 @@ int_abs(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_inv(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return SbInt_FromLong(~SbInt_AsLongUnsafe(self));
+    return SbInt_FromNative(~SbInt_AsNativeUnsafe(self));
 }
 
 /* Builtins initializer */

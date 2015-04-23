@@ -48,7 +48,7 @@ read_half(SbObject *input, long *value)
 }
 
 static int
-read_long(SbObject *input, long *value)
+read_int(SbObject *input, SbInt_Native_t *value)
 {
     Sb_byte_t buffer[4];
 
@@ -70,7 +70,7 @@ static SbObject *
 read_object(SbObject *input, marshal_state *state)
 {
     char type_marker;
-    long n;
+    SbInt_Native_t n;
     Sb_ssize_t pos;
     SbObject *result = NULL;
 
@@ -99,10 +99,10 @@ read_object(SbObject *input, marshal_state *state)
         break;
 
     case TYPE_INT:
-        if (read_long(input, &n) < 0) {
+        if (read_int(input, &n) < 0) {
             break;
         }
-        result = SbInt_FromLong(n);
+        result = SbInt_FromNative(n);
         break;
 
     case TYPE_STRING8:
@@ -111,7 +111,7 @@ read_object(SbObject *input, marshal_state *state)
         }
         goto do_string;
     case TYPE_STRING32:
-        if (read_long(input, &n) < 0) {
+        if (read_int(input, &n) < 0) {
             break;
         }
 do_string:
@@ -147,7 +147,7 @@ do_strref:
         break;
 
     case TYPE_TUPLE:
-        if (read_long(input, &n) < 0) {
+        if (read_int(input, &n) < 0) {
             break;
         }
         result = SbTuple_New(n);
@@ -169,7 +169,7 @@ do_strref:
 
 #if SUPPORTS_UNMARSHAL_LIST
     case TYPE_LIST:
-        if (read_long(input, &n) < 0) {
+        if (read_int(input, &n) < 0) {
             break;
         }
         result = SbList_New(n);
@@ -240,13 +240,13 @@ do_strref:
             if (!SbStr_CheckExact(name)) {
                 goto code_end_1;
             }
-            if (read_long(input, &flags) < 0) {
+            if (read_int(input, &flags) < 0) {
                 goto code_end_1;
             }
-            if (read_long(input, &stack_size) < 0) {
+            if (read_int(input, &stack_size) < 0) {
                 goto code_end_1;
             }
-            if (read_long(input, &arg_count) < 0) {
+            if (read_int(input, &arg_count) < 0) {
                 goto code_end_1;
             }
             code = read_object(input, state);

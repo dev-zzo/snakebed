@@ -188,7 +188,7 @@ fail0:
 static SbObject *
 list_len(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return SbInt_FromLong(SbList_GetSizeUnsafe(self));
+    return SbInt_FromNative(SbList_GetSizeUnsafe(self));
 }
 
 static SbObject *
@@ -196,7 +196,7 @@ list_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *index;
     SbObject *result;
-    Sb_ssize_t pos;
+    SbInt_Native_t pos;
 
     if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
         return NULL;
@@ -209,6 +209,10 @@ list_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
         }
 
         result = SbList_New(slice_length);
+        if (!result) {
+            return NULL;
+        }
+
         pos = 0;
         for ( ; start < end; start += step) {
             SbList_SetItemUnsafe(result, pos++, SbList_GetItemUnsafe(self, start));
@@ -217,7 +221,7 @@ list_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
         return result;
     }
     if (SbInt_Check(index)) {
-        pos = SbInt_AsLongUnsafe(index);
+        pos = SbInt_AsNativeUnsafe(index);
         result = SbList_GetItem(self, pos);
         if (result) {
             Sb_INCREF(result);
@@ -233,9 +237,9 @@ list_setitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *index;
     SbObject *value;
     int result;
-    Sb_ssize_t pos;
+    SbInt_Native_t pos;
 
-    if (SbTuple_Unpack(args, 2, 2, &index ,&value) < 0) {
+    if (SbTuple_Unpack(args, 2, 2, &index, &value) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {
@@ -249,7 +253,7 @@ list_setitem(SbObject *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
     if (SbInt_Check(index)) {
-        pos = SbInt_AsLongUnsafe(index);
+        pos = SbInt_AsNativeUnsafe(index);
         result = SbList_SetItem(self, pos, value);
         if (result < 0) {
             return NULL;

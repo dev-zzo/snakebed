@@ -80,7 +80,7 @@ SbObject_DefaultDestroy(SbObject *p)
 SbObject *
 SbObject_DefaultHash(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return SbInt_FromLong((long)self);
+    return SbInt_FromNative((long)self);
 }
 
 SbObject *

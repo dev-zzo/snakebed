@@ -8,7 +8,7 @@ typedef struct _SbIterObject {
     SbObject_HEAD;
     SbObject *iterable;
     SbObject *sentinel;
-    Sb_ssize_t index;
+    SbInt_Native_t index;
 } SbIterObject;
 
 extern SbTypeObject *SbIter_Type;
