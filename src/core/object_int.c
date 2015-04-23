@@ -48,6 +48,8 @@ convert_digit(char ch, int base)
     
     value = ch - 0x30;
     if (value < (base < 10 ? base : 10))
+        if (value < 0)
+            return -1;
         return value;
     value = (ch | 0x20) - 0x61 + 10;
     if (value >= base)
@@ -120,6 +122,38 @@ SbInt_FromString(const char *str, const char **pend, unsigned base)
 }
 
 int
+_SbInt_Convert(SbObject *o, SbObject *base, SbInt_Native_t *value)
+{
+    if (SbInt_CheckExact(o)) {
+        *value = SbInt_AsNativeUnsafe(o);
+        return 0;
+    }
+    if (SbStr_CheckExact(o)) {
+        const char *str;
+        SbInt_Native_t base_conv = 0;
+
+        str = (const char *)SbStr_AsStringUnsafe(o);
+        if (base) {
+            /* TODO: Try converting to int first? */
+            if (!SbInt_CheckExact(base)) {
+                SbErr_RaiseWithString(SbErr_ValueError, "incorrect `base` type");
+                return -1;
+            }
+            base_conv = SbInt_AsNativeUnsafe(base);
+        }
+
+        if (int_parse_string(str, NULL, base_conv, value) < 0) {
+            return -1;
+        }
+        return 0;
+    }
+    /* if (SbLong_CheckExact(o)) ... */
+    /* if (SbFloat_CheckExact(o)) ... */
+    SbErr_RaiseWithString(SbErr_ValueError, "cannot convert the object to an int");
+    return -1;
+}
+
+int
 SbInt_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
 {
     SbInt_Native_t v1, v2;
@@ -163,25 +197,8 @@ int_init(SbIntObject *self, SbObject *args, SbObject *kwargs)
     }
 
     if (x) {
-        if (SbInt_CheckExact(x)) {
-            self->value = SbInt_AsNativeUnsafe(x);
-        }
-        else if (SbStr_CheckExact(x)) {
-            const char *str;
-            SbInt_Native_t base_conv = 0;
-
-            str = (const char *)SbStr_AsStringUnsafe(x);
-            if (base) {
-                if (!SbInt_CheckExact(base)) {
-                    SbErr_RaiseWithString(SbErr_ValueError, "incorrect `base` type");
-                    return NULL;
-                }
-                base_conv = SbInt_AsNativeUnsafe(base);
-            }
-
-            if (int_parse_string(str, NULL, base_conv, &self->value) < 0) {
-                return NULL;
-            }
+        if (_SbInt_Convert(x, base, &self->value) < 0) {
+            return NULL;
         }
     }
 
