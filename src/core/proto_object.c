@@ -361,7 +361,7 @@ SbObject_GetSize(SbObject *o)
     SbObject *result;
 
     result = SbObject_CallMethod(o, "__len__", NULL, NULL);
-    if (SbInt_CheckExact(result)) {
+    if (result && SbInt_CheckExact(result)) {
         return SbInt_AsNative(result);
     }
     return -1;
@@ -402,4 +402,9 @@ SbObject_DelItem(SbObject *o, SbObject *key)
 }
 
 
+SbObject *
+SbObject_GetIter(SbObject *o)
+{
+    return SbObject_CallMethod(o, "__iter__", NULL, NULL);
+}
 

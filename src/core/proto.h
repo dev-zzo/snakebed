@@ -67,6 +67,9 @@ SbObject_SetItem(SbObject *o, SbObject *key, SbObject *value);
 int
 SbObject_DelItem(SbObject *o, SbObject *key);
 
+SbObject *
+SbObject_GetIter(SbObject *o);
+
 /*
  Number protocol.
  */
