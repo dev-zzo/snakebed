@@ -112,11 +112,11 @@ SbSequence_GetSize(SbObject *o);
 
 /* NOTE: Sequence methods accept integer indices instead of arbitrary key. */
 SbObject *
-SbSequence_GetItem(SbObject *o, Sb_ssize_t *index);
+SbSequence_GetItem(SbObject *o, Sb_ssize_t index);
 int
-SbSequence_SetItem(SbObject *o, Sb_ssize_t *index, SbObject *value);
+SbSequence_SetItem(SbObject *o, Sb_ssize_t index, SbObject *value);
 int
-SbSequence_DelItem(SbObject *o, Sb_ssize_t *index);
+SbSequence_DelItem(SbObject *o, Sb_ssize_t index);
 
 #ifdef __cplusplus
 }
