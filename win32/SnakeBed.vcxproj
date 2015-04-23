@@ -118,6 +118,7 @@
     <ClCompile Include="..\src\core\object_type.c" />
     <ClCompile Include="..\src\core\proto_number.c" />
     <ClCompile Include="..\src\core\proto_object.c" />
+    <ClCompile Include="..\src\core\proto_seq.c" />
     <ClCompile Include="..\src\core\snakebed.c" />
   </ItemGroup>
   <ItemGroup>
@@ -146,6 +147,7 @@
     <ClInclude Include="..\src\core\object_type.h" />
     <ClInclude Include="..\src\core\object_exc.h" />
     <ClInclude Include="..\src\core\opcode.h" />
+    <ClInclude Include="..\src\core\proto.h" />
     <ClInclude Include="..\src\core\snakebed.h" />
     <ClInclude Include="..\src\core\supports.h" />
   </ItemGroup>
