@@ -6,6 +6,7 @@
 # Directories
 Debug
 Release
+ipch
 
 # MSVC crap
 *.suo
