@@ -197,29 +197,35 @@ tuple_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *index;
     SbObject *result;
-    SbInt_Native_t pos;
 
     if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {
-        Sb_ssize_t start, end, step, slice_length;
+        SbInt_Native_t start, end, step, slice_length;
+        SbInt_Native_t my_pos, result_pos;
 
         if (SbSlice_GetIndices(index, SbList_GetSizeUnsafe(self), &start, &end, &step, &slice_length) < 0) {
             return NULL;
         }
 
         result = SbTuple_New(slice_length);
-        pos = 0;
-        for ( ; start < end; start += step) {
-            SbTuple_SetItemUnsafe(result, pos++, SbTuple_GetItemUnsafe(self, start));
+        if (!result) {
+            return NULL;
+        }
+
+        result_pos = 0;
+        my_pos = start;
+        while (my_pos < end) {
+            SbTuple_SetItemUnsafe(result, result_pos, SbList_GetItemUnsafe(self, my_pos));
+            result_pos += 1;
+            my_pos += step;
         }
 
         return result;
     }
     if (SbInt_Check(index)) {
-        pos = SbInt_AsNativeUnsafe(index);
-        result = SbTuple_GetItem(self, pos);
+        result = SbTuple_GetItem(self, SbInt_AsNativeUnsafe(index));
         if (result) {
             Sb_INCREF(result);
         }
