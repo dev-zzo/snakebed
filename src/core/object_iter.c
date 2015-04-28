@@ -158,7 +158,7 @@ iter_new(SbObject *cls, SbObject *args, SbObject *kwargs)
             SbErr_RaiseWithFormat(SbErr_TypeError, "'%s' object is not callable", o_type->tp_name);
             return NULL;
         }
-        result = SbIter_New(o, sentinel);
+        result = SbIter_New2(o, sentinel);
         return result;
     }
     else {
@@ -170,7 +170,7 @@ iter_new(SbObject *cls, SbObject *args, SbObject *kwargs)
             return SbObject_CallMethod(o, "__iter__", NULL, NULL);
         }
         if (SbDict_GetItemString(o_type->tp_dict, "__getitem__")) {
-            result = SbIter_New(o, NULL);
+            result = SbIter_New(o);
             return result;
         }
         SbErr_RaiseWithFormat(SbErr_TypeError, "'%s' object is not iterable", o_type->tp_name);
