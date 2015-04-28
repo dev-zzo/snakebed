@@ -348,6 +348,15 @@ list_delitem(SbObject *self, SbObject *args, SbObject *kwargs)
     return _SbErr_IncorrectSubscriptType(index);
 }
 
+static SbObject *
+list_iter(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject **base;
+
+    base = ((SbListObject *)self)->items;
+    return SbArrayIter_New(base, base + SbList_GetSizeUnsafe(self));
+}
+
 /* Type initializer */
 
 static const SbCMethodDef list_methods[] = {
@@ -355,6 +364,7 @@ static const SbCMethodDef list_methods[] = {
     { "__getitem__", list_getitem },
     { "__setitem__", list_setitem },
     { "__delitem__", list_delitem },
+    { "__iter__", list_iter },
     /* Sentinel */
     { NULL, NULL },
 };

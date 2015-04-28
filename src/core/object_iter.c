@@ -2,8 +2,30 @@
 
 SbTypeObject *SbIter_Type = NULL;
 
+static SbObject *
+iter_next_iterable(SbIterObject *myself)
+{
+    SbObject *result;
+
+    result = SbObject_GetItem(myself->u.with_iterable.iterable, SbInt_FromNative(myself->index));
+    ++myself->index;
+    if (result) {
+        return result;
+    }
+    if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_IndexError)) {
+        SbErr_Clear();
+    }
+    return NULL;
+}
+
+static void
+iter_cleanup_iterable(SbIterObject *myself)
+{
+    Sb_CLEAR(myself->u.with_iterable.iterable);
+}
+
 SbObject *
-SbIter_New(SbObject *o, SbObject *sentinel)
+SbIter_New(SbObject *o)
 {
     SbObject *self;
 
@@ -11,52 +33,109 @@ SbIter_New(SbObject *o, SbObject *sentinel)
     if (self) {
         SbIterObject *myself = (SbIterObject *)self;
 
+        myself->cleanupproc = &iter_cleanup_iterable;
+        myself->nextproc = &iter_next_iterable;
         Sb_INCREF(o);
-        myself->iterable = o;
-        if (sentinel) {
-            Sb_INCREF(sentinel);
-            myself->sentinel = sentinel;
-        }
+        myself->u.with_iterable.iterable = o;
+        myself->u.with_iterable.index = 0;
     }
 
     return self;
 }
 
-SbObject *
-SbIter_Next(SbObject *o)
+static SbObject *
+iter_next_sentinel(SbIterObject *myself)
 {
-    SbIterObject *myself = (SbIterObject *)o;
     SbObject *result;
 
-    if (myself->sentinel) {
-        result = SbObject_Call(myself->iterable, NULL, NULL);
-        if (!result) {
-            return NULL;
-        }
-        if (result == myself->sentinel) {
-            Sb_DECREF(result);
-            return NULL;
-        }
+    result = SbObject_Call(myself->u.with_sentinel.iterable, NULL, NULL);
+    if (!result) {
+        return NULL;
     }
-    else {
-        result = SbObject_GetItem(myself->iterable, SbInt_FromNative(myself->index));
-        ++myself->index;
-        if (result) {
-            return result;
-        }
-        if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_IndexError)) {
-            SbErr_Clear();
-            return NULL;
-        }
+    if (result == myself->u.with_sentinel.sentinel) {
+        Sb_DECREF(result);
+        return NULL;
     }
     return result;
 }
 
 static void
+iter_cleanup_sentinel(SbIterObject *myself)
+{
+    Sb_CLEAR(myself->u.with_sentinel.iterable);
+    Sb_CLEAR(myself->u.with_sentinel.sentinel);
+}
+
+SbObject *
+SbIter_New2(SbObject *o, SbObject *sentinel)
+{
+    SbObject *self;
+
+    self = SbObject_New(SbIter_Type);
+    if (self) {
+        SbIterObject *myself = (SbIterObject *)self;
+
+        myself->cleanupproc = &iter_cleanup_sentinel;
+        myself->nextproc = &iter_next_sentinel;
+        Sb_INCREF(o);
+        myself->u.with_sentinel.iterable = o;
+        Sb_INCREF(sentinel);
+        myself->u.with_sentinel.sentinel = sentinel;
+    }
+
+    return self;
+}
+
+static SbObject *
+iter_next_array(SbIterObject *myself)
+{
+    SbObject **cursor;
+
+    cursor = myself->u.with_array.cursor;
+    if (cursor == myself->u.with_array.end) {
+        return NULL;
+    }
+    myself->u.with_array.cursor = cursor + 1;
+    return *cursor;
+}
+
+static void
+iter_cleanup_array(SbIterObject *myself)
+{
+    /* Nothing to do */
+}
+
+SbObject *
+SbArrayIter_New(SbObject **base, SbObject **end)
+{
+    SbObject *self;
+
+    self = SbObject_New(SbIter_Type);
+    if (self) {
+        SbIterObject *myself = (SbIterObject *)self;
+
+        myself->cleanupproc = &iter_cleanup_array;
+        myself->nextproc = &iter_next_array;
+        myself->u.with_array.cursor = base;
+        myself->u.with_array.end = end;
+    }
+
+    return self;
+}
+
+
+SbObject *
+SbIter_Next(SbObject *o)
+{
+    SbIterObject *myself = (SbIterObject *)o;
+
+    return myself->nextproc(myself);
+}
+
+static void
 iter_destroy(SbIterObject *self)
 {
-    Sb_CLEAR(self->sentinel);
-    Sb_CLEAR(self->iterable);
+    self->cleanupproc(self);
     SbObject_DefaultDestroy((SbObject *)self);
 }
 

@@ -234,11 +234,21 @@ tuple_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     return _SbErr_IncorrectSubscriptType(index);
 }
 
+static SbObject *
+tuple_iter(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject **base;
+
+    base = ((SbTupleObject *)self)->items;
+    return SbArrayIter_New(base, base + SbTuple_GetSizeUnsafe(self));
+}
+
 /* Type initializer */
 
 static const SbCMethodDef tuple_methods[] = {
     { "__len__", tuple_len },
     { "__getitem__", tuple_getitem },
+    { "__iter__", tuple_iter },
     /* Sentinel */
     { NULL, NULL },
 };
