@@ -58,7 +58,7 @@ typedef enum _SbOpcode {
 /**/BinaryXor               = 65,
 /**/BinaryOr                = 66,
     InPlacePower            = 67,
-    GetIter                 = 68,
+/**/GetIter                 = 68,
 
     /* Support not planned */
     PrintExpr               = 70,

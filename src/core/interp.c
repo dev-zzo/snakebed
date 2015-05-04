@@ -536,6 +536,12 @@ BinaryXxx_common:
             reason = Reason_Break;
             break;
 
+        case GetIter:
+            /* X -> iter(X) */
+            op1 = STACK_POP();
+            o_result = SbObject_GetIter(op1);
+            goto Xxx_drop1_check_oresult;
+
 
         case RaiseVarArgs:
             /* X Y Z -> */
