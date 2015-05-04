@@ -10,6 +10,7 @@ iter_next_iterable(SbIterObject *myself)
     result = SbObject_GetItem(myself->u.with_iterable.iterable, SbInt_FromNative(myself->index));
     ++myself->index;
     if (result) {
+        Sb_INCREF(result);
         return result;
     }
     if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_IndexError)) {
@@ -90,13 +91,16 @@ static SbObject *
 iter_next_array(SbIterObject *myself)
 {
     SbObject **cursor;
+    SbObject *result;
 
     cursor = myself->u.with_array.cursor;
-    if (cursor == myself->u.with_array.end) {
+    if (cursor >= myself->u.with_array.end) {
         return NULL;
     }
     myself->u.with_array.cursor = cursor + 1;
-    return *cursor;
+    result = *cursor;
+    Sb_INCREF(result);
+    return result;
 }
 
 static void
