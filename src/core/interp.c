@@ -2,6 +2,8 @@
 #include "interp.h"
 #include "opcode.h"
 
+/* Ref: https://docs.python.org/2/library/dis.html */
+
 SbFrameObject *SbInterp_TopFrame = NULL;
 
 #define STACK_PUSH(x) *--sp = (x)
@@ -541,6 +543,20 @@ BinaryXxx_common:
             op1 = STACK_POP();
             o_result = SbObject_GetIter(op1);
             goto Xxx_drop1_check_oresult;
+
+        case ForIter:
+            op1 = STACK_TOP();
+            o_result = SbIter_Next(op1);
+            if (o_result) {
+                STACK_PUSH(o_result);
+                continue;
+            }
+            else {
+                --sp;
+                Sb_DECREF(op1);
+                ip += opcode_arg;
+                continue;
+            }
 
 
         case RaiseVarArgs:
