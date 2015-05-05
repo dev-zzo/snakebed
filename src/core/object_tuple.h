@@ -25,7 +25,7 @@ SbObject *
 SbTuple_New(Sb_ssize_t length);
 
 /* Construct a new tuple from the provided arguments.
-   Note: This function "steals" references to passed objects.
+   Note: This function does not "steal" references to passed objects.
    Returns: New reference or NULL on failure. */
 SbObject *
 SbTuple_Pack(Sb_ssize_t count, ...);

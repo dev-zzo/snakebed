@@ -31,7 +31,6 @@ _SbErr_Instantiate(SbTypeObject *type, SbObject *value)
     }
 
     if (value) {
-        Sb_INCREF(value);
         args = SbTuple_Pack(1, value);
     }
     else {

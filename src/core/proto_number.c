@@ -6,7 +6,6 @@ numeric_try_method2(SbObject * lhs, SbObject *rhs, const char *method)
     SbObject *result;
     SbObject *tmp;
 
-    Sb_INCREF(rhs);
     tmp = SbTuple_Pack(1, rhs);
     result = SbObject_CallMethod(lhs, method, tmp, NULL);
     Sb_DECREF(tmp);

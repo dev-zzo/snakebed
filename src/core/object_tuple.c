@@ -76,6 +76,7 @@ SbTuple_PackVa(Sb_ssize_t count, va_list va)
             SbErr_RaiseWithString(SbErr_ValueError, "a NULL pointer found when packing into a tuple");
             return NULL;
         }
+        Sb_INCREF(o);
         SbTuple_SetItemUnsafe(tuple, pos, o);
     }
 
