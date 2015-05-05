@@ -355,52 +355,6 @@ SbObject_CallMethodObjArgs(SbObject *o, const char *method, Sb_ssize_t count, ..
     return result;
 }
 
-Sb_ssize_t
-SbObject_GetSize(SbObject *o)
-{
-    SbObject *result;
-
-    result = SbObject_CallMethod(o, "__len__", NULL, NULL);
-    if (result && SbInt_CheckExact(result)) {
-        return SbInt_AsNative(result);
-    }
-    return -1;
-}
-
-SbObject *
-SbObject_GetItem(SbObject *o, SbObject *key)
-{
-    Sb_INCREF(key);
-    return SbObject_CallMethodObjArgs(o, "__getitem__", 1, key);
-}
-
-int
-SbObject_SetItem(SbObject *o, SbObject *key, SbObject *value)
-{
-    SbObject *result;
-
-    Sb_INCREF(key);
-    Sb_INCREF(value);
-    result = SbObject_CallMethodObjArgs(o, "__setitem__", 2, key, value);
-    if (result == NULL) {
-        return -1;
-    }
-    return 0;
-}
-
-int
-SbObject_DelItem(SbObject *o, SbObject *key)
-{
-    SbObject *result;
-
-    Sb_INCREF(key);
-    result = SbObject_CallMethodObjArgs(o, "__delitem__", 1, key);
-    if (result == NULL) {
-        return -1;
-    }
-    return 0;
-}
-
 
 SbObject *
 SbObject_GetIter(SbObject *o)

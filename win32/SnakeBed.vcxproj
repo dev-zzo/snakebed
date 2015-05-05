@@ -118,7 +118,7 @@
     <ClCompile Include="..\src\core\object_type.c" />
     <ClCompile Include="..\src\core\proto_number.c" />
     <ClCompile Include="..\src\core\proto_object.c" />
-    <ClCompile Include="..\src\core\proto_seq.c" />
+    <ClCompile Include="..\src\core\proto_seqmap.c" />
     <ClCompile Include="..\src\core\snakebed.c" />
   </ItemGroup>
   <ItemGroup>

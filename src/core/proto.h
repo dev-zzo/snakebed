@@ -58,15 +58,6 @@ SbObject_CallMethod(SbObject *o, const char *method, SbObject *args, SbObject *k
 SbObject *
 SbObject_CallMethodObjArgs(SbObject *o, const char *method, Sb_ssize_t count, ...);
 
-Sb_ssize_t
-SbObject_GetSize(SbObject *o);
-SbObject *
-SbObject_GetItem(SbObject *o, SbObject *key);
-int
-SbObject_SetItem(SbObject *o, SbObject *key, SbObject *value);
-int
-SbObject_DelItem(SbObject *o, SbObject *key);
-
 SbObject *
 SbObject_GetIter(SbObject *o);
 
@@ -106,8 +97,37 @@ SbNumber_Or(SbObject * lhs, SbObject *rhs);
 SbObject *
 SbNumber_Xor(SbObject * lhs, SbObject *rhs);
 
+Sb_ssize_t
+SbObject_GetSize(SbObject *o);
+SbObject *
+SbObject_GetItem(SbObject *o, SbObject *key);
+int
+SbObject_SetItem(SbObject *o, SbObject *key, SbObject *value);
+int
+SbObject_DelItem(SbObject *o, SbObject *key);
+
 /*
- Sequence/mapping protocol.
+ Mapping protocol.
+ */
+
+Sb_ssize_t
+SbMapping_GetSize(SbObject *o);
+
+SbObject *
+SbMapping_GetItem(SbObject *o, SbObject *key);
+SbObject *
+SbMapping_GetItemString(SbObject *o, const char *key);
+int
+SbMapping_SetItem(SbObject *o, SbObject *key, SbObject *value);
+int
+SbMapping_SetItemString(SbObject *o, const char *key, SbObject *value);
+int
+SbMapping_DelItem(SbObject *o, SbObject *key);
+int
+SbMapping_DelItemString(SbObject *o, const char *key);
+
+/*
+ Sequence protocol.
  */
 
 Sb_ssize_t
@@ -120,6 +140,13 @@ int
 SbSequence_SetItem(SbObject *o, Sb_ssize_t index, SbObject *value);
 int
 SbSequence_DelItem(SbObject *o, Sb_ssize_t index);
+
+SbObject *
+SbSequence_GetSlice2(SbObject *o, Sb_ssize_t i1, Sb_ssize_t i2);
+int
+SbSequence_SetSlice2(SbObject *o, Sb_ssize_t i1, Sb_ssize_t i2, SbObject *values);
+int
+SbSequence_DelSlice2(SbObject *o, Sb_ssize_t i1, Sb_ssize_t i2);
 
 #ifdef __cplusplus
 }
