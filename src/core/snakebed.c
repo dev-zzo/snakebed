@@ -45,6 +45,8 @@ extern int
 _SbCode_TypeInit();
 extern int
 _SbFrame_TypeInit();
+extern int
+_Sb_TypeInit_Iter();
 
 extern int
 _Sb_ModuleInit_Builtin();
@@ -84,6 +86,7 @@ static typeinitfunc stage3_inits[] = {
     _SbFile_TypeInit,
     _SbCode_TypeInit,
     _SbFrame_TypeInit,
+    _Sb_TypeInit_Iter,
     _Sb_TypeInit_Module,
     /* Subtypes */
     _Sb_TypeInit_Bool,
