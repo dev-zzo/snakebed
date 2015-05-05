@@ -109,6 +109,7 @@ static const char *op_to_method[] = {
 SbObject *
 SbObject_Compare(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
 {
+    SbObject *args;
     SbObject *result;
 
     /* No need to look up things for these */
@@ -121,7 +122,7 @@ SbObject_Compare(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
         }
     }
 
-    result = SbObject_CallMethod(p1, op_to_method[op], SbTuple_Pack(1, p2), NULL);
+    result = SbObject_CallMethodObjArgs(p1, op_to_method[op], 1, p2);
     if (!result) {
         if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
             SbErr_Clear();
@@ -145,7 +146,7 @@ SbObject_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
             return 0;
     }
 
-    result = SbObject_CallMethod(p1, op_to_method[op], SbTuple_Pack(1, p2), NULL);
+    result = SbObject_CallMethodObjArgs(p1, op_to_method[op], 1, p2);
     if (!result) {
         return -1;
     }
