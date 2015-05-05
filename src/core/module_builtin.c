@@ -76,9 +76,12 @@ _Sb_ModuleInit_Builtin()
         return -1;
     }
 
+    SbDict_SetItemString(dict, "BaseException", (SbObject *)SbErr_BaseException);
     SbDict_SetItemString(dict, "Exception", (SbObject *)SbErr_Exception);
     SbDict_SetItemString(dict, "StandardError", (SbObject *)SbErr_StandardError);
     SbDict_SetItemString(dict, "AttributeError", (SbObject *)SbErr_AttributeError);
+    SbDict_SetItemString(dict, "EnvironmentError", (SbObject *)SbErr_EnvironmentError);
+    SbDict_SetItemString(dict, "IOError", (SbObject *)SbErr_IOError);
     SbDict_SetItemString(dict, "LookupError", (SbObject *)SbErr_LookupError);
     SbDict_SetItemString(dict, "IndexError", (SbObject *)SbErr_IndexError);
     SbDict_SetItemString(dict, "KeyError", (SbObject *)SbErr_KeyError);
@@ -95,6 +98,7 @@ _Sb_ModuleInit_Builtin()
     SbDict_SetItemString(dict, "tuple", (SbObject *)SbTuple_Type);
     SbDict_SetItemString(dict, "list", (SbObject *)SbList_Type);
     SbDict_SetItemString(dict, "dict", (SbObject *)SbDict_Type);
+    SbDict_SetItemString(dict, "iter", (SbObject *)SbIter_Type);
 
 #if SUPPORTS_BUILTIN_PRINT
     add_func(dict, "print", _builtin_print);
