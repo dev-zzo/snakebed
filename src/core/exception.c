@@ -131,13 +131,13 @@ SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...)
 }
 
 void
-SbErr_RaiseIOError(SbInt_Native_t errno, const char *strerror)
+SbErr_RaiseIOError(SbInt_Native_t error_code, const char *strerror)
 {
     SbObject *value;
     SbObject *o_errno;
     SbObject *o_strerror;
 
-    o_errno = SbInt_FromNative(errno);
+    o_errno = SbInt_FromNative(error_code);
     if (strerror) {
         o_strerror = SbStr_FromString(strerror);
     }
