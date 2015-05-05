@@ -13,10 +13,12 @@ SbTypeObject *SbTuple_Type = NULL;
 static int
 tuple_check_type_pos(SbObject *p, Sb_ssize_t pos)
 {
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbTuple_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-tuple object passed to a tuple method");
         return -1;
     }
+#endif
     /* Do an unsigned comparison. */
     if ((Sb_size_t)pos >= (Sb_size_t)SbTuple_GetSizeUnsafe(p)) {
         SbErr_RaiseWithString(SbErr_IndexError, "tuple index out of range");
@@ -101,10 +103,13 @@ SbTuple_Unpack(SbObject *p, Sb_ssize_t count_min, Sb_ssize_t count_max, ...)
     va_list va;
     Sb_ssize_t count, pos;
 
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbTuple_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-tuple object passed to a tuple method");
         return -1;
     }
+#endif
+
     count = SbTuple_GetSizeUnsafe(p);
     if (count < count_min || count > count_max) {
         if (count_min < count_max) {
@@ -158,10 +163,13 @@ SbTuple_SetItemUnsafe(SbObject *p, Sb_ssize_t pos, SbObject *o)
 Sb_ssize_t
 SbTuple_GetSize(SbObject *p)
 {
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbTuple_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-tuple object passed to a tuple method");
         return -1;
     }
+#endif
+
     return SbTuple_GetSizeUnsafe(p);
 }
 

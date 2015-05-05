@@ -181,20 +181,25 @@ SbStr_FromFormat(const char *format, ...)
 Sb_ssize_t
 SbStr_GetSize(SbObject *p)
 {
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbStr_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-string object passed to a string method");
         return -1;
     }
+#endif
+
     return SbStr_GetSizeUnsafe(p);
 }
 
 const Sb_byte_t *
 SbStr_AsString(SbObject *p)
 {
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbStr_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-string object passed to a string method");
         return NULL;
     }
+#endif
     return SbStr_AsStringUnsafe(p);
 }
 

@@ -57,10 +57,12 @@ list_compact(SbObject *self, SbInt_Native_t offset)
 static int
 list_check_type_pos(SbObject *p, Sb_ssize_t pos)
 {
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbList_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
         return -1;
     }
+#endif
     /* Do an unsigned comparison. */
     if ((Sb_size_t)pos >= (Sb_size_t)SbList_GetSizeUnsafe(p)) {
         SbErr_RaiseWithString(SbErr_IndexError, "list index out of range");
@@ -149,10 +151,13 @@ SbList_Pack(Sb_ssize_t count, ...)
 Sb_ssize_t
 SbList_GetSize(SbObject *p)
 {
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbList_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
         return -1;
     }
+#endif
+
     return SbList_GetSizeUnsafe(p);
 }
 
@@ -187,10 +192,12 @@ SbList_Append(SbObject *p, SbObject *o)
 {
     Sb_ssize_t pos;
 
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbList_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
         goto fail0;
     }
+#endif
 
     pos = SbList_GetSizeUnsafe(p);
     if (list_resize((SbListObject *)p, pos + 1) < 0) {

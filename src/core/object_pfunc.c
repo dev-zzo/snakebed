@@ -48,10 +48,12 @@ SbPFunction_Call(SbObject *p, SbObject *args, SbObject *kwargs)
     SbObject *locals = NULL;
     SbObject *result = NULL;
 
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbPFunction_Check(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-function object passed to a function method");
         goto fail0;
     }
+#endif
 
     if (op->code->flags & SbCode_NEWLOCALS) {
         locals = SbDict_New();

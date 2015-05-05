@@ -23,15 +23,14 @@ SbCFunction_New(SbCFunction fp)
 SbObject *
 SbCFunction_Call(SbObject *p, SbObject *self, SbObject *args, SbObject *kwargs)
 {
+#if SUPPORTS_BUILTIN_TYPECHECKS
     if (!SbCFunction_Check(p)) {
-        /* raise something? */
-        goto fail0;
+        SbErr_RaiseWithString(SbErr_SystemError, "non-cfunc object passed to a cfunc method");
+        return NULL;
     }
+#endif
 
     return ((SbCFunctionObject *)p)->fp(self, args, kwargs);
-
-fail0:
-    return NULL;
 }
 
 static SbObject *
