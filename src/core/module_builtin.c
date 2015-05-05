@@ -91,6 +91,7 @@ _Sb_ModuleInit_Builtin()
     SbDict_SetItemString(dict, "SystemError", (SbObject *)SbErr_SystemError);
     SbDict_SetItemString(dict, "TypeError", (SbObject *)SbErr_TypeError);
     SbDict_SetItemString(dict, "ValueError", (SbObject *)SbErr_ValueError);
+    SbDict_SetItemString(dict, "StopIteration", (SbObject *)SbErr_StopIteration);
 
     SbDict_SetItemString(dict, "type", (SbObject *)SbType_Type);
     SbDict_SetItemString(dict, "int", (SbObject *)SbInt_Type);
