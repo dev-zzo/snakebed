@@ -109,7 +109,6 @@ static const char *op_to_method[] = {
 SbObject *
 SbObject_Compare(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
 {
-    SbObject *args;
     SbObject *result;
 
     /* No need to look up things for these */
@@ -297,6 +296,8 @@ SbObject_Call(SbObject *callable, SbObject *args, SbObject *kwargs)
         Sb_DECREF(m_call);
         return result;
     }
+
+    SbErr_RaiseWithFormat(SbErr_AttributeError, "the `%s` instance has no `%s` method", Sb_TYPE(callable)->tp_name, "__call__");
     return NULL;
 }
 
