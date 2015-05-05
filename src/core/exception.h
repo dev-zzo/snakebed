@@ -56,6 +56,10 @@ SbErr_RaiseWithString(SbTypeObject *type, const char *value);
 void
 SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...);
 
+/* Raise an IOError exception, passing the given args. */
+void
+SbErr_RaiseIOError(SbInt_Native_t errno, const char *strerror);
+
 /* Special cases where only one instance of exception exists ever.
    Returns: always NULL. */
 

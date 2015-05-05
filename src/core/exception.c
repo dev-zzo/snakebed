@@ -130,6 +130,27 @@ SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...)
     Sb_DECREF(s);
 }
 
+void
+SbErr_RaiseIOError(SbInt_Native_t errno, const char *strerror)
+{
+    SbObject *value;
+    SbObject *o_errno;
+    SbObject *o_strerror;
+
+    o_errno = SbInt_FromNative(errno);
+    if (strerror) {
+        o_strerror = SbStr_FromString(strerror);
+    }
+    else {
+        o_strerror = Sb_None;
+        Sb_INCREF(o_strerror);
+    }
+    value = SbTuple_Pack(2, o_errno, o_strerror);
+    Sb_DECREF(o_errno);
+    Sb_DECREF(o_strerror);
+    SbErr_RaiseWithObject(SbErr_IOError, value);
+}
+
 static SbObject *
 err_raise_singleton(SbObject *which)
 {

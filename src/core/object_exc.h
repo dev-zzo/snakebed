@@ -4,25 +4,29 @@
 extern "C" {
 #endif
 
-typedef struct _SbExceptionObject {
+typedef struct _SbBaseExceptionObject {
     SbObject_HEAD;
     SbObject *args;
-} SbExceptionObject;
+} SbBaseExceptionObject;
 
 /* Built-in exception types. */
-extern SbTypeObject *SbErr_Exception;
-extern SbTypeObject  *SbErr_StandardError;
-extern SbTypeObject   *SbErr_AttributeError;
-extern SbTypeObject   *SbErr_LookupError;
-extern SbTypeObject    *SbErr_IndexError;
-extern SbTypeObject    *SbErr_KeyError;
-extern SbTypeObject   *SbErr_MemoryError;
-extern SbTypeObject   *SbErr_NameError;
-extern SbTypeObject    *SbErr_UnboundLocalError;
-extern SbTypeObject   *SbErr_SystemError;
-extern SbTypeObject   *SbErr_TypeError;
-extern SbTypeObject   *SbErr_ValueError;
-extern SbTypeObject  *SbErr_StopIteration;
+extern SbTypeObject *SbErr_BaseException;
+extern SbTypeObject  *SbErr_Exception;
+extern SbTypeObject   *SbErr_StandardError;
+extern SbTypeObject    *SbErr_AttributeError;
+extern SbTypeObject    *SbErr_EnvironmentError;
+extern SbTypeObject     *SbErr_IOError;
+extern SbTypeObject    *SbErr_LookupError;
+extern SbTypeObject     *SbErr_IndexError;
+extern SbTypeObject     *SbErr_KeyError;
+extern SbTypeObject    *SbErr_MemoryError;
+extern SbTypeObject    *SbErr_NameError;
+extern SbTypeObject     *SbErr_UnboundLocalError;
+extern SbTypeObject    *SbErr_SystemError;
+extern SbTypeObject    *SbErr_TypeError;
+extern SbTypeObject    *SbErr_ValueError;
+extern SbTypeObject   *SbErr_StopIteration;
+extern SbTypeObject  *SbErr_SystemExit;
 
 /* Create a new exception type.
    Returns: New reference. */
@@ -33,7 +37,6 @@ SbErr_NewException(const char *name, SbTypeObject *base);
 
 SbObject *
 _SbErr_Instantiate(SbTypeObject *type, SbObject *value);
-
 
 #ifdef __cplusplus
 }
