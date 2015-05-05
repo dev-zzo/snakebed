@@ -1,3 +1,4 @@
+# Verify manual iteration via an iterator object works
 a = [11,22,33]
 i = iter(a)
 if i.next() == 11:
