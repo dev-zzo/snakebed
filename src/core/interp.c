@@ -154,7 +154,7 @@ JumpIfXxxOrPop:
                 ip = SbStr_AsStringUnsafe(code->code) + opcode_arg;
             }
             else {
-                --sp;
+                ++sp;
                 Sb_DECREF(op1);
             }
             continue;
@@ -552,7 +552,7 @@ BinaryXxx_common:
                 continue;
             }
             else {
-                --sp;
+                ++sp;
                 Sb_DECREF(op1);
                 ip += opcode_arg;
                 continue;

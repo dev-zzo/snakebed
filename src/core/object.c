@@ -16,8 +16,11 @@ void _SbObject_DecRef(SbObject *op)
     SbTypeObject *tp;
 
     new_refcount = --op->ob_refcount;
-    if (new_refcount) {
+    if (new_refcount > 0) {
         return;
+    }
+    if (new_refcount < 0) {
+        __asm int 3;
     }
 
     SbErr_Fetch(&info);
