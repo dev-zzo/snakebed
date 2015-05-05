@@ -7,7 +7,7 @@ iter_next_iterable(SbIterObject *myself)
 {
     SbObject *result;
 
-    result = SbObject_GetItem(myself->u.with_iterable.iterable, SbInt_FromNative(myself->index));
+    result = SbSequence_GetItem(myself->u.with_iterable.iterable, myself->index);
     ++myself->index;
     if (result) {
         Sb_INCREF(result);
