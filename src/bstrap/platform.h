@@ -6,6 +6,10 @@ extern "C" {
 
 #include "platform_win32.h"
 
+typedef unsigned long OSError_t;
+
+#define OS_NO_ERROR 0
+
 void *
 Sb_Malloc(Sb_size_t size);
 
@@ -17,33 +21,35 @@ Sb_Free(void *ptr);
 
 /* File operations abstraction */
 
-/* Open a file object.
-   Returns: A handle to the opened object or NULL on error. */
-void *
-Sb_FileOpen(const char *path, const char *mode);
+/* NOTE: Currently, this fails to handle files larger than 2Gb. */
 
-Sb_ssize_t
-Sb_FileRead(void *handle, void *buffer, Sb_ssize_t count);
+typedef void *OSFileHandle_t;
 
-Sb_ssize_t
-Sb_FileWrite(void *handle, const void *buffer, Sb_ssize_t count);
+OSError_t
+Sb_FileOpen(const char *path, const char *mode, OSFileHandle_t *handle);
 
-Sb_size_t
-Sb_FileTell(void *handle);
+OSError_t
+Sb_FileRead(OSFileHandle_t handle, void *buffer, Sb_ssize_t count, Sb_ssize_t *read);
 
-Sb_size_t
-Sb_FileSeek(void *handle, Sb_ssize_t offset, int whence);
+OSError_t
+Sb_FileWrite(OSFileHandle_t handle, const void *buffer, Sb_ssize_t count, Sb_ssize_t *written);
+
+OSError_t
+Sb_FileTell(OSFileHandle_t handle, Sb_ssize_t *offset);
+
+OSError_t
+Sb_FileSeek(OSFileHandle_t handle, Sb_ssize_t offset, int whence, Sb_ssize_t *new_pos);
 
 void
-Sb_FileClose(void *handle);
+Sb_FileClose(OSFileHandle_t handle);
 
 /* Standard input/output/error */
 
-void *
+OSFileHandle_t
 Sb_GetStdInHandle(void);
-void *
+OSFileHandle_t
 Sb_GetStdOutHandle(void);
-void *
+OSFileHandle_t
 Sb_GetStdErrHandle(void);
 
 #ifdef __cplusplus

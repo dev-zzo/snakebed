@@ -3,10 +3,10 @@
 
 static DWORD last_file_error;
 
-void *
-Sb_FileOpen(const char *path, const char *mode)
+OSError_t
+Sb_FileOpen(const char *path, const char *mode, OSFileHandle_t *handle)
 {
-    HANDLE handle;
+    HANDLE h;
     DWORD access = 0;
     DWORD create_disp;
 
@@ -19,7 +19,7 @@ Sb_FileOpen(const char *path, const char *mode)
         create_disp = OPEN_ALWAYS;
     }
 
-    handle = CreateFileA(
+    h = CreateFileA(
         path,
         access,
         FILE_SHARE_READ,
@@ -27,56 +27,67 @@ Sb_FileOpen(const char *path, const char *mode)
         create_disp,
         FILE_ATTRIBUTE_NORMAL,
         NULL);
-    if (handle == INVALID_HANDLE_VALUE) {
-        return NULL;
+    if (h == INVALID_HANDLE_VALUE) {
+        return (OSError_t)GetLastError();
     }
-    return (void *)handle;
+
+    *handle = (OSFileHandle_t)h;
+    return OS_NO_ERROR;
 }
 
-Sb_ssize_t
-Sb_FileRead(void *handle, void *buffer, Sb_ssize_t count)
+OSError_t
+Sb_FileRead(OSFileHandle_t handle, void *buffer, Sb_ssize_t count, Sb_ssize_t *read)
 {
     DWORD transferred;
 
-    if (!ReadFile((HANDLE)handle, buffer, count, &transferred, NULL)) {
-        return -1;
+    if (ReadFile((HANDLE)handle, buffer, count, &transferred, NULL)) {
+        if (read) {
+            *read = transferred;
+        }
+        return OS_NO_ERROR;
     }
-    return transferred;
+    return (OSError_t)GetLastError();
 }
 
-Sb_ssize_t
-Sb_FileWrite(void *handle, const void *buffer, Sb_ssize_t count)
+OSError_t
+Sb_FileWrite(OSFileHandle_t handle, const void *buffer, Sb_ssize_t count, Sb_ssize_t *written)
 {
     DWORD transferred;
 
-    if (!WriteFile((HANDLE)handle, buffer, count, &transferred, NULL)) {
-        return -1;
+    if (WriteFile((HANDLE)handle, buffer, count, &transferred, NULL)) {
+        if (written) {
+            *written = transferred;
+        }
+        return OS_NO_ERROR;
     }
-    return transferred;
+    return (OSError_t)GetLastError();
 }
 
-Sb_size_t
-Sb_FileTell(void *handle)
+OSError_t
+Sb_FileTell(OSFileHandle_t handle, Sb_ssize_t *offset)
 {
-    return Sb_FileSeek(handle, 0, FILE_CURRENT);
+    return Sb_FileSeek(handle, 0, FILE_CURRENT, offset);
 }
 
-Sb_size_t
-Sb_FileSeek(void *handle, Sb_ssize_t offset, int whence)
+OSError_t
+Sb_FileSeek(OSFileHandle_t handle, Sb_ssize_t offset, int whence, Sb_ssize_t *new_pos)
 {
     LARGE_INTEGER distance;
-    LARGE_INTEGER new_pos;
+    LARGE_INTEGER pos;
 
     distance.QuadPart = offset;
-    if (SetFilePointerEx((HANDLE)handle, distance, &new_pos, whence) < 0) {
-        return -1;
+    if (SetFilePointerEx((HANDLE)handle, distance, &pos, whence) < 0) {
+        return (OSError_t)GetLastError();
     }
 
-    return (Sb_size_t)new_pos.QuadPart;
+    if (new_pos) {
+        *new_pos = (Sb_ssize_t)pos.QuadPart;
+    }
+    return OS_NO_ERROR;
 }
 
 void
-Sb_FileClose(void *handle)
+Sb_FileClose(OSFileHandle_t handle)
 {
     CloseHandle((HANDLE)handle);
 }

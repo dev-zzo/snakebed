@@ -6,8 +6,7 @@ extern "C" {
 
 typedef struct _SbFileObject {
     SbObject_HEAD;
-    void *handle;
-    Sb_size_t last_error;
+    OSFileHandle_t handle;
 } SbFileObject;
 
 extern SbTypeObject *SbFile_Type;
@@ -16,7 +15,7 @@ SbObject *
 SbFile_New(const char *path, const char *mode);
 
 SbObject *
-SbFile_FromHandle(void *handle);
+SbFile_FromHandle(OSFileHandle_t handle);
 
 Sb_ssize_t
 SbFile_Read(SbObject *self, void *buffer, Sb_ssize_t count);
@@ -24,10 +23,10 @@ SbFile_Read(SbObject *self, void *buffer, Sb_ssize_t count);
 Sb_ssize_t
 SbFile_Write(SbObject *self, const void *buffer, Sb_ssize_t count);
 
-Sb_size_t
+Sb_ssize_t
 SbFile_Tell(SbObject *self);
 
-Sb_size_t
+Sb_ssize_t
 SbFile_Seek(SbObject *self, Sb_ssize_t offset, int whence);
 
 void

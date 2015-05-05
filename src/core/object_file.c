@@ -7,11 +7,12 @@ SbObject *
 SbFile_New(const char *path, const char *mode)
 {
     SbObject *self;
-    void *handle;
+    OSFileHandle_t handle;
+    OSError_t status;
 
-    handle = Sb_FileOpen(path, mode);
-    if (!handle) {
-        /* raise IOError? */
+    status = Sb_FileOpen(path, mode, &handle);
+    if (status != OS_NO_ERROR) {
+        SbErr_RaiseIOError(status, NULL);
         return NULL;
     }
 
@@ -33,7 +34,7 @@ file_destroy(SbFileObject *myself)
 }
 
 SbObject *
-SbFile_FromHandle(void *handle)
+SbFile_FromHandle(OSFileHandle_t handle)
 {
     SbObject *self;
 
@@ -52,15 +53,17 @@ SbFile_Read(SbObject *self, void *buffer, Sb_ssize_t count)
 {
     SbFileObject *myself = (SbFileObject *)self;
     Sb_ssize_t transferred;
+    OSError_t status;
 
     if (!myself->handle) {
         /* raise IOError? */
         return -1;
     }
 
-    transferred = Sb_FileRead(myself->handle, buffer, count);
-    if (transferred < 0) {
-        /* raise IOError? */
+    status = Sb_FileRead(myself->handle, buffer, count, &transferred);
+    if (status != OS_NO_ERROR) {
+        SbErr_RaiseIOError(status, NULL);
+        return -1;
     }
     return transferred;
 }
@@ -70,47 +73,64 @@ SbFile_Write(SbObject *self, const void *buffer, Sb_ssize_t count)
 {
     SbFileObject *myself = (SbFileObject *)self;
     Sb_ssize_t transferred;
+    OSError_t status;
 
     if (!myself->handle) {
         /* raise IOError? */
         return -1;
     }
 
-    transferred = Sb_FileWrite(myself->handle, buffer, count);
-    if (transferred < 0) {
-        /* raise IOError? */
+    status = Sb_FileWrite(myself->handle, buffer, count, &transferred);
+    if (status != OS_NO_ERROR) {
+        SbErr_RaiseIOError(status, NULL);
+        return -1;
     }
     return transferred;
 }
 
-Sb_size_t
+Sb_ssize_t
 SbFile_Tell(SbObject *self)
 {
     SbFileObject *myself = (SbFileObject *)self;
+    Sb_ssize_t result;
+    OSError_t status;
 
     if (!myself->handle) {
         /* raise IOError? */
         return -1;
     }
 
-    return Sb_FileTell(myself->handle);
+    status = Sb_FileTell(myself->handle, &result);
+    if (status != OS_NO_ERROR) {
+        SbErr_RaiseIOError(status, NULL);
+        return -1;
+    }
+    return result;
 }
 
-Sb_size_t
+Sb_ssize_t
 SbFile_Seek(SbObject *self, Sb_ssize_t offset, int whence)
 {
     SbFileObject *myself = (SbFileObject *)self;
+    Sb_ssize_t result;
+    OSError_t status;
 
     if (!myself->handle) {
         /* raise IOError? */
         return -1;
     }
+
     if ((unsigned)whence > 2) {
         SbErr_RaiseWithString(SbErr_ValueError, "`whence` can be {0|1|2} only");
         return -1;
     }
 
-    return Sb_FileSeek(myself->handle, offset, whence);
+    status = Sb_FileSeek(myself->handle, offset, whence, &result);
+    if (status != OS_NO_ERROR) {
+        SbErr_RaiseIOError(status, NULL);
+        return -1;
+    }
+    return result;
 }
 
 void
@@ -130,7 +150,7 @@ file_read(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *o_maxcount = NULL;
     SbObject *o_result;
     void *buffer;
-    Sb_size_t maxcount;
+    Sb_ssize_t maxcount;
     Sb_ssize_t transferred;
 
     if (SbTuple_Unpack(args, 0, 1, &o_maxcount) < 0) {
@@ -153,7 +173,7 @@ file_read(SbObject *self, SbObject *args, SbObject *kwargs)
 
     buffer = Sb_Malloc(maxcount);
     if (!buffer) {
-        return NULL;
+        return SbErr_NoMemory();
     }
 
     transferred = SbFile_Read(self, buffer, maxcount);
@@ -164,10 +184,6 @@ file_read(SbObject *self, SbObject *args, SbObject *kwargs)
 
     o_result = SbStr_FromStringAndSize(buffer, transferred);
     Sb_Free(buffer);
-    if (!o_result) {
-        return NULL;
-    }
-
     return o_result;
 }
 
