@@ -130,6 +130,7 @@ _Sb_ModuleInit_Builtin()
     SbDict_SetItemString(dict, "AttributeError", (SbObject *)SbErr_AttributeError);
     SbDict_SetItemString(dict, "EnvironmentError", (SbObject *)SbErr_EnvironmentError);
     SbDict_SetItemString(dict, "IOError", (SbObject *)SbErr_IOError);
+    SbDict_SetItemString(dict, "ImportError", (SbObject *)SbErr_ImportError);
     SbDict_SetItemString(dict, "LookupError", (SbObject *)SbErr_LookupError);
     SbDict_SetItemString(dict, "IndexError", (SbObject *)SbErr_IndexError);
     SbDict_SetItemString(dict, "KeyError", (SbObject *)SbErr_KeyError);

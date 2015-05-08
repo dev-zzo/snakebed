@@ -6,6 +6,7 @@ SbTypeObject   *SbErr_StandardError = NULL;
 SbTypeObject    *SbErr_AttributeError = NULL;
 SbTypeObject    *SbErr_EnvironmentError = NULL;
 SbTypeObject     *SbErr_IOError = NULL;
+SbTypeObject    *SbErr_ImportError = NULL;
 SbTypeObject    *SbErr_LookupError = NULL;
 SbTypeObject     *SbErr_IndexError = NULL;
 SbTypeObject     *SbErr_KeyError = NULL;
@@ -111,6 +112,7 @@ _Sb_TypeInit_Exceptions()
 
     SbErr_AttributeError = SbErr_NewException("AttributeError", SbErr_StandardError);
     SbErr_EnvironmentError = SbErr_NewException("EnvironmentError", SbErr_StandardError);
+    SbErr_ImportError = SbErr_NewException("ImportError", SbErr_StandardError);
     SbErr_LookupError = SbErr_NewException("LookupError", SbErr_StandardError);
     SbErr_MemoryError = SbErr_NewException("MemoryError", SbErr_StandardError);
     SbErr_NameError = SbErr_NewException("NameError", SbErr_StandardError);

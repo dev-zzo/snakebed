@@ -16,6 +16,7 @@ extern SbTypeObject   *SbErr_StandardError;
 extern SbTypeObject    *SbErr_AttributeError;
 extern SbTypeObject    *SbErr_EnvironmentError;
 extern SbTypeObject     *SbErr_IOError;
+extern SbTypeObject    *SbErr_ImportError;
 extern SbTypeObject    *SbErr_LookupError;
 extern SbTypeObject     *SbErr_IndexError;
 extern SbTypeObject     *SbErr_KeyError;
