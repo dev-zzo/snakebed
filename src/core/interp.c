@@ -327,10 +327,11 @@ XxxName_check_iresult:
             goto Xxx_check_oresult;
 
         case StoreMap:
-            /* Value Key Dict -> Dict */
-            op2 = STACK_POP();
+            /* Key Value Dict -> Dict */
             op1 = STACK_POP();
+            op2 = STACK_POP();
             tmp = STACK_TOP();
+            /* assert(SbDict_CheckExact(tmp)); */
             i_result = SbDict_SetItem(tmp, op1, op2);
             goto Xxx_drop2_check_iresult;
 
