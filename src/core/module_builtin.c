@@ -45,6 +45,18 @@ _builtin_print(SbObject *self, SbObject *args, SbObject *kwargs)
 #endif
 
 static SbObject *
+_builtin_id(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o;
+
+    if (SbTuple_Unpack(args, 1, 1, &o) < 0) {
+        return NULL;
+    }
+
+    return SbInt_FromNative((SbInt_Native_t)o);
+}
+
+static SbObject *
 _builtin_len(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *o;
@@ -60,6 +72,24 @@ _builtin_len(SbObject *self, SbObject *args, SbObject *kwargs)
     }
 
     return SbInt_FromNative(len);
+}
+
+static SbObject *
+_builtin_hash(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o;
+    SbInt_Native_t hash;
+
+    if (SbTuple_Unpack(args, 1, 1, &o) < 0) {
+        return NULL;
+    }
+
+    hash = SbObject_Hash(o);
+    if (hash == -1) {
+        return NULL;
+    }
+
+    return SbInt_FromNative(hash);
 }
 
 static int
@@ -122,7 +152,9 @@ _Sb_ModuleInit_Builtin()
 #if SUPPORTS_BUILTIN_PRINT
     add_func(dict, "print", _builtin_print);
 #endif
+    add_func(dict, "id", _builtin_len);
     add_func(dict, "len", _builtin_len);
+    add_func(dict, "hash", _builtin_hash);
 
     Sb_ModuleBuiltin = m;
     return 0;
