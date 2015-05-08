@@ -2,16 +2,28 @@
 
 int main(int argc, const char *argv[])
 {
-    Sb_Initialize();
+    SbObject *main_module;
+    int rv = 0;
+
+    if (Sb_Initialize() < 0) {
+        return 2;
+    }
 
     if (argc < 2) {
-        return 0;
+        return 3;
     }
 
-    Sb_LoadModule("__main__", argv[1]);
+    main_module = Sb_LoadModule("__main__", argv[1]);
+    Sb_DECREF(main_module);
     if (SbErr_Occurred()) {
-        __asm int 3;
+        if (SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_SystemExit)) {
+            SbErr_Clear();
+        }
+        else {
+            /* __asm int 3; */
+            rv = 1;
+        }
     }
 
-    return 0;
+    return rv;
 }
