@@ -44,6 +44,24 @@ _builtin_print(SbObject *self, SbObject *args, SbObject *kwargs)
 }
 #endif
 
+static SbObject *
+_builtin_len(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o;
+    Sb_ssize_t len;
+
+    if (SbTuple_Unpack(args, 1, 1, &o) < 0) {
+        return NULL;
+    }
+
+    len = SbObject_GetSize(o);
+    if (len == -1) {
+        return NULL;
+    }
+
+    return SbInt_FromNative(len);
+}
+
 static int
 add_func(SbObject *dict, const char *name, SbCFunction func)
 {
@@ -104,6 +122,7 @@ _Sb_ModuleInit_Builtin()
 #if SUPPORTS_BUILTIN_PRINT
     add_func(dict, "print", _builtin_print);
 #endif
+    add_func(dict, "len", _builtin_len);
 
     Sb_ModuleBuiltin = m;
     return 0;
