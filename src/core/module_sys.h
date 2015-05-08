@@ -5,8 +5,11 @@ extern "C" {
 #endif
 
 /* Implements the `sys` module. */
-    
+
+/* The `sys` module itself. */
 extern SbObject *Sb_ModuleSys;
+/* The `sys.modules` attribute. */
+extern SbObject *SbSys_Modules;
 
 #ifdef __cplusplus
 }

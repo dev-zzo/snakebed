@@ -1,6 +1,7 @@
 #include "snakebed.h"
 
 SbObject *Sb_ModuleSys = NULL;
+SbObject *SbSys_Modules = NULL;
 
 static void
 set_item_or_none(SbObject *tuple, Sb_ssize_t pos, SbObject *o)
@@ -67,6 +68,13 @@ _Sb_ModuleInit_Sys()
     SbObject *dict;
     SbObject *o;
 
+    /* Needs to be available beforehand. */
+    o = SbDict_New();
+    if (!o) {
+        return -1;
+    }
+    SbSys_Modules = o;
+
     m = Sb_InitModule("sys");
     if (!m) {
         return -1;
@@ -78,9 +86,17 @@ _Sb_ModuleInit_Sys()
     }
 
     o = SbFile_FromHandle(Sb_GetStdInHandle());
+    if (!o) {
+        return -1;
+    }
     SbDict_SetItemString(dict, "stdin", o);
     o = SbFile_FromHandle(Sb_GetStdOutHandle());
+    if (!o) {
+        return -1;
+    }
     SbDict_SetItemString(dict, "stdout", o);
+
+    SbDict_SetItemString(dict, "modules", SbSys_Modules);
 
     add_func(dict, "exc_info", exc_info);
     add_func(dict, "exit", _sys_exit);
