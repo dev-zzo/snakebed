@@ -39,7 +39,6 @@ SbDict_GetSize(SbObject *p);
 Sb_ssize_t
 SbDict_GetSizeUnsafe(SbObject *p);
 
-#if 0
 /* Return the object that has a given key.
    Returns: Borrowed reference. */
 SbObject *
@@ -54,7 +53,6 @@ SbDict_SetItem(SbObject *p, SbObject *key, SbObject *value);
    Returns: 0 if OK, -1 otherwise. */
 int
 SbDict_DelItem(SbObject *p, SbObject *key);
-#endif
 
 /* Hacked up API to avoid rich comparison when keys are strings. */
 
