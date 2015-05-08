@@ -320,6 +320,19 @@ XxxName_check_iresult:
             }
             STACK_PUSH(o_result);
             continue;
+        case BuildMap:
+            /* Nothing is pushed on the stack. */
+            o_result = SbDict_New();
+            /* NOTE: the compiler provides a sizing hint via opcode arg, which is ignored for now. */
+            goto Xxx_check_oresult;
+
+        case StoreMap:
+            /* Value Key Dict -> Dict */
+            op2 = STACK_POP();
+            op1 = STACK_POP();
+            tmp = STACK_TOP();
+            i_result = SbDict_SetItem(tmp, op1, op2);
+            goto Xxx_drop2_check_iresult;
 
         case MakeFunction:
             /* C DefaultN DefaultN-1 ... -> F */
@@ -840,6 +853,7 @@ Xxx_drop2_check_oresult:
             Sb_DECREF(op2);
 Xxx_drop1_check_oresult:
             Sb_DECREF(op1);
+Xxx_check_oresult:
             if (o_result) {
                 STACK_PUSH(o_result);
                 continue;

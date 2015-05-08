@@ -43,7 +43,7 @@ typedef enum _SbOpcode {
 /**/DeleteSlice             = 50,
     /* Also uses 51-53 */
 
-    StoreMap                = 54,
+/**/StoreMap                = 54,
 /**/InPlaceAdd              = 55,
 /**/InPlaceSubtract         = 56,
 /**/InPlaceMultiply         = 57,
@@ -102,7 +102,7 @@ typedef enum _SbOpcode {
 /**/BuildTuple              = 102, /* Number of tuple items */
 /**/BuildList               = 103, /* Number of list items */
     BuildSet                = 104, /* Number of set items */
-    BuildMap                = 105, /* Always zero for now */
+/**/BuildMap                = 105,
 /**/LoadAttr                = 106, /* Index in name list */
 /**/CompareOp               = 107, /* Comparison operator */
     ImportName              = 108, /* Index in name list */
