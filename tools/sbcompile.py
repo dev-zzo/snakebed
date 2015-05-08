@@ -124,11 +124,10 @@ def write_obj(output, o):
         raise TypeError, "unknown type passed: %s" % str(otype)
 
 def do_compile(module_name, input, output):
-    output.write(struct.pack('<14sH', 'MyLittlePython', COMPILER_VERSION))
-    
     flags = __future__.print_function.compiler_flag
     module = compile(input.read(), '<source>', 'exec', flags, 1)
     
+    output.write(struct.pack('<14sH', 'MyLittlePython', COMPILER_VERSION))
     write_obj(output, module)
 
 if __name__ == "__main__":
