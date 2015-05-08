@@ -17,6 +17,12 @@ Sb_InitModule(const char *name);
 SbObject *
 Sb_LoadModule(const char *name, const char *path);
 
+/* Imports a module with the given name.
+   This either results in a cached module or a new one.
+   Returns: New reference.
+*/
+SbObject *
+SB_Import(const char *name);
 
 #ifdef __cplusplus
 }

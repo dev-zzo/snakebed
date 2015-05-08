@@ -1,32 +1,35 @@
 #include "snakebed.h"
 
-SbObject *Sb_LoadedModules = NULL;
-
 SbObject *
 Sb_ReadObjectFromPath(const char *path);
 
 SbObject *
 Sb_InitModule(const char *name)
 {
-    SbObject *m;
+    SbObject *modules = SbSys_Modules;
+    SbObject *module;
 
-    m = SbModule_New(name);
-    if (!m) {
+    module = SbModule_New(name);
+    if (!module) {
         return NULL;
     }
 
-    if (!Sb_LoadedModules) {
-        Sb_LoadedModules = SbDict_New();
-        if (!Sb_LoadedModules) {
-            Sb_DECREF(m);
-            return NULL;
-        }
+    SbDict_SetItemString(modules, name, module);
+    Sb_DECREF(module);
+
+    return module;
+}
+
+SbObject *
+Sb_GetModule(const char *name)
+{
+    SbObject *modules = SbSys_Modules;
+
+    if (!modules) {
+        return NULL;
     }
 
-    SbDict_SetItemString(Sb_LoadedModules, name, m);
-    Sb_DECREF(m);
-
-    return m;
+    return SbDict_GetItemString(modules, name);
 }
 
 SbObject *
@@ -68,12 +71,24 @@ Sb_LoadModule(const char *name, const char *path)
     return module;
 
 fail1:
-    if (Sb_LoadedModules) {
-        SbDict_DelItemString(Sb_LoadedModules, name);
-    }
+    SbDict_DelItemString(SbSys_Modules, name);
     Sb_DECREF(module);
 fail0:
     return NULL;
 }
 
+SbObject *
+SB_Import(const char *name)
+{
+    SbObject *module;
 
+    module = Sb_GetModule(name);
+    if (module) {
+        Sb_INCREF(module);
+        return module;
+    }
+
+    /* NOTE: Temporary until I implement some package support. */
+    SbErr_RaiseWithFormat(SbErr_ImportError, "no module named '%s'", name);
+    return NULL;
+}

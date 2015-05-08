@@ -77,7 +77,7 @@ typedef enum _SbOpcode {
     WithCleanup             = 81,
 /**/LoadLocals              = 82,
 /**/ReturnValue             = 83,
-    ImportStar              = 84,
+/**/ImportStar              = 84,
     ExecStatement           = 85,
     YieldValue              = 86,
 /**/PopBlock                = 87,
@@ -105,8 +105,8 @@ typedef enum _SbOpcode {
 /**/BuildMap                = 105,
 /**/LoadAttr                = 106, /* Index in name list */
 /**/CompareOp               = 107, /* Comparison operator */
-    ImportName              = 108, /* Index in name list */
-    ImportFrom              = 109, /* Index in name list */
+/**/ImportName              = 108, /* Index in name list */
+/**/ImportFrom              = 109, /* Index in name list */
 /**/JumpForward             = 110, /* Number of bytes to skip */
 /**/JumpIfFalseOrPop        = 111, /* Target byte offset from beginning of code */
 /**/JumpIfTrueOrPop         = 112,
@@ -134,9 +134,9 @@ typedef enum _SbOpcode {
     /* Store into cell */
     StoreDeref              = 137,
 
-    CallFunctionVar         = 140,
-    CallFunctionKw          = 141,
-    CallFunctionVarKw       = 142,
+/**/CallFunctionVar         = 140,
+/**/CallFunctionKw          = 141,
+/**/CallFunctionVarKw       = 142,
 
     SetupWith               = 143,
     /* Support for opargs more than 16 bits long */

@@ -446,6 +446,33 @@ XxxName_check_iresult:
             }
             break;
 
+        case ImportFrom:
+            /* Mod -> Attr Mod */
+            tmp = STACK_TOP();
+            name = SbTuple_GetItem(code->names, opcode_arg);
+            o_result = SbDict_GetItemString(tmp, SbStr_AsString(name));
+            if (o_result) {
+                Sb_INCREF(o_result);
+                STACK_PUSH(o_result);
+                continue;
+            }
+            SbErr_RaiseWithObject(SbErr_NameError, name);
+            reason = Reason_Error;
+            break;
+
+        case ImportName:
+            /* FromList Level -> Mod */
+            op1 = STACK_POP();
+            op2 = STACK_POP();
+            name = SbTuple_GetItem(code->names, opcode_arg);
+            o_result = SB_Import(SbStr_AsString(name));
+            goto Xxx_drop2_check_oresult;
+
+#if 0
+        case ImportStar:
+            break;
+#endif
+
         case UnaryNot:
             /* X -> (not X) */
             op1 = STACK_POP();
