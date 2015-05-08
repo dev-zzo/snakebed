@@ -232,10 +232,8 @@ StoreXxx_common:
             tmp = code->varnames;
             goto DeleteXxx_common;
         case DeleteName:
-            scope = frame->locals;
-            tmp = code->names;
-            name = SbTuple_GetItem(frame->locals, opcode_arg);
-            i_result = SbDict_DelItemString(code->names, SbStr_AsStringUnsafe(name));
+            name = SbTuple_GetItem(code->names, opcode_arg);
+            i_result = SbDict_DelItemString(frame->locals, SbStr_AsStringUnsafe(name));
             if (i_result >= 0) {
                 continue;
             }
@@ -352,8 +350,6 @@ XxxName_check_iresult:
 
             o_result = SbPFunction_New((SbCodeObject *)op1, op2, frame->globals);
             goto Xxx_drop2_check_oresult;
-
-
 
         case CallFunction:
         case CallFunctionVar:
