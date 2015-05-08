@@ -36,6 +36,14 @@ exc_info(SbObject *self, SbObject *args, SbObject *kwargs)
     return result;
 }
 
+static SbObject *
+_sys_exit(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    /* TODO: handle the passed arg. */
+    SbErr_RaiseWithObject(SbErr_SystemExit, NULL);
+    return NULL;
+}
+
 static int
 add_func(SbObject *dict, const char *name, SbCFunction func)
 {
@@ -75,6 +83,7 @@ _Sb_ModuleInit_Sys()
     SbDict_SetItemString(dict, "stdout", o);
 
     add_func(dict, "exc_info", exc_info);
+    add_func(dict, "exit", _sys_exit);
 
     Sb_ModuleSys = m;
     return 0;
