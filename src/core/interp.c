@@ -339,62 +339,100 @@ XxxName_check_iresult:
             o_result = SbPFunction_New((SbCodeObject *)op1, op2, frame->globals);
             goto Xxx_drop2_check_oresult;
 
+
+
         case CallFunction:
+        case CallFunctionVar:
+        case CallFunctionKw:
+        case CallFunctionVarKw:
             {
                 Sb_ssize_t posargs_passed, kwargs_passed;
+                Sb_ssize_t total_posargs;
+                int argflags = opcode - CallFunction;
+                SbObject *vargs = NULL;
+                SbObject *kwds = NULL;
+
+                /* **KWA *VA KwArgs PosArgs */
+
+                if (argflags & 2) {
+                    kwds = STACK_POP();
+                    if (!SbDict_CheckExact(kwds)) {
+                    }
+                }
+                if (argflags & 1) {
+                    vargs = STACK_POP();
+                    if (!SbList_CheckExact(vargs) && !SbTuple_CheckExact(vargs)) {
+                    }
+                }
 
                 kwargs_passed = (opcode_arg >> 8) & 0xFF;
-#if SUPPORTS_KWARGS
-                /* On the stack, the opcode finds the keyword parameters first.
-                For each keyword argument, the value is on top of the key.
-                */
                 op3 = SbDict_New();
                 if (!op3) {
                     goto Xxx_check_error;
                 }
-                pos = 0;
-                while (pos < kwargs_passed) {
-                    SbObject *key;
-                    SbObject *value;
-
-                    value = STACK_POP();
-                    key = STACK_POP();
-                    SbDict_SetItemString(op3, SbStr_AsString(key), value);
-                    Sb_DECREF(key);
-                    Sb_DECREF(value);
-                    ++pos;
+                if (kwds) {
+                    /* TODO: Verify that kwds contains only string keys */
+                    i_result = SbDict_Merge(op3, kwds, 1);
+                    Sb_DECREF(kwds);
+                    if (i_result < 0) {
+                        Sb_DECREF(op3);
+                        goto Xxx_check_error;
+                    }
                 }
-#else
                 if (kwargs_passed) {
-                    /* Whine terribly */
-                    reason = Reason_Error;
-                    break;
+                    /* On the stack, the opcode finds the keyword parameters first.
+                    For each keyword argument, the value is on top of the key.
+                    */
+                    pos = 0;
+                    while (pos < kwargs_passed) {
+                        SbObject *key;
+                        SbObject *value;
+
+                        value = STACK_POP();
+                        key = STACK_POP();
+                        /* NOTE: This overrides whatever was passed via **kwds */
+                        SbDict_SetItemString(op3, SbStr_AsString(key), value);
+                        Sb_DECREF(key);
+                        Sb_DECREF(value);
+                        ++pos;
+                    }
                 }
-#endif
+
+                posargs_passed = opcode_arg & 0xFF;
+                total_posargs = posargs_passed;
+                if (vargs) {
+                    total_posargs += SbSequence_GetSize(vargs);
+                }
+                op2 = SbTuple_New(total_posargs);
+                if (!op2) {
+                    Sb_DECREF(op3);
+                    goto Xxx_check_error;
+                }
                 /* Below the keyword parameters, the positional parameters 
                 are on the stack, with the right-most parameter on top.
                 */
-                posargs_passed = opcode_arg & 0xFF;
-                op2 = SbTuple_New(posargs_passed);
-                if (!op2) {
-#if SUPPORTS_KWARGS
-                    Sb_DECREF(op3);
-#endif
-                    goto Xxx_check_error;
+                if (posargs_passed) {
+                    pos = posargs_passed - 1;
+                    while (pos >= 0) {
+                        SbTuple_SetItemUnsafe(op2, pos, STACK_POP());
+                        --pos;
+                    }
                 }
-                pos = posargs_passed - 1;
-                while (pos >= 0) {
-                    SbTuple_SetItemUnsafe(op2, pos, STACK_POP());
-                    --pos;
+                if (vargs) {
+                    SbObject *value;
+
+                    pos = posargs_passed;
+                    while (pos < total_posargs) {
+                        value = SbSequence_GetItem(vargs, pos);
+                        SbTuple_SetItemUnsafe(op2, pos, value);
+                        ++pos;
+                    }
                 }
 
                 op1 = STACK_POP();
 
                 o_result = SbObject_Call(op1, op2, op3);
-#if SUPPORTS_KWARGS
-                Sb_DECREF(op3);
-#endif
-                goto Xxx_drop2_check_oresult;
+                goto Xxx_drop3_check_oresult;
             }
             break;
 

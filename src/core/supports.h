@@ -7,7 +7,6 @@
 #define SUPPORTS_BUILTIN_TYPECHECKS 1
 
 /* Interpreter supports */
-#define SUPPORTS_KWARGS 1
 #define SUPPORTS_WITH_STMT 0
 
 /* Module marshaler supports */

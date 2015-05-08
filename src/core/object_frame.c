@@ -69,6 +69,115 @@ SbFrame_SetPrevious(SbFrameObject *myself, SbFrameObject *prev)
 int
 SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObject *defaults)
 {
+    SbCodeObject *code;
+    SbObject *locals;
+    Sb_ssize_t expected_arg_count;
+    Sb_ssize_t passed_posarg_count;
+    Sb_ssize_t defaults_start;
+    Sb_ssize_t arg_pos;
+
+    code = myself->code;
+    locals = myself->locals;
+
+    /* assert(SbTuple_GetSizeUnsafe(code->varnames) >= code->arg_count); */
+
+    expected_arg_count = code->arg_count;
+    passed_posarg_count = args ? SbTuple_GetSizeUnsafe(args) : 0;
+    defaults_start = defaults ? expected_arg_count - SbTuple_GetSizeUnsafe(defaults) : expected_arg_count;
+
+    for (arg_pos = 0; arg_pos < expected_arg_count; ++arg_pos) {
+        const char *arg_name;
+        SbObject *arg_value;
+
+        arg_name = (const char *)SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, arg_pos));
+        arg_value = NULL;
+        if (arg_pos < passed_posarg_count) {
+            arg_value = SbTuple_GetItemUnsafe(args, arg_pos);
+            /* TODO: assert this is not NULL. */
+            Sb_INCREF(arg_value);
+        }
+        else {
+            if (kwds) {
+                arg_value = SbDict_GetItemString(kwds, arg_name);
+                if (arg_value) {
+                    Sb_INCREF(arg_value);
+                    SbDict_DelItemString(kwds, arg_name);
+                }
+            }
+            if (arg_pos >= defaults_start && !arg_value) {
+                arg_value = SbTuple_GetItemUnsafe(defaults, arg_pos - defaults_start);
+                /* TODO: assert this is not NULL. */
+                Sb_INCREF(arg_value);
+            }
+        }
+        if (!arg_value) {
+            /* TypeError: too few arguments passed */
+            SbErr_RaiseWithFormat(SbErr_TypeError, "callable takes %d args (%d passed)", expected_arg_count, passed_posarg_count);
+            goto fail0;
+        }
+        if (SbDict_SetItemString(locals, arg_name, arg_value) < 0) {
+            goto fail0;
+        }
+    }
+
+    if (passed_posarg_count > expected_arg_count) {
+        if (code->flags & SbCode_VARARGS) {
+            SbObject *vargs;
+            Sb_ssize_t arg_count;
+            const char *arg_name;
+            int rv;
+
+            arg_count = passed_posarg_count - expected_arg_count;
+            vargs = SbTuple_New(arg_count);
+            for (arg_pos = 0; arg_pos < arg_count; ++arg_pos) {
+                SbObject *arg_value;
+
+                arg_value = SbTuple_GetItemUnsafe(args, expected_arg_count + arg_pos);
+                Sb_INCREF(arg_value);
+                SbTuple_SetItemUnsafe(vargs, arg_pos, arg_value);
+            }
+
+            arg_name = (const char *)SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, expected_arg_count));
+            rv = SbDict_SetItemString(locals, arg_name, vargs);
+            Sb_DECREF(vargs);
+            if (rv < 0) {
+                goto fail0;
+            }
+        }
+        else {
+            /* TypeError: too many args passed. */
+            SbErr_RaiseWithFormat(SbErr_TypeError, "callable takes %d args (%d passed)", expected_arg_count, passed_posarg_count);
+            goto fail0;
+        }
+    }
+
+    if (kwds && SbDict_GetSize(kwds)) {
+        if (code->flags & SbCode_VARKWDS) {
+            const char *arg_name;
+
+            arg_name = (const char *)SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, 
+                expected_arg_count + !!(code->flags & SbCode_VARARGS)));
+            if (SbDict_SetItemString(locals, arg_name, kwds) < 0) {
+                goto fail0;
+            }
+        }
+        else {
+            /* TypeError: unexpected keyword args passed. */
+            SbErr_RaiseWithFormat(SbErr_TypeError, "%d unexpected kwarg(s) passed", SbDict_GetSize(kwds));
+            goto fail0;
+        }
+    }
+
+    return 0;
+
+fail0:
+    return -1;
+}
+
+#if 0
+int
+SbFrame_ApplyArgsOlde(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObject *defaults)
+{
     Sb_ssize_t arg_pos;
     Sb_ssize_t expected_arg_count;
     Sb_ssize_t passed_arg_count = 0;
@@ -149,7 +258,6 @@ SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObjec
         }
     }
 
-#if SUPPORTS_KWARGS
     /* If the form `**identifier` is present, it is initialized to a new dictionary 
      * receiving any excess keyword arguments, defaulting to a new empty dictionary. */
     if (myself->code->flags & SbCode_VARKWDS) {
@@ -168,10 +276,10 @@ SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObjec
             o);
         Sb_DECREF(o);
     }
-#endif
 
     return 0;
 }
+#endif
 
 int
 SbFrame_PushBlock(SbFrameObject *myself, const Sb_byte_t *handler, SbObject **old_sp, Sb_byte_t setup_insn)
