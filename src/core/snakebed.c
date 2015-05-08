@@ -92,8 +92,8 @@ static typeinitfunc stage3_inits[] = {
     _Sb_TypeInit_Bool,
     _Sb_TypeInit_Exceptions,
     /* Modules */
-    _Sb_ModuleInit_Builtin,
     _Sb_ModuleInit_Sys,
+    _Sb_ModuleInit_Builtin,
     /* Sentinel */
     NULL
 };
