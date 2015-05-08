@@ -40,7 +40,7 @@ _SbErr_Instantiate(SbTypeObject *type, SbObject *value)
         }
         else {
             args = SbTuple_Pack(1, value);
-            Sb_DECREF(value);
+            /* Sb_DECREF(value); */
         }
     }
     else {
