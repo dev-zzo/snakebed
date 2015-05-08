@@ -152,7 +152,7 @@ _Sb_ModuleInit_Builtin()
 #if SUPPORTS_BUILTIN_PRINT
     add_func(dict, "print", _builtin_print);
 #endif
-    add_func(dict, "id", _builtin_len);
+    add_func(dict, "id", _builtin_id);
     add_func(dict, "len", _builtin_len);
     add_func(dict, "hash", _builtin_hash);
 
