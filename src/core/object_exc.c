@@ -66,7 +66,7 @@ exception_destroy(SbBaseExceptionObject *self)
 }
 
 static SbObject *
-exception_getattribute(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
+exception_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *attr_name;
     const char *attr_str;
@@ -90,10 +90,31 @@ exception_getattribute(SbBaseExceptionObject *self, SbObject *args, SbObject *kw
     return NULL;
 }
 
+static SbObject *
+exception_str(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *arg_repr;
+    Sb_ssize_t arg_count;
+
+    arg_count = SbTuple_GetSizeUnsafe(self->args);
+    if (arg_count == 0) {
+        return SbStr_FromFormat("%s: (no message)", Sb_TYPE(self)->tp_name);
+    }
+    if (arg_count == 1) {
+        arg_repr = SbTuple_GetItemUnsafe(self->args, 0);
+        if (SbStr_CheckExact(arg_repr)) {
+            return SbStr_FromFormat("%s: %s", Sb_TYPE(self)->tp_name, SbStr_AsStringUnsafe(arg_repr));
+        }
+    }
+    arg_repr = SbObject_Str(self->args);
+    return SbStr_FromFormat("%s: %s", Sb_TYPE(self)->tp_name, SbStr_AsStringUnsafe(arg_repr));
+}
+
 /* Type initializer */
 
 static const SbCMethodDef exception_methods[] = {
-    { "__getattribute__", (SbCFunction)exception_getattribute },
+    { "__getattr__", (SbCFunction)exception_getattr },
+    { "__str__", (SbCFunction)exception_str },
     /* Sentinel */
     { NULL, NULL },
 };
