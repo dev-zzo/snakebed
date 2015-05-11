@@ -10,6 +10,10 @@ extern "C" {
 extern SbObject *Sb_ModuleSys;
 /* The `sys.modules` attribute. */
 extern SbObject *SbSys_Modules;
+/* The `sys.stdin` and friends. */
+extern SbObject *SbSys_StdIn;
+extern SbObject *SbSys_StdOut;
+extern SbObject *SbSys_StdErr;
 
 #ifdef __cplusplus
 }

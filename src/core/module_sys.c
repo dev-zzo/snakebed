@@ -2,6 +2,9 @@
 
 SbObject *Sb_ModuleSys = NULL;
 SbObject *SbSys_Modules = NULL;
+SbObject *SbSys_StdIn = NULL;
+SbObject *SbSys_StdOut = NULL;
+SbObject *SbSys_StdErr = NULL;
 
 static void
 set_item_or_none(SbObject *tuple, Sb_ssize_t pos, SbObject *o)
@@ -90,11 +93,19 @@ _Sb_ModuleInit_Sys()
         return -1;
     }
     SbDict_SetItemString(dict, "stdin", o);
+    SbSys_StdIn = o;
     o = SbFile_FromHandle(Sb_GetStdOutHandle());
     if (!o) {
         return -1;
     }
     SbDict_SetItemString(dict, "stdout", o);
+    SbSys_StdOut = o;
+    o = SbFile_FromHandle(Sb_GetStdErrHandle());
+    if (!o) {
+        return -1;
+    }
+    SbDict_SetItemString(dict, "stderr", o);
+    SbSys_StdErr = o;
 
     SbDict_SetItemString(dict, "modules", SbSys_Modules);
 
