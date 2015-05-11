@@ -89,6 +89,15 @@ SbFile_Write(SbObject *self, const void *buffer, Sb_ssize_t count)
 }
 
 Sb_ssize_t
+SbFile_WriteString(SbObject *self, const char *str)
+{
+    Sb_ssize_t length;
+
+    length = Sb_StrLen(str);
+    return SbFile_Write(self, str, length);
+}
+
+Sb_ssize_t
 SbFile_Tell(SbObject *self)
 {
     SbFileObject *myself = (SbFileObject *)self;

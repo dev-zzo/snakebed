@@ -24,6 +24,9 @@ Sb_ssize_t
 SbFile_Write(SbObject *self, const void *buffer, Sb_ssize_t count);
 
 Sb_ssize_t
+SbFile_WriteString(SbObject *self, const char *str);
+
+Sb_ssize_t
 SbFile_Tell(SbObject *self);
 
 Sb_ssize_t
