@@ -15,7 +15,7 @@ Sb_InitModule(const char *name)
     }
 
     SbDict_SetItemString(modules, name, module);
-    Sb_DECREF(module);
+    /* Sb_DECREF(module); */
 
     return module;
 }
