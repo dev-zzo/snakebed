@@ -154,9 +154,12 @@ SbErr_RaiseIOError(SbInt_Native_t error_code, const char *strerror)
 static SbObject *
 err_raise_singleton(SbObject *which)
 {
+    SbTypeObject *type;
+
     SbErr_Clear();
-    Sb_INCREF(Sb_TYPE(which));
-    exception.type = Sb_TYPE(which);
+    type = Sb_TYPE(which);
+    Sb_INCREF(type);
+    exception.type = type;
     Sb_INCREF(which);
     exception.value = which;
     return NULL;
