@@ -22,42 +22,6 @@ SbTypeObject  *SbErr_SystemExit = NULL;
 SbObject *_SbErr_MemoryErrorInstance = NULL;
 SbObject *_SbErr_StopIterationInstance = NULL;
 
-
-SbObject *
-_SbErr_Instantiate(SbTypeObject *type, SbObject *value)
-{
-    SbBaseExceptionObject *e;
-    SbObject *args;
-
-    e = (SbBaseExceptionObject *)SbObject_New(type);
-    if (!e) {
-        /* Whoopsie... */
-        return SbErr_NoMemory();
-    }
-
-    if (value) {
-        if (SbTuple_CheckExact(value)) {
-            args = value;
-        }
-        else {
-            args = SbTuple_Pack(1, value);
-            /* Sb_DECREF(value); */
-        }
-    }
-    else {
-        args = SbTuple_New(0);
-    }
-
-    if (!args) {
-        Sb_DECREF(e);
-        return NULL;
-    }
-    e->args = args;
-
-    return (SbObject *)e;
-}
-
-
 static void
 exception_destroy(SbBaseExceptionObject *self)
 {
@@ -66,11 +30,34 @@ exception_destroy(SbBaseExceptionObject *self)
 }
 
 static SbObject *
+exception_init(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
+{
+    if (args) {
+        Sb_INCREF(args);
+        self->args = args;
+    }
+    Sb_RETURN_NONE;
+}
+
+static SbObject *
+exception_getattr_internal(SbBaseExceptionObject *self, SbObject *attr_name)
+{
+    const char *attr_str;
+    SbObject *value;
+
+    attr_str = SbStr_AsStringUnsafe(attr_name);
+    if (!Sb_StrCmp(attr_str, "args")) {
+        value = self->args;
+        Sb_INCREF(value);
+        return value;
+    }
+    return NULL;
+}
+
+static SbObject *
 exception_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *attr_name;
-    const char *attr_str;
-    SbObject *value;
 
     if (SbTuple_Unpack(args, 1, 1, &attr_name) < 0) {
         return NULL;
@@ -79,15 +66,7 @@ exception_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
         SbErr_RaiseWithString(SbErr_TypeError, "attribute name must be a string");
         return NULL;
     }
-
-    attr_str = SbStr_AsStringUnsafe(attr_name);
-    if (!Sb_StrCmp(attr_str, "args")) {
-        value = self->args;
-        Sb_INCREF(value);
-        return value;
-    }
-
-    return NULL;
+    return exception_getattr_internal(self, attr_name);
 }
 
 static SbObject *
@@ -113,6 +92,7 @@ exception_str(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
 /* Type initializer */
 
 static const SbCMethodDef exception_methods[] = {
+    { "__init__", (SbCFunction)exception_init },
     { "__getattr__", (SbCFunction)exception_getattr },
     { "__str__", (SbCFunction)exception_str },
     /* Sentinel */
@@ -152,8 +132,8 @@ _Sb_TypeInit_Exceptions()
 
     SbErr_SystemExit = SbErr_NewException("SystemExit", SbErr_BaseException);
 
-    _SbErr_MemoryErrorInstance = _SbErr_Instantiate(SbErr_MemoryError, NULL);
-    _SbErr_StopIterationInstance = _SbErr_Instantiate(SbErr_StopIteration, NULL);
+    _SbErr_MemoryErrorInstance = SbObject_Call((SbObject *)SbErr_MemoryError, NULL, NULL);
+    _SbErr_StopIterationInstance = SbObject_Call((SbObject *)SbErr_StopIteration, NULL, NULL);
 
     return 0;
 }

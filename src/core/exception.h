@@ -44,7 +44,9 @@ void
 SbErr_Restore(SbExceptionInfo *info);
 
 
-/* Raise an exception of the given type with the associated value. */
+/* Raise an exception of the given type with the associated value.
+   Note: the reference to `value` is stolen.
+*/
 void
 SbErr_RaiseWithObject(SbTypeObject *type, SbObject *value);
 

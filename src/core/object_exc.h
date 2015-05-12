@@ -34,11 +34,6 @@ extern SbTypeObject  *SbErr_SystemExit;
 SbTypeObject *
 SbErr_NewException(const char *name, SbTypeObject *base);
 
-/* INTERNAL USE ONLY */
-
-SbObject *
-_SbErr_Instantiate(SbTypeObject *type, SbObject *value);
-
 #ifdef __cplusplus
 }
 #endif

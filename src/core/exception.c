@@ -86,10 +86,21 @@ void
 SbErr_RaiseWithObject(SbTypeObject *type, SbObject *value)
 {
     SbObject *e;
+    SbObject *args = NULL;
 
     SbErr_Clear();
 
-    e = _SbErr_Instantiate(type, value);
+    if (value) {
+        if (SbTuple_CheckExact(value)) {
+            args = value;
+        }
+        else {
+            args = SbTuple_Pack(1, value);
+            Sb_DECREF(value);
+        }
+    }
+    e = SbObject_Call((SbObject *)type, args, NULL);
+    Sb_XDECREF(args);
     if (!e) {
         return;
     }
@@ -110,7 +121,6 @@ SbErr_RaiseWithString(SbTypeObject *type, const char *value)
     }
 
     SbErr_RaiseWithObject(type, s);
-    Sb_DECREF(s);
 }
 
 void
@@ -127,7 +137,6 @@ SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...)
     }
 
     SbErr_RaiseWithObject(type, s);
-    Sb_DECREF(s);
 }
 
 void
@@ -138,13 +147,7 @@ SbErr_RaiseIOError(SbInt_Native_t error_code, const char *strerror)
     SbObject *o_strerror;
 
     o_errno = SbInt_FromNative(error_code);
-    if (strerror) {
-        o_strerror = SbStr_FromString(strerror);
-    }
-    else {
-        o_strerror = Sb_None;
-        Sb_INCREF(o_strerror);
-    }
+    o_strerror = SbStr_FromString(strerror);
     value = SbTuple_Pack(2, o_errno, o_strerror);
     Sb_DECREF(o_errno);
     Sb_DECREF(o_strerror);
