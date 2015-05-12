@@ -177,14 +177,18 @@ PopJumpIfXxx:
             continue;
 
         case LoadFast:
-            if (!frame->locals) {
-                reason = Reason_Error;
-                break;
+            if (frame->locals) {
+                name = SbTuple_GetItem(code->varnames, opcode_arg);
+                o_result = SbDict_GetItemString(frame->locals, SbStr_AsStringUnsafe(name));
+                if (o_result) {
+                    Sb_INCREF(o_result);
+                    STACK_PUSH(o_result);
+                    continue;
+                }
             }
-
-            name = SbTuple_GetItem(code->varnames, opcode_arg);
-            o_result = SbDict_GetItemString(frame->locals, SbStr_AsStringUnsafe(name));
-            goto LoadXxx_common;
+            SbErr_RaiseWithObject(SbErr_UnboundLocalError, name);
+            reason = Reason_Error;
+            break;
         case LoadName:
             name = SbTuple_GetItem(code->names, opcode_arg);
             o_result = SbDict_GetItemString(frame->locals, SbStr_AsStringUnsafe(name));
