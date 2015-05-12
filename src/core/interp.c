@@ -456,7 +456,9 @@ XxxName_check_iresult:
                 STACK_PUSH(o_result);
                 continue;
             }
-            SbErr_RaiseWithObject(SbErr_NameError, name);
+            if (!SbErr_Occurred()) {
+                SbErr_RaiseWithObject(SbErr_NameError, name);
+            }
             reason = Reason_Error;
             break;
 
