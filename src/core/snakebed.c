@@ -1,6 +1,6 @@
 #include "snakebed.h"
 
-#define __TRACE_INITS 1
+#define __TRACE_INITS 0
 
 #if __TRACE_INITS
 #include <stdio.h>
