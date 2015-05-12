@@ -9,6 +9,10 @@
 /* Keep the type object here. */
 SbTypeObject *SbObject_Type = NULL;
 
+#if SUPPORTS_ALLOC_STATISTICS
+unsigned long SbObject_AliveCount = 0;
+#endif
+
 void _SbObject_DecRef(SbObject *op)
 {
     Sb_ssize_t new_refcount;
@@ -27,6 +31,9 @@ void _SbObject_DecRef(SbObject *op)
     tp = Sb_TYPE(op);
     tp->tp_destroy(op);
     /* `op` becomes invalid after this point. */
+#if SUPPORTS_ALLOC_STATISTICS
+    --SbObject_AliveCount;
+#endif
     SbErr_Restore(&info);
     Sb_DECREF(tp);
 }
@@ -45,6 +52,9 @@ SbObject_New(SbTypeObject *type)
 #if __TRACE_ALLOCS
     printf("Object at %p (type %s) allocated.\n", p, type->tp_name);
 #endif /* __TRACE_ALLOCS */
+#if SUPPORTS_ALLOC_STATISTICS
+    ++SbObject_AliveCount;
+#endif
     return p;
 }
 
@@ -62,6 +72,9 @@ SbObject_NewVar(SbTypeObject *type, Sb_ssize_t count)
 #if __TRACE_ALLOCS
     printf("Object at %p (type %s) allocated.\n", p, type->tp_name);
 #endif /* __TRACE_ALLOCS */
+#if SUPPORTS_ALLOC_STATISTICS
+    ++SbObject_AliveCount;
+#endif
     return p;
 }
 

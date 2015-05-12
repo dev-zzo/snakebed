@@ -3,6 +3,9 @@
 
 /* Define these to either 1 or 0. */
 
+/* Build with object allocation statistics */
+#define SUPPORTS_ALLOC_STATISTICS 1
+
 /* Build with type checks in internal methods */
 #define SUPPORTS_BUILTIN_TYPECHECKS 1
 

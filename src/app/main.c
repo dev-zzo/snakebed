@@ -15,8 +15,8 @@ int main(int argc, const char *argv[])
     }
 
     main_module = Sb_LoadModule("__main__", argv[1]);
-    Sb_XDECREF(main_module);
     SbErr_Fetch(&error_info);
+    Sb_XDECREF(main_module);
     if (error_info.type) {
         if (SbErr_ExceptionMatches(error_info.type, (SbObject *)SbErr_SystemExit)) {
             SbErr_Clear();
