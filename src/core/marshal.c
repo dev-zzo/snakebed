@@ -328,7 +328,7 @@ Sb_ReadObjectFromPath(const char *path)
     Sb_DECREF(state.strtab);
 
 exit1:
-    SbFile_Close(input);
+    Sb_DECREF(input);
     return result;
 }
 
