@@ -173,7 +173,7 @@ enverror_str(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
         error_code = (OSError_t)SbInt_AsNative(SbTuple_GetItemUnsafe(self->args, 0));
         error_text = (const char *)SbStr_AsString(SbTuple_GetItemUnsafe(self->args, 1));
         file_name = (const char *)SbStr_AsString(SbTuple_GetItemUnsafe(self->args, 2));
-        return SbStr_FromFormat("%s: errno %d (%s) when accessing %s", Sb_TYPE(self)->tp_name, error_code, error_text, file_name);
+        return SbStr_FromFormat("%s: errno %d when accessing %s:\r\n%s", Sb_TYPE(self)->tp_name, error_code, file_name, error_text);
     }
     if (arg_count == 2) {
         OSError_t error_code;
@@ -181,7 +181,7 @@ enverror_str(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
 
         error_code = (OSError_t)SbInt_AsNative(SbTuple_GetItemUnsafe(self->args, 0));
         error_text = (const char *)SbStr_AsString(SbTuple_GetItemUnsafe(self->args, 1));
-        return SbStr_FromFormat("%s: errno %d (%s)", Sb_TYPE(self)->tp_name, error_code, error_text);
+        return SbStr_FromFormat("%s: errno %d:\r\n%s", Sb_TYPE(self)->tp_name, error_code, error_text);
     }
     return exception_str(self, args, kwargs);
 }

@@ -6,9 +6,17 @@ extern "C" {
 
 #include "platform_win32.h"
 
+/* Error handling kludges */
+
 typedef unsigned long OSError_t;
 
 #define OS_NO_ERROR 0
+
+/* NOTE: A pointer to a statically allocated buffer is returned. */
+const char *
+Sb_StrError(OSError_t error_code);
+
+/* Memory management APIs */
 
 void *
 Sb_Malloc(Sb_size_t size);

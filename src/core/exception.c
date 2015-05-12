@@ -140,14 +140,20 @@ SbErr_RaiseWithFormat(SbTypeObject *type, const char *format, ...)
 }
 
 void
-SbErr_RaiseIOError(SbInt_Native_t error_code, const char *strerror)
+SbErr_RaiseIOError(SbInt_Native_t error_code, const char *error_text)
 {
     SbObject *value;
     SbObject *o_errno;
     SbObject *o_strerror;
 
     o_errno = SbInt_FromNative(error_code);
-    o_strerror = SbStr_FromString(strerror);
+    if (!error_text) {
+        error_text = Sb_StrError(error_code);
+        if (!error_text) {
+            error_text = "no description available";
+        }
+    }
+    o_strerror = SbStr_FromString(error_text);
     value = SbTuple_Pack(2, o_errno, o_strerror);
     Sb_DECREF(o_errno);
     Sb_DECREF(o_strerror);

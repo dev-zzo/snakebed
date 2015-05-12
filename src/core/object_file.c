@@ -12,7 +12,7 @@ SbFile_New(const char *path, const char *mode)
 
     status = Sb_FileOpen(path, mode, &handle);
     if (status != OS_NO_ERROR) {
-        SbErr_RaiseIOError(status, "(no description)");
+        SbErr_RaiseIOError(status, NULL);
         return NULL;
     }
 
@@ -62,7 +62,7 @@ SbFile_Read(SbObject *self, void *buffer, Sb_ssize_t count)
 
     status = Sb_FileRead(myself->handle, buffer, count, &transferred);
     if (status != OS_NO_ERROR) {
-        SbErr_RaiseIOError(status, "(no description)");
+        SbErr_RaiseIOError(status, NULL);
         return -1;
     }
     return transferred;
@@ -82,7 +82,7 @@ SbFile_Write(SbObject *self, const void *buffer, Sb_ssize_t count)
 
     status = Sb_FileWrite(myself->handle, buffer, count, &transferred);
     if (status != OS_NO_ERROR) {
-        SbErr_RaiseIOError(status, "(no description)");
+        SbErr_RaiseIOError(status, NULL);
         return -1;
     }
     return transferred;
@@ -111,7 +111,7 @@ SbFile_Tell(SbObject *self)
 
     status = Sb_FileTell(myself->handle, &result);
     if (status != OS_NO_ERROR) {
-        SbErr_RaiseIOError(status, "(no description)");
+        SbErr_RaiseIOError(status, NULL);
         return -1;
     }
     return result;
@@ -136,7 +136,7 @@ SbFile_Seek(SbObject *self, Sb_ssize_t offset, int whence)
 
     status = Sb_FileSeek(myself->handle, offset, whence, &result);
     if (status != OS_NO_ERROR) {
-        SbErr_RaiseIOError(status, "(no description)");
+        SbErr_RaiseIOError(status, NULL);
         return -1;
     }
     return result;
