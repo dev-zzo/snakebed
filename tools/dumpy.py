@@ -25,7 +25,7 @@ _flags_decode = (
 
  
 def output(text):
-    print text
+    print(text)
 
 def output_table(tab):
     i = 0
