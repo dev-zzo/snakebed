@@ -56,6 +56,8 @@ Still, this is very much incomplete and buggy.
   * Only raising types (e.g. `raise KeyError`) is supported.
 * Packages are currently not supported at all. Not sure whether supporting these is required.
 * Generators are currently not supported.
+* Unicode is not supported at all.
+* Dynamic code execution (`compile`, `eval`, `exec`, `execfile`) is obviously not supported.
 
 # C Conventions
 
