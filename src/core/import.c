@@ -77,6 +77,12 @@ fail0:
     return NULL;
 }
 
+void
+_Sb_UnloadModule(const char *name)
+{
+    SbDict_DelItemString(SbSys_Modules, name);
+}
+
 SbObject *
 SB_Import(const char *name)
 {

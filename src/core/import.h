@@ -17,6 +17,9 @@ Sb_InitModule(const char *name);
 SbObject *
 Sb_LoadModule(const char *name, const char *path);
 
+void
+_Sb_UnloadModule(const char *name);
+
 /* Imports a module with the given name.
    This either results in a cached module or a new one.
    Returns: New reference.
