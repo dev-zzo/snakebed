@@ -92,20 +92,38 @@ Sb_FileClose(OSFileHandle_t handle)
     CloseHandle((HANDLE)handle);
 }
 
-void *
+OSFileHandle_t
 Sb_GetStdInHandle(void)
 {
-    return (void *)GetStdHandle(STD_INPUT_HANDLE);
+    OSFileHandle_t dupHandle;
+
+    DuplicateHandle(
+        GetCurrentProcess(), GetStdHandle(STD_INPUT_HANDLE),
+        GetCurrentProcess(), &dupHandle,
+        0, TRUE, DUPLICATE_SAME_ACCESS);
+    return dupHandle;
 }
 
-void *
+OSFileHandle_t
 Sb_GetStdOutHandle(void)
 {
-    return (void *)GetStdHandle(STD_OUTPUT_HANDLE);
+    OSFileHandle_t dupHandle;
+
+    DuplicateHandle(
+        GetCurrentProcess(), GetStdHandle(STD_OUTPUT_HANDLE),
+        GetCurrentProcess(), &dupHandle,
+        0, TRUE, DUPLICATE_SAME_ACCESS);
+    return dupHandle;
 }
 
-void *
+OSFileHandle_t
 Sb_GetStdErrHandle(void)
 {
-    return (void *)GetStdHandle(STD_ERROR_HANDLE);
+    OSFileHandle_t dupHandle;
+
+    DuplicateHandle(
+        GetCurrentProcess(), GetStdHandle(STD_ERROR_HANDLE),
+        GetCurrentProcess(), &dupHandle,
+        0, TRUE, DUPLICATE_SAME_ACCESS);
+    return dupHandle;
 }
