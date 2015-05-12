@@ -99,6 +99,100 @@ static const SbCMethodDef exception_methods[] = {
     { NULL, NULL },
 };
 
+static SbObject *
+enverror_getattr_internal(SbBaseExceptionObject *self, SbObject *attr_name)
+{
+    const char *attr_str;
+    SbObject *args;
+    Sb_ssize_t args_count;
+    SbObject *value;
+
+    args = self->args;
+    args_count = SbTuple_GetSizeUnsafe(args);
+    attr_str = SbStr_AsStringUnsafe(attr_name);
+    if (!Sb_StrCmp(attr_str, "errno") && args_count > 1) {
+        value = SbTuple_GetItem(args, 0);
+        goto do_return;
+    }
+    if (!Sb_StrCmp(attr_str, "strerror") && args_count > 1) {
+        value = SbTuple_GetItem(args, 1);
+        goto do_return;
+    }
+    if (!Sb_StrCmp(attr_str, "filename")) {
+        if (args_count == 3) {
+            value = SbTuple_GetItem(args, 2);
+        }
+        else {
+            value = Sb_None;
+        }
+        goto do_return;
+    }
+    return exception_getattr_internal(self, attr_name);
+
+do_return:
+    Sb_INCREF(value);
+    return value;
+}
+
+static SbObject *
+enverror_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *attr_name;
+    const char *attr_str;
+    SbObject *value;
+
+    if (SbTuple_Unpack(args, 1, 1, &attr_name) < 0) {
+        return NULL;
+    }
+    if (!SbStr_CheckExact(attr_name)) {
+        SbErr_RaiseWithString(SbErr_TypeError, "attribute name must be a string");
+        return NULL;
+    }
+
+    attr_str = SbStr_AsStringUnsafe(attr_name);
+    if (!Sb_StrCmp(attr_str, "args")) {
+        value = self->args;
+        Sb_INCREF(value);
+        return value;
+    }
+
+    return NULL;
+}
+
+static SbObject *
+enverror_str(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
+{
+    Sb_ssize_t arg_count;
+
+    arg_count = SbTuple_GetSizeUnsafe(self->args);
+    if (arg_count == 3) {
+        OSError_t error_code;
+        const char *error_text;
+        const char *file_name;
+
+        error_code = (OSError_t)SbInt_AsNative(SbTuple_GetItemUnsafe(self->args, 0));
+        error_text = (const char *)SbStr_AsString(SbTuple_GetItemUnsafe(self->args, 1));
+        file_name = (const char *)SbStr_AsString(SbTuple_GetItemUnsafe(self->args, 2));
+        return SbStr_FromFormat("%s: errno %d (%s) when accessing %s", Sb_TYPE(self)->tp_name, error_code, error_text, file_name);
+    }
+    if (arg_count == 2) {
+        OSError_t error_code;
+        const char *error_text;
+
+        error_code = (OSError_t)SbInt_AsNative(SbTuple_GetItemUnsafe(self->args, 0));
+        error_text = (const char *)SbStr_AsString(SbTuple_GetItemUnsafe(self->args, 1));
+        return SbStr_FromFormat("%s: errno %d (%s)", Sb_TYPE(self)->tp_name, error_code, error_text);
+    }
+    return exception_str(self, args, kwargs);
+}
+
+static const SbCMethodDef enverror_methods[] = {
+    { "__getattr__", (SbCFunction)enverror_getattr },
+    { "__str__", (SbCFunction)enverror_str },
+    /* Sentinel */
+    { NULL, NULL },
+};
+
 int
 _Sb_TypeInit_Exceptions()
 {
@@ -112,7 +206,11 @@ _Sb_TypeInit_Exceptions()
     SbErr_StandardError = SbErr_NewException("StandardError", SbErr_Exception);
 
     SbErr_AttributeError = SbErr_NewException("AttributeError", SbErr_StandardError);
-    SbErr_EnvironmentError = SbErr_NewException("EnvironmentError", SbErr_StandardError);
+
+    tp = _SbType_FromCDefs("EnvironmentError", SbErr_StandardError, enverror_methods, sizeof(SbBaseExceptionObject));
+    tp->tp_destroy = (SbDestroyFunc)exception_destroy;
+    SbErr_EnvironmentError = tp;
+
     SbErr_ImportError = SbErr_NewException("ImportError", SbErr_StandardError);
     SbErr_LookupError = SbErr_NewException("LookupError", SbErr_StandardError);
     SbErr_MemoryError = SbErr_NewException("MemoryError", SbErr_StandardError);
