@@ -5,6 +5,7 @@ extern "C" {
 #endif
 
 /* Parse positinal and keyword arguments, assigning the pointers as appropriate.
+   Note: The function modifies `kwds`.
    Note: All the returned references are borrowed.
    Returns: 0 if OK, -1 on error.
 */
