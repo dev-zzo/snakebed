@@ -49,7 +49,7 @@ _builtin_id(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *o;
 
-    if (SbTuple_Unpack(args, 1, 1, &o) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &o) < 0) {
         return NULL;
     }
 
@@ -62,7 +62,7 @@ _builtin_len(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *o;
     Sb_ssize_t len;
 
-    if (SbTuple_Unpack(args, 1, 1, &o) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &o) < 0) {
         return NULL;
     }
 
@@ -80,7 +80,7 @@ _builtin_hash(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *o;
     SbInt_Native_t hash;
 
-    if (SbTuple_Unpack(args, 1, 1, &o) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &o) < 0) {
         return NULL;
     }
 

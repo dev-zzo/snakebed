@@ -194,7 +194,7 @@ int_init(SbIntObject *self, SbObject *args, SbObject *kwargs)
     SbObject *x = NULL;
     SbObject *base = NULL;
 
-    if (SbTuple_Unpack(args, 0, 2, &x, &base) < 0) {
+    if (SbArgs_Unpack(args, 0, 2, &x, &base) < 0) {
         return NULL;
     }
 

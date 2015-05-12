@@ -59,7 +59,7 @@ exception_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *attr_name;
 
-    if (SbTuple_Unpack(args, 1, 1, &attr_name) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &attr_name) < 0) {
         return NULL;
     }
     if (!SbStr_CheckExact(attr_name)) {
@@ -141,7 +141,7 @@ enverror_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
     const char *attr_str;
     SbObject *value;
 
-    if (SbTuple_Unpack(args, 1, 1, &attr_name) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &attr_name) < 0) {
         return NULL;
     }
     if (!SbStr_CheckExact(attr_name)) {

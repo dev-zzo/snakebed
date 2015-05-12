@@ -502,7 +502,7 @@ dict_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *key;
     SbObject *result;
 
-    if (SbTuple_Unpack(args, 1, 1, &key) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &key) < 0) {
         return NULL;
     }
 
@@ -520,7 +520,7 @@ dict_setitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *value;
     int result;
 
-    if (SbTuple_Unpack(args, 2, 2, &key ,&value) < 0) {
+    if (SbArgs_Unpack(args, 2, 2, &key ,&value) < 0) {
         return NULL;
     }
 
@@ -537,7 +537,7 @@ dict_delitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *key;
     int result;
 
-    if (SbTuple_Unpack(args, 1, 1, &key) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &key) < 0) {
         return NULL;
     }
     result = SbDict_DelItem(self, key);

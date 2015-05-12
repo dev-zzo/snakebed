@@ -1,8 +1,5 @@
 #include "snakebed.h"
 
-/* Relying on compiler here. */
-#include <stdarg.h>
-
 /* Keep the type object here. */
 SbTypeObject *SbType_Type = NULL;
 
@@ -157,7 +154,7 @@ type_new(SbObject *cls, SbObject *args, SbObject *kwargs)
 {
     SbObject *name = NULL, *base = NULL, *dict = NULL;
 
-    if (SbTuple_Unpack(args, 4, 4, &cls, &name, &base, &dict) < 0) {
+    if (SbArgs_Unpack(args, 4, 4, &cls, &name, &base, &dict) < 0) {
         return NULL;
     }
     return _SbType_New(name, base, dict);

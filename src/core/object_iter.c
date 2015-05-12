@@ -150,7 +150,7 @@ iter_new(SbObject *cls, SbObject *args, SbObject *kwargs)
     SbTypeObject *o_type;
     SbObject *o = NULL, *sentinel = NULL;
 
-    if (SbTuple_Unpack(args, 2, 3, &cls, &o, &sentinel) < 0) {
+    if (SbArgs_Unpack(args, 2, 3, &cls, &o, &sentinel) < 0) {
         return NULL;
     }
 

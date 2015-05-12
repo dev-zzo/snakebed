@@ -162,7 +162,7 @@ file_read(SbObject *self, SbObject *args, SbObject *kwargs)
     Sb_ssize_t maxcount;
     Sb_ssize_t transferred;
 
-    if (SbTuple_Unpack(args, 0, 1, &o_maxcount) < 0) {
+    if (SbArgs_Unpack(args, 0, 1, &o_maxcount) < 0) {
         return NULL;
     }
 
@@ -202,7 +202,7 @@ file_write(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *o_data = NULL;
     Sb_ssize_t transferred;
 
-    if (SbTuple_Unpack(args, 1, 1, &o_data) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &o_data) < 0) {
         return NULL;
     }
     if (!SbStr_CheckExact(o_data)) {
@@ -227,7 +227,7 @@ file_seek(SbObject *self, SbObject *args, SbObject *kwargs)
     Sb_ssize_t offset;
     int whence = 0;
 
-    if (SbTuple_Unpack(args, 1, 2, &o_offset, &o_whence) < 0) {
+    if (SbArgs_Unpack(args, 1, 2, &o_offset, &o_whence) < 0) {
         return NULL;
     }
 

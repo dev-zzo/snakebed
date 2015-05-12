@@ -4,6 +4,9 @@
 extern "C" {
 #endif
 
+/* Relying on compiler here. */
+#include <stdarg.h>
+
 #include "supports.h"
 #include "bstrap.h"
 
@@ -21,6 +24,7 @@ extern "C" {
 #include "object_pfunc.h"
 #include "object_method.h"
 #include "exception.h"
+#include "args.h"
 #include "object_frame.h"
 #include "object_module.h"
 #include "object_file.h"

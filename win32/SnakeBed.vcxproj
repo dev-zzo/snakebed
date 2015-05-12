@@ -88,6 +88,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\core\args.c" />
     <ClCompile Include="..\src\core\exception.c" />
     <ClCompile Include="..\src\core\import.c" />
     <ClCompile Include="..\src\core\internal.c" />
@@ -122,6 +123,7 @@
     <ClCompile Include="..\src\core\snakebed.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\core\args.h" />
     <ClInclude Include="..\src\core\exception.h" />
     <ClInclude Include="..\src\core\import.h" />
     <ClInclude Include="..\src\core\internal.h" />

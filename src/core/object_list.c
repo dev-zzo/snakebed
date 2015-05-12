@@ -1,8 +1,5 @@
 #include "snakebed.h"
 
-/* Relying on compiler here. */
-#include <stdarg.h>
-
 /* Keep the type object here. */
 SbTypeObject *SbList_Type = NULL;
 
@@ -225,7 +222,7 @@ list_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *index;
     SbObject *result;
 
-    if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &index) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {
@@ -267,7 +264,7 @@ list_setitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *index;
     SbObject *value;
 
-    if (SbTuple_Unpack(args, 2, 2, &index, &value) < 0) {
+    if (SbArgs_Unpack(args, 2, 2, &index, &value) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {
@@ -320,7 +317,7 @@ list_delitem(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *index;
 
-    if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &index) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {

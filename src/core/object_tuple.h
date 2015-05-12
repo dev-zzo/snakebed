@@ -32,12 +32,6 @@ SbTuple_Pack(Sb_ssize_t count, ...);
 SbObject *
 SbTuple_PackVa(Sb_ssize_t count, va_list va);
 
-/* Unpack the tuple into the provided arguments.
-   Arguments must be pointers to `SbObject *`, they will contain borrowed refs.
-   Returns: 0 if OK, -1 otherwise. */
-int
-SbTuple_Unpack(SbObject *p, Sb_ssize_t count_min, Sb_ssize_t count_max, ...);
-
 /* Return a tuple's size.
    WARNING: no type checks are performed. */
 Sb_ssize_t

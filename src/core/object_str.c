@@ -1,8 +1,5 @@
 #include "snakebed.h"
 
-/* Relying on compiler here. */
-#include <stdarg.h>
-
 /* Keep the type object here. */
 SbTypeObject *SbStr_Type = NULL;
 
@@ -318,7 +315,7 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *result;
     SbInt_Native_t pos;
 
-    if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &index) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {

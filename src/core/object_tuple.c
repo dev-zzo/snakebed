@@ -1,8 +1,5 @@
 #include "snakebed.h"
 
-/* Relying on compiler here. */
-#include <stdarg.h>
-
 /* Keep the type object here. */
 SbTypeObject *SbTuple_Type = NULL;
 
@@ -97,46 +94,6 @@ SbTuple_Pack(Sb_ssize_t count, ...)
     return tuple;
 }
 
-int
-SbTuple_Unpack(SbObject *p, Sb_ssize_t count_min, Sb_ssize_t count_max, ...)
-{
-    va_list va;
-    Sb_ssize_t count, pos;
-
-#if SUPPORTS_BUILTIN_TYPECHECKS
-    if (!SbTuple_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-tuple object passed to a tuple method");
-        return -1;
-    }
-#endif
-
-    count = SbTuple_GetSizeUnsafe(p);
-    if (count < count_min || count > count_max) {
-        if (count_min < count_max) {
-            SbErr_RaiseWithFormat(SbErr_TypeError, "tuple may contain between %d and %d items (%d given)", count_min, count_max, count);
-        }
-        else {
-            SbErr_RaiseWithFormat(SbErr_TypeError, "tuple may contain exactly %d items (%d given)", count_min, count);
-        }
-        return -1;
-    }
-
-    va_start(va, count_max);
-    for (pos = 0; pos < count; ++pos) {
-        SbObject **po;
-
-        po = va_arg(va, SbObject **);
-        if (!po) {
-            SbErr_RaiseWithString(SbErr_ValueError, "a NULL pointer found when unpacking a tuple");
-            return -1;
-        }
-        *po = SbTuple_GetItemUnsafe(p, pos);
-    }
-    va_end(va);
-
-    return 0;
-}
-
 Sb_ssize_t
 SbTuple_GetSizeUnsafe(SbObject *p)
 {
@@ -207,7 +164,7 @@ tuple_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *index;
     SbObject *result;
 
-    if (SbTuple_Unpack(args, 1, 1, &index) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &index) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {

@@ -92,7 +92,7 @@ SbObject_DefaultSetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *attr_name;
     SbObject *value;
 
-    if (SbTuple_Unpack(args, 2, 2, &attr_name, &value) < 0) {
+    if (SbArgs_Unpack(args, 2, 2, &attr_name, &value) < 0) {
         return NULL;
     }
     if (!SbStr_CheckExact(attr_name)) {
@@ -115,7 +115,7 @@ SbObject_DefaultDelAttr(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *attr_name;
 
-    if (SbTuple_Unpack(args, 1, 1, &attr_name) < 0) {
+    if (SbArgs_Unpack(args, 1, 1, &attr_name) < 0) {
         return NULL;
     }
     if (!SbStr_CheckExact(attr_name)) {

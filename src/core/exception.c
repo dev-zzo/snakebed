@@ -1,8 +1,5 @@
 #include "snakebed.h"
 
-/* Relying on compiler here. */
-#include <stdarg.h>
-
 static SbExceptionInfo exception = { NULL, NULL, NULL, };
 
 /* Cached MemoryError instance -- when we don't have memory to create another one */
