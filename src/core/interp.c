@@ -450,7 +450,8 @@ XxxName_check_iresult:
             /* Mod -> Attr Mod */
             tmp = STACK_TOP();
             name = SbTuple_GetItem(code->names, opcode_arg);
-            o_result = SbDict_GetItemString(tmp, SbStr_AsString(name));
+            /* assert(Sb_TYPE(tmp) == SbModule_Type); */
+            o_result = SbDict_GetItemString(SbModule_GetDict(tmp), SbStr_AsString(name));
             if (o_result) {
                 Sb_INCREF(o_result);
                 STACK_PUSH(o_result);
@@ -470,10 +471,13 @@ XxxName_check_iresult:
             o_result = SB_Import(SbStr_AsString(name));
             goto Xxx_drop2_check_oresult;
 
-#if 0
         case ImportStar:
-            break;
-#endif
+            /* Mod -> */
+            op1 = STACK_POP();
+            /* assert(Sb_TYPE(op1) == SbModule_Type); */
+            i_result = SbDict_Merge(frame->locals, SbModule_GetDict(op1), 1);
+            /* TODO: how to resolve name conflicts? */
+            goto Xxx_drop1_check_iresult;
 
         case UnaryNot:
             /* X -> (not X) */
@@ -890,6 +894,7 @@ Xxx_drop3_check_iresult:
             Sb_DECREF(op3);
 Xxx_drop2_check_iresult:
             Sb_DECREF(op2);
+Xxx_drop1_check_iresult:
             Sb_DECREF(op1);
             if (!i_result) {
                 continue;
