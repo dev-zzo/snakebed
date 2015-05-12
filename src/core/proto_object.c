@@ -4,10 +4,17 @@ SbInt_Native_t
 SbObject_Hash(SbObject *p)
 {
     SbObject *result;
+    SbInt_Native_t hash;
 
     result = SbObject_CallMethod(p, "__hash__", NULL, NULL);
-
-    return result ? SbInt_AsNative(result) : -1;
+    if (result) {
+        hash = SbInt_AsNative(result);
+        Sb_DECREF(result);
+    }
+    else {
+        hash = -1;
+    }
+    return hash;
 }
 
 int
