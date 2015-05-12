@@ -39,6 +39,7 @@ Sb_LoadModule(const char *name, const char *path)
     SbObject *module;
     SbObject *module_func;
     SbObject *call_result;
+    SbObject *defaults;
 
     module = Sb_InitModule(name);
     if (!module) {
@@ -55,7 +56,9 @@ Sb_LoadModule(const char *name, const char *path)
         goto fail1;
     }
 
-    module_func = SbPFunction_New(module_code, SbTuple_New(0), SbObject_DICT(module));
+    defaults = SbTuple_New(0);
+    module_func = SbPFunction_New(module_code, defaults, SbObject_DICT(module));
+    Sb_DECREF(defaults);
     Sb_DECREF(module_code);
     if (!module_func) {
         goto fail1;
