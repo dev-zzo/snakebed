@@ -69,7 +69,7 @@ SbInterp_Execute(SbFrameObject *frame)
         continue_ip = NULL;
 #endif
 
-        reason = Reason_Unknown;
+        reason = Reason_Error;
 
         opcode = (SbOpcode)(*ip++);
         if (opcode >= HaveArgument) {
@@ -187,7 +187,6 @@ PopJumpIfXxx:
                 }
             }
             SbErr_RaiseWithObject(SbErr_UnboundLocalError, name);
-            reason = Reason_Error;
             break;
         case LoadName:
             name = SbTuple_GetItem(code->names, opcode_arg);
@@ -211,7 +210,6 @@ LoadXxx_common:
                 continue;
             }
             SbErr_RaiseWithObject(SbErr_NameError, name);
-            reason = Reason_Error;
             break;
 
         case StoreFast:
@@ -266,7 +264,6 @@ DeleteXxx_common:
             }
             /* No need to clear - SbObject_GetAttrString() doesn't raise */
             SbErr_RaiseWithObject(SbErr_AttributeError, name);
-            reason = Reason_Error;
             break;
         case StoreAttr:
             /* X Y -> */
@@ -290,7 +287,6 @@ XxxName_check_iresult:
             }
             SbErr_Clear();
             SbErr_RaiseWithObject(SbErr_AttributeError, name);
-            reason = Reason_Error;
             break;
 
 
@@ -464,7 +460,6 @@ XxxName_check_iresult:
             if (!SbErr_Occurred()) {
                 SbErr_RaiseWithObject(SbErr_NameError, name);
             }
-            reason = Reason_Error;
             break;
 
         case ImportName:
@@ -535,7 +530,6 @@ UnaryXxx_common:
                 goto Xxx_drop2_check_oresult;
             }
             SbErr_RaiseWithFormat(SbErr_SystemError, "compare op %d not implemented", opcode_arg);
-            reason = Reason_Error;
             break;
 
         case InPlaceAdd:
@@ -647,8 +641,6 @@ BinaryXxx_common:
         case RaiseVarArgs:
             /* X Y Z -> */
             /* NOTE: raise Z, Y, X */
-            reason = Reason_Error;
-
             if (opcode_arg > 0) {
                 /* Raise a new exception. */
 
@@ -720,7 +712,7 @@ BinaryXxx_common:
                 break;
             }
 
-            reason = Reason_Error;
+            /* reason = Reason_Error; */
 
             /* Type Value Traceback -> */
             if (SbType_Check(op1)) {
@@ -878,7 +870,6 @@ DeleteSliceXxx:
         default:
             /* Not implemented. */
             SbErr_RaiseWithFormat(SbErr_SystemError, "opcode %d not implemented", opcode);
-            reason = Reason_Error;
             break;
 
 Xxx_drop3_check_oresult:
@@ -907,7 +898,6 @@ Xxx_check_error:
             if (!SbErr_Occurred()) {
                 SbErr_RaiseWithString(SbErr_SystemError, "call result is NULL or -1 but no error is set");
             }
-            reason = Reason_Error;
             break;
         }
 
