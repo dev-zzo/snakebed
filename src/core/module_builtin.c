@@ -161,3 +161,8 @@ _Sb_ModuleInit_Builtin()
     return 0;
 }
 
+void
+_Sb_ModuleFini_Builtin()
+{
+    Sb_CLEAR(Sb_ModuleBuiltin);
+}

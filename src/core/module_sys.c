@@ -93,21 +93,25 @@ _Sb_ModuleInit_Sys()
         return -1;
     }
     SbDict_SetItemString(dict, "stdin", o);
+    Sb_DECREF(o);
     SbSys_StdIn = o;
     o = SbFile_FromHandle(Sb_GetStdOutHandle());
     if (!o) {
         return -1;
     }
     SbDict_SetItemString(dict, "stdout", o);
+    Sb_DECREF(o);
     SbSys_StdOut = o;
     o = SbFile_FromHandle(Sb_GetStdErrHandle());
     if (!o) {
         return -1;
     }
     SbDict_SetItemString(dict, "stderr", o);
+    Sb_DECREF(o);
     SbSys_StdErr = o;
 
     SbDict_SetItemString(dict, "modules", SbSys_Modules);
+    Sb_DECREF(SbSys_Modules);
 
     add_func(dict, "exc_info", exc_info);
     add_func(dict, "exit", _sys_exit);
@@ -116,3 +120,16 @@ _Sb_ModuleInit_Sys()
     return 0;
 }
 
+
+void
+_Sb_ModuleFini_Sys()
+{
+    SbObject *dict;
+
+    dict = SbModule_GetDict(Sb_ModuleSys);
+    SbDict_DelItemString(dict, "modules");
+    Sb_CLEAR(Sb_ModuleSys);
+    SbSys_StdIn = NULL;
+    SbSys_StdOut = NULL;
+    SbSys_StdErr = NULL;
+}

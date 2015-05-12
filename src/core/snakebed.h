@@ -46,6 +46,8 @@ extern "C" {
 extern int
 Sb_Initialize(void);
 
+extern void
+Sb_Finalize(void);
 
 #ifdef __cplusplus
 }

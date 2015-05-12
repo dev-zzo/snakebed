@@ -1,5 +1,11 @@
 #include "snakebed.h"
 
+#define __TRACE_INITS 1
+
+#if __TRACE_INITS
+#include <stdio.h>
+#endif /* __TRACE_INITS */
+
 extern int
 _SbType_BuiltinInit();
 extern int
@@ -106,6 +112,9 @@ do_initfuncs(typeinitfunc *funcs)
         if (!f) {
             break;
         }
+#if __TRACE_INITS
+        printf("Calling init %p.\n", f);
+#endif /* __TRACE_INITS */
         if (f() < 0) {
             return -1;
         }
@@ -118,17 +127,41 @@ int
 Sb_Initialize(void)
 {
     /* Stage 1: build the most basic types */
+#if __TRACE_INITS
+    printf("Starting init stage 1.\n");
+#endif /* __TRACE_INITS */
     if (do_initfuncs(stage1_inits) < 0) {
         return -1;
     }
     /* Stage 2: revisit type objects */
+#if __TRACE_INITS
+    printf("Starting init stage 2.\n");
+#endif /* __TRACE_INITS */
     if (do_initfuncs(stage2_inits) < 0) {
         return -1;
     }
     /* Stage 3: implement all other objects */
+#if __TRACE_INITS
+    printf("Starting init stage 3.\n");
+#endif /* __TRACE_INITS */
     if (do_initfuncs(stage3_inits) < 0) {
         return -1;
     }
 
+#if __TRACE_INITS
+    printf("Init completed.\n");
+#endif /* __TRACE_INITS */
     return 0;
+}
+
+extern void
+_Sb_ModuleFini_Sys();
+extern void
+_Sb_ModuleFini_Builtin();
+
+void
+Sb_Finalize(void)
+{
+    _Sb_ModuleFini_Sys();
+    _Sb_ModuleFini_Builtin();
 }

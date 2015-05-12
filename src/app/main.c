@@ -38,5 +38,8 @@ int main(int argc, const char *argv[])
         }
     }
 
+    _Sb_UnloadModule("__main__");
+    Sb_Finalize();
+
     return rv;
 }
