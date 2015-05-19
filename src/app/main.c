@@ -3,7 +3,7 @@
 int main(int argc, const char *argv[])
 {
     SbObject *main_module;
-    SbExceptionInfo error_info;
+    SbObject *exc;
     int rv = 0;
 
     if (Sb_Initialize() < 0) {
@@ -15,21 +15,21 @@ int main(int argc, const char *argv[])
     }
 
     main_module = Sb_LoadModule("__main__", argv[1]);
-    SbErr_Fetch(&error_info);
+    SbErr_Fetch(&exc);
     Sb_XDECREF(main_module);
-    if (error_info.type) {
-        if (SbErr_ExceptionMatches(error_info.type, (SbObject *)SbErr_SystemExit)) {
+    if (exc) {
+        if (SbErr_ExceptionMatches(exc, (SbObject *)SbErr_SystemExit)) {
             SbErr_Clear();
             rv = 0;
         }
         else {
-            if (SbErr_ExceptionMatches(error_info.type, (SbObject *)SbErr_MemoryError)) {
+            if (SbErr_ExceptionMatches(exc, (SbObject *)SbErr_MemoryError)) {
                 SbFile_WriteString(SbSys_StdErr, "OOM DEATH!\r\n");
             }
             else {
                 SbObject *error_str;
 
-                error_str = SbObject_Str(error_info.value);
+                error_str = SbObject_Str(SbErr_GetValue(exc));
                 SbFile_WriteString(SbSys_StdErr, "Uncaught exception:\r\n");
                 SbFile_WriteString(SbSys_StdErr, SbStr_AsStringUnsafe(error_str));
                 SbFile_Write(SbSys_StdErr, "\r\n", 2);

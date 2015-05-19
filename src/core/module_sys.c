@@ -24,20 +24,17 @@ set_item_or_none(SbObject *tuple, Sb_ssize_t pos, SbObject *o)
 static SbObject *
 exc_info(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *result;
-    SbExceptionInfo* info;
+    SbObject *exc;
 
-    result = SbTuple_New(3);
-    if (!result) {
-        return NULL;
+    exc = SbErr_Occurred();
+    if (exc) {
+        return SbTuple_Pack(3, Sb_TYPE(exc), SbErr_GetValue(exc), Sb_None);
     }
+    else {
+        SbObject *none = Sb_None;
 
-    info = &SbInterp_TopFrame->exc_info;
-    set_item_or_none(result, 0, (SbObject *)info->type);
-    set_item_or_none(result, 1, (SbObject *)info->value);
-    set_item_or_none(result, 2, (SbObject *)info->traceback);
-
-    return result;
+        return SbTuple_Pack(3, none, none, none);
+    }
 }
 
 static SbObject *

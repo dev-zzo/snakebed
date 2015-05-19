@@ -22,6 +22,12 @@ SbTypeObject  *SbErr_SystemExit = NULL;
 SbObject *_SbErr_MemoryErrorInstance = NULL;
 SbObject *_SbErr_StopIterationInstance = NULL;
 
+int
+SbErr_Check(SbObject *o)
+{
+    return SbType_IsSubtype(Sb_TYPE(o), SbErr_BaseException);
+}
+
 static void
 exception_destroy(SbBaseExceptionObject *self)
 {

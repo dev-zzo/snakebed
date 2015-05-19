@@ -1,25 +1,36 @@
 #include "snakebed.h"
 
-static SbExceptionInfo exception = { NULL, NULL, NULL, };
+SbObject *SbErr_Current = NULL;
 
 /* Cached MemoryError instance -- when we don't have memory to create another one */
 extern SbObject *_SbErr_MemoryErrorInstance;
 extern SbObject *_SbErr_StopIterationInstance;
 
-SbTypeObject *
+SbObject *
 SbErr_Occurred(void)
 {
-    return exception.type;
+    return SbErr_Current;
 }
 
 int
-SbErr_ExceptionMatches(SbTypeObject *exc, SbObject *what)
+SbErr_ExceptionMatches(SbObject *exc, SbObject *what)
 {
-    if (SbType_Check(what) && SbType_IsSubtype(exc, (SbTypeObject *)what)) {
-        return 1;
+    if (!exc) {
+        return 0;
     }
 
-    if (SbTuple_CheckExact(what)) {
+    return SbErr_ExceptionTypeMatches(Sb_TYPE(exc), what);
+}
+
+int
+SbErr_ExceptionTypeMatches(SbTypeObject *exc_type, SbObject *what)
+{
+    if (SbType_Check(what)) {
+        if (SbType_IsSubtype(exc_type, (SbTypeObject *)what)) {
+            return 1;
+        }
+    }
+    else if (SbTuple_CheckExact(what)) {
         Sb_ssize_t pos, count;
 
         count = SbTuple_GetSizeUnsafe(what);
@@ -27,7 +38,8 @@ SbErr_ExceptionMatches(SbTypeObject *exc, SbObject *what)
             SbTypeObject *tp;
 
             tp = (SbTypeObject *)SbTuple_GetItemUnsafe(what, pos);
-            if (SbType_IsSubtype(exc, tp)) {
+            /* assert(SbType_Check(tp)); */
+            if (SbType_IsSubtype(exc_type, tp)) {
                 return 1;
             }
         }
@@ -37,52 +49,29 @@ SbErr_ExceptionMatches(SbTypeObject *exc, SbObject *what)
 }
 
 void
-_SbErr_Clear(SbExceptionInfo *info)
-{
-    Sb_CLEAR(info->type);
-    Sb_CLEAR(info->value);
-    Sb_CLEAR(info->traceback);
-}
-
-void
 SbErr_Clear(void)
 {
-    _SbErr_Clear(&exception);
+    Sb_CLEAR(SbErr_Current);
 }
 
 void
-SbErr_Fetch(SbExceptionInfo *info)
+SbErr_Fetch(SbObject **exc)
 {
-    *info = exception;
-    exception.type = NULL;
-    exception.value = NULL;
-    exception.traceback = NULL;
+    *exc = SbErr_Current;
+    SbErr_Current = NULL;
 }
 
 void
-SbErr_FetchCopy(SbExceptionInfo *info)
-{
-    *info = exception;
-    if (info->type)
-        Sb_INCREF(info->type);
-    if (info->value)
-        Sb_INCREF(info->value);
-    if (info->traceback)
-        Sb_INCREF(info->traceback);
-}
-
-void
-SbErr_Restore(SbExceptionInfo *info)
+SbErr_Restore(SbObject *exc)
 {
     SbErr_Clear();
-    exception = *info;
+    SbErr_Current = exc;
 }
 
 
 void
 SbErr_RaiseWithObject(SbTypeObject *type, SbObject *value)
 {
-    SbObject *e;
     SbObject *args = NULL;
 
     SbErr_Clear();
@@ -96,15 +85,8 @@ SbErr_RaiseWithObject(SbTypeObject *type, SbObject *value)
             Sb_DECREF(value);
         }
     }
-    e = SbObject_Call((SbObject *)type, args, NULL);
+    SbErr_Current = SbObject_Call((SbObject *)type, args, NULL);
     Sb_XDECREF(args);
-    if (!e) {
-        return;
-    }
-
-    Sb_INCREF(type);
-    exception.type = type;
-    exception.value = e;
 }
 
 void
@@ -160,14 +142,9 @@ SbErr_RaiseIOError(SbInt_Native_t error_code, const char *error_text)
 static SbObject *
 err_raise_singleton(SbObject *which)
 {
-    SbTypeObject *type;
-
     SbErr_Clear();
-    type = Sb_TYPE(which);
-    Sb_INCREF(type);
-    exception.type = type;
     Sb_INCREF(which);
-    exception.value = which;
+    SbErr_Current = which;
     return NULL;
 }
 

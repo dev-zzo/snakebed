@@ -517,11 +517,11 @@ UnaryXxx_common:
 
             case CompareOp:
                 /* X Y -> Y.__op__(X) */
-                op1 = STACK_POP();
                 op2 = STACK_POP();
+                op1 = STACK_POP();
 
                 if (opcode_arg <= SbCmp_GE) {
-                    o_result = SbObject_Compare(op2, op1, opcode_arg);
+                    o_result = SbObject_Compare(op1, op2, (SbObjectCompareOp)opcode_arg);
                     goto Xxx_drop2_check_oresult;
                 }
                 if (opcode_arg == SbCmp_IS) {
@@ -533,7 +533,7 @@ UnaryXxx_common:
                     goto Xxx_drop2_check_oresult;
                 }
                 if (opcode_arg == SbCmp_EXC_MATCH) {
-                    i_result = SbErr_ExceptionMatches((SbTypeObject *)op2, op1);
+                    i_result = SbErr_ExceptionTypeMatches((SbTypeObject *)op1, op2);
                     if (i_result < 0) {
                         goto Xxx_check_error;
                     }
@@ -676,20 +676,19 @@ BinaryXxx_common:
                     }
 
                     SbErr_RaiseWithObject((SbTypeObject *)op1, op2);
+                    Sb_XDECREF(op2);
+                    Sb_XDECREF(op1);
                 }
                 else {
-                    SbExceptionInfo *exc_info = &frame->exc_info;
+                    SbObject *current_exc = frame->current_exc;
 
                     /* Reraise the previous exception */
-                    if (exc_info->type) {
+                    if (!current_exc) {
                         SbErr_RaiseWithString(SbErr_ValueError, "cannot reraise if no exception has been raised");
                         break;
                     }
 
-                    SbErr_Restore(exc_info);
-                    exc_info->type = NULL;
-                    exc_info->value = NULL;
-                    exc_info->traceback = NULL;
+                    SbErr_Restore(current_exc);
                 }
                 break;
 
@@ -708,14 +707,14 @@ BinaryXxx_common:
                 if (op1 == Sb_None) {
                     /* No exception occurred or it was handled */
                     Sb_DECREF(op1);
-                    _SbErr_Clear(&frame->exc_info);
+                    Sb_CLEAR(frame->current_exc);
                     continue;
                 }
 
                 /* Reason [RetVal] -> */
                 if (SbInt_CheckExact(op1)) {
                     /* Restore unwind reason and go on with unwinding */
-                    reason = SbInt_AsNativeUnsafe(op1);
+                    reason = (enum SbUnwindReason)SbInt_AsNativeUnsafe(op1);
                     Sb_DECREF(op1);
                     if (reason == Reason_Return) {
                         return_value = STACK_POP();
@@ -725,15 +724,14 @@ BinaryXxx_common:
 
                 /* reason = Reason_Error; */
 
-                /* Type Value Traceback -> */
+                /* Type Instance Traceback -> */
                 if (SbType_Check(op1)) {
-                    SbExceptionInfo exc_info;
-
-                    exc_info.type = (SbTypeObject *)op1;
-                    exc_info.value = STACK_POP();
-                    exc_info.traceback = STACK_POP();
-                    _SbErr_Clear(&frame->exc_info);
-                    SbErr_Restore(&exc_info);
+                    Sb_DECREF(op1);
+                    op2 = STACK_POP(); /* Value */
+                    op3 = STACK_POP(); /* Traceback */
+                    Sb_DECREF(op3);
+                    Sb_CLEAR(frame->current_exc);
+                    SbErr_Restore(op2);
                     break;
                 }
 
@@ -924,7 +922,6 @@ Xxx_check_error:
             SbCodeBlock *b;
             Sb_byte_t insn;
             const Sb_byte_t *handler;
-            SbObject *tmp;
 
             b = frame->blocks;
             insn = b->setup_insn;
@@ -938,6 +935,8 @@ Xxx_check_error:
 
             /* Drop execution stack values */
             while (sp != b->old_sp) {
+                SbObject *tmp;
+
                 tmp = STACK_POP();
                 Sb_DECREF(tmp);
             }
@@ -956,25 +955,22 @@ Xxx_check_error:
             /* The `finally` handler is always executed. */
             if (insn == SetupFinally || (insn == SetupExcept && reason == Reason_Error)) {
                 if (reason == Reason_Error) {
-                    SbExceptionInfo *exc_info = &frame->exc_info;
+                    SbObject *tmp;
+                    SbObject *exc;
 
                     /* The frame now owns references to exception info. */
-                    SbErr_Fetch(exc_info);
+                    SbErr_Fetch(&exc);
+                    frame->current_exc = exc;
 
-                    /* Both `finally` and `except`: Type Value TraceBack -> */
+                    /* Both `finally` and `except`: Type Instance TraceBack -> */
                     tmp = Sb_None;
-                    if (!exc_info->traceback) {
-                        exc_info->traceback = tmp;
-                    }
-                    Sb_INCREF(exc_info->traceback);
-                    STACK_PUSH(exc_info->traceback);
-                    if (!exc_info->value) {
-                        exc_info->value = tmp;
-                    }
-                    Sb_INCREF(exc_info->value);
-                    STACK_PUSH(exc_info->value);
-                    Sb_INCREF(exc_info->type);
-                    STACK_PUSH((SbObject *)exc_info->type);
+                    Sb_INCREF(tmp);
+                    STACK_PUSH(tmp);
+                    Sb_INCREF(exc);
+                    STACK_PUSH(exc);
+                    tmp = (SbObject *)Sb_TYPE(exc);
+                    Sb_INCREF(tmp);
+                    STACK_PUSH(tmp);
                 }
                 else {
                     if (reason == Reason_Return) {
@@ -982,8 +978,7 @@ Xxx_check_error:
                         return_value = NULL;
                     }
 
-                    tmp = SbInt_FromNative(reason);
-                    STACK_PUSH(tmp);
+                    STACK_PUSH(SbInt_FromNative(reason));
                 }
                 ip = handler;
                 reason = Reason_AllRightNow;

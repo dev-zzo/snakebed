@@ -16,8 +16,8 @@ unsigned long SbObject_AliveCount = 0;
 void _SbObject_DecRef(SbObject *op)
 {
     Sb_ssize_t new_refcount;
-    SbExceptionInfo info;
     SbTypeObject *tp;
+    SbObject *stored_exc;
 
     new_refcount = --op->ob_refcount;
     if (new_refcount > 0) {
@@ -27,15 +27,17 @@ void _SbObject_DecRef(SbObject *op)
         __asm int 3;
     }
 
-    SbErr_Fetch(&info);
+    /* NOTE: To avoid mayhem, we store the current exception before actually destroying the object. */
+    SbErr_Fetch(&stored_exc);
     tp = Sb_TYPE(op);
     tp->tp_destroy(op);
-    /* `op` becomes invalid after this point. */
+    op = NULL;
+    SbErr_Restore(stored_exc);
+    Sb_DECREF(tp);
+
 #if SUPPORTS_ALLOC_STATISTICS
     --SbObject_AliveCount;
 #endif
-    SbErr_Restore(&info);
-    Sb_DECREF(tp);
 }
 
 SbObject *

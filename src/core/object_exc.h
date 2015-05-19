@@ -29,10 +29,18 @@ extern SbTypeObject    *SbErr_ValueError;
 extern SbTypeObject   *SbErr_StopIteration;
 extern SbTypeObject  *SbErr_SystemExit;
 
+/* Verify the given object is an exception instance.
+   Returns: 1 if true, 0 otherwise. */
+int
+SbErr_Check(SbObject *o);
+
 /* Create a new exception type.
    Returns: New reference. */
 SbTypeObject *
 SbErr_NewException(const char *name, SbTypeObject *base);
+
+#define SbErr_GetValue(p) \
+    (((SbBaseExceptionObject *)p)->args)
 
 #ifdef __cplusplus
 }
