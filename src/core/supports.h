@@ -19,4 +19,6 @@
 /* Builtin functions supports */
 #define SUPPORTS_BUILTIN_PRINT 1
 
+#define SUPPORTS_STRING_FORMATTING 1
+
 #endif // __SNAKEBED_SUPOORTS_H

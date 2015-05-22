@@ -355,6 +355,22 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     return _SbErr_IncorrectSubscriptType(index);
 }
 
+#if SUPPORTS_STRING_FORMATTING
+
+/* Ref: https://docs.python.org/2/library/stdtypes.html#string-formatting */
+
+struct str_format_specifier {
+};
+
+static SbObject *
+str_format(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbErr_RaiseWithString(SbErr_SystemError, "operation not implemented");
+    return NULL;
+}
+
+#endif /* SUPPORTS_STRING_FORMATTING */
+
 /* Type initializer */
 
 static const SbCMethodDef str_methods[] = {
@@ -364,6 +380,9 @@ static const SbCMethodDef str_methods[] = {
     { "__eq__", str_eq },
     { "__ne__", str_ne },
     { "__getitem__", str_getitem },
+#if SUPPORTS_STRING_FORMATTING
+    { "__mod__", str_format },
+#endif
 
     /* Sentinel */
     { NULL, NULL },
