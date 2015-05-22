@@ -71,6 +71,7 @@ SbInterp_Execute(SbFrameObject *frame)
 
         reason = Reason_Error;
 
+        frame->ip = ip;
         opcode = (SbOpcode)(*ip++);
         if (opcode >= HaveArgument) {
             opcode_arg = ip[0];
