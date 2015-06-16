@@ -2,7 +2,7 @@
 
 SbObject *Sb_ModuleBuiltin = NULL;
 
-#if SUPPORTS_BUILTIN_PRINT
+#if SUPPORTS(BUILTIN_PRINT)
 static SbObject *
 _builtin_print(SbObject *self, SbObject *args, SbObject *kwargs)
 {
@@ -42,7 +42,7 @@ _builtin_print(SbObject *self, SbObject *args, SbObject *kwargs)
     Sb_DECREF(end);
     Sb_RETURN_NONE;
 }
-#endif
+#endif /* SUPPORTS(BUILTIN_PRINT) */
 
 static SbObject *
 _builtin_id(SbObject *self, SbObject *args, SbObject *kwargs)

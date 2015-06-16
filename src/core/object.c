@@ -9,7 +9,7 @@
 /* Keep the type object here. */
 SbTypeObject *SbObject_Type = NULL;
 
-#if SUPPORTS_ALLOC_STATISTICS
+#if SUPPORTS(ALLOC_STATISTICS)
 unsigned long SbObject_AliveCount = 0;
 #endif
 
@@ -35,7 +35,7 @@ void _SbObject_DecRef(SbObject *op)
     SbErr_Restore(stored_exc);
     Sb_DECREF(tp);
 
-#if SUPPORTS_ALLOC_STATISTICS
+#if SUPPORTS(ALLOC_STATISTICS)
     --SbObject_AliveCount;
 #endif
 }
@@ -54,7 +54,7 @@ SbObject_New(SbTypeObject *type)
 #if __TRACE_ALLOCS
     printf("Object at %p (type %s) allocated.\n", p, type->tp_name);
 #endif /* __TRACE_ALLOCS */
-#if SUPPORTS_ALLOC_STATISTICS
+#if SUPPORTS(ALLOC_STATISTICS)
     ++SbObject_AliveCount;
 #endif
     return p;
@@ -74,7 +74,7 @@ SbObject_NewVar(SbTypeObject *type, Sb_ssize_t count)
 #if __TRACE_ALLOCS
     printf("Object at %p (type %s) allocated.\n", p, type->tp_name);
 #endif /* __TRACE_ALLOCS */
-#if SUPPORTS_ALLOC_STATISTICS
+#if SUPPORTS(ALLOC_STATISTICS)
     ++SbObject_AliveCount;
 #endif
     return p;

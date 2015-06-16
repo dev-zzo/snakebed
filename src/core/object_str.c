@@ -178,7 +178,7 @@ SbStr_FromFormat(const char *format, ...)
 Sb_ssize_t
 SbStr_GetSize(SbObject *p)
 {
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbStr_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-string object passed to a string method");
         return -1;
@@ -191,7 +191,7 @@ SbStr_GetSize(SbObject *p)
 const Sb_byte_t *
 SbStr_AsString(SbObject *p)
 {
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbStr_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-string object passed to a string method");
         return NULL;
@@ -355,12 +355,9 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     return _SbErr_IncorrectSubscriptType(index);
 }
 
-#if SUPPORTS_STRING_FORMATTING
+#if SUPPORTS(STRING_FORMATTING)
 
 /* Ref: https://docs.python.org/2/library/stdtypes.html#string-formatting */
-
-struct str_format_specifier {
-};
 
 static SbObject *
 str_format(SbObject *self, SbObject *args, SbObject *kwargs)
@@ -369,7 +366,7 @@ str_format(SbObject *self, SbObject *args, SbObject *kwargs)
     return NULL;
 }
 
-#endif /* SUPPORTS_STRING_FORMATTING */
+#endif /* SUPPORTS(STRING_FORMATTING) */
 
 /* Type initializer */
 
@@ -380,7 +377,7 @@ static const SbCMethodDef str_methods[] = {
     { "__eq__", str_eq },
     { "__ne__", str_ne },
     { "__getitem__", str_getitem },
-#if SUPPORTS_STRING_FORMATTING
+#if SUPPORTS(STRING_FORMATTING)
     { "__mod__", str_format },
 #endif
 

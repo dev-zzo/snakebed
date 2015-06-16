@@ -54,7 +54,7 @@ list_compact(SbObject *self, SbInt_Native_t offset)
 static int
 list_check_type_pos(SbObject *p, Sb_ssize_t pos)
 {
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbList_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
         return -1;

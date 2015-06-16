@@ -33,7 +33,7 @@ SbInt_FromNative(SbInt_Native_t ival)
 SbInt_Native_t
 SbInt_AsNative(SbObject *op)
 {
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbInt_Check(op)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-int object passed to an int method");
         return -1;

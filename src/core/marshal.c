@@ -167,7 +167,7 @@ do_strref:
         }
         break;
 
-#if SUPPORTS_UNMARSHAL_LIST
+#if SUPPORTS(UNMARSHAL_LIST)
     case TYPE_LIST:
         if (read_int(input, &n) < 0) {
             break;
@@ -188,9 +188,9 @@ do_strref:
             SbList_SetItemUnsafe(result, pos, e);
         }
         break;
-#endif /* SUPPORTS_UNMARSHAL_LIST */
+#endif /* SUPPORTS(UNMARSHAL_LIST) */
 
-#if SUPPORTS_UNMARSHAL_DICT
+#if SUPPORTS(UNMARSHAL_DICT)
     case TYPE_DICT:
         result = SbDict_New();
         if (!result) {
@@ -220,7 +220,7 @@ do_strref:
             Sb_DECREF(value);
         }
         break;
-#endif /* SUPPORTS_UNMARSHAL_DICT */
+#endif /* SUPPORTS(UNMARSHAL_DICT) */
 
     case TYPE_CODE:
         {

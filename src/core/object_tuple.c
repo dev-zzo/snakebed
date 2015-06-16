@@ -10,7 +10,7 @@ SbTypeObject *SbTuple_Type = NULL;
 static int
 tuple_check_type_pos(SbObject *p, Sb_ssize_t pos)
 {
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbTuple_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-tuple object passed to a tuple method");
         return -1;
@@ -120,7 +120,7 @@ SbTuple_SetItemUnsafe(SbObject *p, Sb_ssize_t pos, SbObject *o)
 Sb_ssize_t
 SbTuple_GetSize(SbObject *p)
 {
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbTuple_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-tuple object passed to a tuple method");
         return -1;

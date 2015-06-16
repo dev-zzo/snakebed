@@ -57,7 +57,7 @@ dict_destroy(SbDictObject *self)
 Sb_ssize_t
 SbDict_GetSize(SbObject *p)
 {
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return -1;
@@ -96,7 +96,7 @@ _SbDict_Clear(SbDictObject *myself)
 void
 SbDict_Clear(SbObject *p)
 {
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return;
@@ -142,7 +142,7 @@ SbDict_GetItemString(SbObject *p, const char *key)
     SbDictObject *myself = (SbDictObject *)p;
     long hash;
 
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return NULL;
@@ -165,7 +165,7 @@ SbDict_GetItem(SbObject *p, SbObject *key)
     SbDictObject *myself = (SbDictObject *)p;
     long hash;
 
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return NULL;
@@ -188,7 +188,7 @@ SbDict_SetItemString(SbObject *p, const char *key, SbObject *value)
     bucket_entry **bucket;
     long hash;
 
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return -1;
@@ -244,7 +244,7 @@ SbDict_SetItem(SbObject *p, SbObject *key, SbObject *value)
     bucket_entry **bucket;
     long hash;
 
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return -1;
@@ -295,7 +295,7 @@ SbDict_DelItemString(SbObject *p, const char *key)
     long hash;
     bucket_entry *prev_entry;
 
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return -1;
@@ -337,7 +337,7 @@ SbDict_DelItem(SbObject *p, SbObject *key)
     long hash;
     bucket_entry *prev_entry;
 
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return -1;
@@ -385,7 +385,7 @@ SbDict_Next(SbObject *p, Sb_ssize_t *state, SbObject **key, SbObject **value)
     Sb_ssize_t bucket;
     bucket_entry *entry;
 
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
         return -1;

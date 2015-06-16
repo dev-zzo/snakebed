@@ -1,24 +1,30 @@
 #ifndef __SNAKEBED_SUPOORTS_H
 #define __SNAKEBED_SUPOORTS_H
 
-/* Define these to either 1 or 0. */
+#define ON +
+#define OFF -
+#define SUPPORTS(x) ((1 x 1) == 2)
+
+/* Define these to either ON or OFF. */
 
 /* Build with object allocation statistics */
-#define SUPPORTS_ALLOC_STATISTICS 1
+#define ALLOC_STATISTICS ON
 
 /* Build with type checks in internal methods */
-#define SUPPORTS_BUILTIN_TYPECHECKS 1
+#define BUILTIN_TYPECHECKS ON
 
 /* Interpreter supports */
-#define SUPPORTS_WITH_STMT 0
+#define WITH_STMT OFF
 
 /* Module marshaler supports */
-#define SUPPORTS_UNMARSHAL_LIST 0
-#define SUPPORTS_UNMARSHAL_DICT 0
+#define UNMARSHAL_LIST OFF
+#define UNMARSHAL_DICT OFF
 
 /* Builtin functions supports */
-#define SUPPORTS_BUILTIN_PRINT 1
+#define BUILTIN_PRINT ON
 
-#define SUPPORTS_STRING_FORMATTING 1
+/* Builtin `str` related supports */
+#define STRING_FORMATTING ON
+#define STR_FORMAT ON
 
 #endif // __SNAKEBED_SUPOORTS_H
