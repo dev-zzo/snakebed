@@ -148,7 +148,7 @@ SbList_Pack(Sb_ssize_t count, ...)
 Sb_ssize_t
 SbList_GetSize(SbObject *p)
 {
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbList_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
         return -1;
@@ -189,7 +189,7 @@ SbList_Append(SbObject *p, SbObject *o)
 {
     Sb_ssize_t pos;
 
-#if SUPPORTS_BUILTIN_TYPECHECKS
+#if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbList_CheckExact(p)) {
         SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
         goto fail0;
