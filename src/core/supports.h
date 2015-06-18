@@ -24,7 +24,7 @@
 #define BUILTIN_PRINT ON
 
 /* Builtin `str` related supports */
-#define STRING_FORMATTING ON
+#define STRING_INTERPOLATION ON
 #define STR_FORMAT ON
 
 #endif // __SNAKEBED_SUPOORTS_H

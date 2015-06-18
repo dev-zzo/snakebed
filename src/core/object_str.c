@@ -240,8 +240,8 @@ _SbStr_Eq(SbObject *p1, SbObject *p2)
     if (!SbStr_CheckExact(p1) || !SbStr_CheckExact(p2)) {
         return -1;
     }
-    length = SbStr_GetSizeUnsafe(p1);
-    if (length != SbStr_GetSizeUnsafe(p2)) {
+    length = SbStr_GetSizeUnsafe(p2);
+    if (length != SbStr_GetSizeUnsafe(p1)) {
         return 0;
     }
     return Sb_MemCmp(SbStr_AsString(p1), SbStr_AsString(p2), length) == 0;
@@ -355,18 +355,18 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     return _SbErr_IncorrectSubscriptType(index);
 }
 
-#if SUPPORTS(STRING_FORMATTING)
+#if SUPPORTS(STRING_INTERPOLATION)
 
 /* Ref: https://docs.python.org/2/library/stdtypes.html#string-formatting */
 
 static SbObject *
-str_format(SbObject *self, SbObject *args, SbObject *kwargs)
+str_interpolate(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbErr_RaiseWithString(SbErr_SystemError, "operation not implemented");
     return NULL;
 }
 
-#endif /* SUPPORTS(STRING_FORMATTING) */
+#endif /* SUPPORTS(STRING_INTERPOLATION) */
 
 /* Type initializer */
 
@@ -377,8 +377,8 @@ static const SbCMethodDef str_methods[] = {
     { "__eq__", str_eq },
     { "__ne__", str_ne },
     { "__getitem__", str_getitem },
-#if SUPPORTS(STRING_FORMATTING)
-    { "__mod__", str_format },
+#if SUPPORTS(STRING_INTERPOLATION)
+    { "__mod__", str_interpolate },
 #endif
 
     /* Sentinel */
