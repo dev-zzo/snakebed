@@ -355,6 +355,67 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     return _SbErr_IncorrectSubscriptType(index);
 }
 
+static SbObject *
+str_join(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *iterable;
+    SbObject *it;
+    SbObject *o;
+    SbObject *result;
+    Sb_ssize_t total_length;
+    Sb_ssize_t glue_count;
+    char *cursor;
+
+    if (SbArgs_Unpack(args, 1, 1, &iterable) < 0) {
+        return NULL;
+    }
+
+    it = SbObject_GetIter(iterable);
+    if (!it) {
+        return NULL;
+    }
+
+    total_length = 0;
+    glue_count = -1;
+    for (o = SbIter_Next(it); o; o = SbIter_Next(it)) {
+        if (!SbStr_CheckExact(o)) {
+            Sb_DECREF(o);
+            Sb_DECREF(it);
+            SbErr_RaiseWithFormat(SbErr_TypeError, "invalid type: expected str, found %s", Sb_TYPE(o)->tp_name);
+            return NULL;
+        }
+        total_length += SbStr_GetSizeUnsafe(o);
+        glue_count += 1;
+        Sb_DECREF(o);
+    }
+    Sb_DECREF(it);
+
+    result = SbStr_FromStringAndSize(NULL, total_length + glue_count * SbStr_GetSizeUnsafe(self));
+    if (!result) {
+        return NULL;
+    }
+
+    it = SbObject_GetIter(iterable);
+    if (!it) {
+        return NULL;
+    }
+
+    cursor = SbStr_AsStringUnsafe(result);
+    for (o = SbIter_Next(it); o; o = SbIter_Next(it)) {
+        Sb_MemCpy(cursor, SbStr_AsStringUnsafe(o), SbStr_GetSizeUnsafe(o));
+        cursor += SbStr_GetSizeUnsafe(o);
+        Sb_DECREF(o);
+        if (glue_count > 0) {
+            Sb_MemCpy(cursor, SbStr_AsStringUnsafe(self), SbStr_GetSizeUnsafe(self));
+            cursor += SbStr_GetSizeUnsafe(self);
+            glue_count -= 1;
+        }
+    }
+    Sb_DECREF(it);
+
+    return result;
+}
+
 #if SUPPORTS(STR_FORMAT)
 
 /* Ref: https://www.python.org/dev/peps/pep-3101/ */
@@ -452,6 +513,7 @@ static const SbCMethodDef str_methods[] = {
     { "__eq__", str_eq },
     { "__ne__", str_ne },
     { "__getitem__", str_getitem },
+    { "join", str_join },
 #if SUPPORTS(STRING_INTERPOLATION)
     { "__mod__", str_interpolate },
 #endif
