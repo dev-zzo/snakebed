@@ -87,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\bstrap\conv.c" />
+    <ClCompile Include="..\src\bstrap\ctypes.c" />
     <ClCompile Include="..\src\bstrap\string.c" />
     <ClCompile Include="..\src\bstrap\thunks.c" />
     <ClCompile Include="..\src\bstrap\win32\error.c" />

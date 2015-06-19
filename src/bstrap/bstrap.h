@@ -31,5 +31,13 @@ char *
 Sb_ULtoA(unsigned long x, unsigned radix);
 char *
 Sb_LtoA(long x, int radix);
+int
+Sb_AtoL(const char *str, const char **pend, unsigned radix, long *result);
+int
+Sb_AtoUL(const char *str, const char **pend, unsigned radix, unsigned long *result);
+
+int Sb_IsDigit(char c);
+int Sb_IsWhiteSpace(char c);
+
 
 #endif // __SNAKEBED_BSTRAP_H

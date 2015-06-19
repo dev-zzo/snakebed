@@ -43,72 +43,17 @@ SbInt_AsNative(SbObject *op)
     return SbInt_AsNativeUnsafe(op);
 }
 
-static SbInt_Native_t
-convert_digit(char ch, int base)
-{
-    SbInt_Native_t value;
-    
-    value = ch - 0x30;
-    if (value < (base < 10 ? base : 10))
-        if (value < 0)
-            return -1;
-        return value;
-    value = (ch | 0x20) - 0x61 + 10;
-    if (value >= base)
-        return -1;
-    return value;
-}
-
 static int
-int_parse_string(const char *str, const char **pend, unsigned base, SbInt_Native_t *result)
+_SbInt_Parse(const char *str, const char **pend, unsigned base, SbInt_Native_t *result)
 {
     SbInt_Native_t value = 0;
-    const char *str_start;
 
-    if (base == 0) {
-        base = 10;
-        if (str[0] == '0') {
-            if (str[1] == 'x' || str[1] == 'X') {
-                base = 16;
-                str += 2;
-            }
-            else {
-                base = 8;
-                str += 1;
-            }
-        }
-    }
-    else if (base > 36 || base < 2) {
+    if (base != 0 && (base > 36 || base < 2)) {
         SbErr_RaiseWithString(SbErr_ValueError, "incorrect `base` value (expected 2<=base<=36)");
         return -1;
     }
 
-    while (*str && *str == ' ' || *str == '\t') {
-        ++str;
-    }
-    str_start = str;
-
-    while (*str) {
-        long digit = convert_digit(*str, base);
-        if (digit < 0)
-            break;
-        value = value * base + digit;
-        ++str;
-    }
-
-    if (str_start == str) {
-        SbErr_RaiseWithString(SbErr_ValueError, "incorrect input string");
-        return -1;
-    }
-
-    if (pend) {
-        *pend = str;
-    }
-
-    if (result) {
-        *result = value;
-    }
-    return 0;
+    return Sb_AtoL(str, pend, base, result);
 }
 
 SbObject *
@@ -116,7 +61,7 @@ SbInt_FromString(const char *str, const char **pend, unsigned base)
 {
     SbInt_Native_t value;
 
-    if (int_parse_string(str, pend, base, &value) < 0) {
+    if (_SbInt_Parse(str, pend, base, &value) < 0) {
         return NULL;
     }
 
@@ -144,7 +89,7 @@ _SbInt_Convert(SbObject *o, SbObject *base, SbInt_Native_t *value)
             base_conv = SbInt_AsNativeUnsafe(base);
         }
 
-        if (int_parse_string(str, NULL, base_conv, value) < 0) {
+        if (_SbInt_Parse(str, NULL, base_conv, value) < 0) {
             return -1;
         }
         return 0;
