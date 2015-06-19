@@ -26,6 +26,8 @@ Sb_MemCmp(const void *p1, const void *p2, Sb_size_t count);
 void
 Sb_BZero(void *ptr, Sb_size_t size);
 
+void
+Sb_MemSet(void *ptr, int ch, Sb_size_t count);
 
 char *
 Sb_ULtoA(unsigned long x, unsigned radix);

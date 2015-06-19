@@ -416,6 +416,90 @@ str_join(SbObject *self, SbObject *args, SbObject *kwargs)
     return result;
 }
 
+static void
+fill_ljust(char *dst, Sb_ssize_t width, const char *src, Sb_ssize_t src_width, char filler)
+{
+    Sb_MemCpy(dst, src, src_width);
+    Sb_MemSet(dst + src_width, filler, width - src_width);
+}
+
+static void
+fill_cjust(char *dst, Sb_ssize_t width, const char *src, Sb_ssize_t src_width, char filler)
+{
+    Sb_ssize_t a;
+
+    a = (width - src_width) / 2;
+    Sb_MemSet(dst, filler, a);
+    Sb_MemCpy(dst + a, src, src_width);
+    Sb_MemSet(dst + a + src_width, filler, width - src_width - a);
+}
+
+static void
+fill_rjust(char *dst, Sb_ssize_t width, const char *src, Sb_ssize_t src_width, char filler)
+{
+    Sb_MemSet(dst, filler, width - src_width);
+    Sb_MemCpy(dst + width - src_width, src, src_width);
+}
+
+static SbObject *
+str_justify_generic(SbObject *self, SbObject *args, SbObject *kwargs, void (*proc)(char *, Sb_ssize_t, const char *, Sb_ssize_t, char))
+{
+    SbObject *o_width;
+    SbObject *o_fillchar = NULL;
+    char fillchar = ' ';
+    Sb_ssize_t width;
+    SbObject *o_result;
+
+    if (SbArgs_Unpack(args, 1, 2, &o_width, &o_fillchar) < 0) {
+        return NULL;
+    }
+    if (o_fillchar) {
+        if (!SbStr_CheckExact(o_fillchar) || SbStr_GetSizeUnsafe(o_fillchar) != 1) {
+            SbErr_RaiseWithString(SbErr_TypeError, "expected str of length 1 as fillchar");
+            return NULL;
+        }
+        fillchar = SbStr_AsStringUnsafe(o_fillchar)[0];
+    }
+    if (SbInt_Check(o_width)) {
+        width = SbInt_AsNative(o_width);
+    }
+    else {
+        SbErr_RaiseWithString(SbErr_TypeError, "expected int as width");
+        return NULL;
+    }
+
+    if (SbStr_GetSizeUnsafe(self) >= width) {
+        Sb_INCREF(self);
+        return self;
+    }
+
+    o_result = SbStr_FromStringAndSize(NULL, width);
+    if (!o_result) {
+        return NULL;
+    }
+
+    proc(SbStr_AsStringUnsafe(o_result), width, SbStr_AsStringUnsafe(self), SbStr_GetSizeUnsafe(self), fillchar);
+    return o_result;
+}
+
+static SbObject *
+str_ljust(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return str_justify_generic(self, args, kwargs, fill_ljust);
+}
+
+static SbObject *
+str_center(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return str_justify_generic(self, args, kwargs, fill_cjust);
+}
+
+static SbObject *
+str_rjust(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return str_justify_generic(self, args, kwargs, fill_rjust);
+}
+
 #if SUPPORTS(STR_FORMAT)
 
 /* Ref: https://www.python.org/dev/peps/pep-3101/ */
@@ -513,7 +597,13 @@ static const SbCMethodDef str_methods[] = {
     { "__eq__", str_eq },
     { "__ne__", str_ne },
     { "__getitem__", str_getitem },
+
     { "join", str_join },
+
+    { "ljust", str_ljust },
+    { "center", str_center },
+    { "rjust", str_rjust },
+
 #if SUPPORTS(STRING_INTERPOLATION)
     { "__mod__", str_interpolate },
 #endif

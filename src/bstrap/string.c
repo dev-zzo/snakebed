@@ -49,3 +49,12 @@ Sb_MemCmp(const void *p1, const void *p2, Sb_size_t count)
     return memcmp(p1, p2, count);
 }
 
+void
+Sb_MemSet(void *ptr, int ch, Sb_size_t count)
+{
+    char *p = (char *)ptr;
+    while (count--) {
+        *p++ = (char)ch;
+    }
+}
+
