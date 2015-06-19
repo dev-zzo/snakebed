@@ -355,6 +355,81 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     return _SbErr_IncorrectSubscriptType(index);
 }
 
+#if SUPPORTS(STR_FORMAT)
+
+/* Ref: https://www.python.org/dev/peps/pep-3101/ */
+
+struct str_conv_specifier {
+    char filler;
+    char align_flag;
+    char sign_flag;
+    char use_alt_form;
+    char use_precision;
+    char conv_type;
+    unsigned long min_width;
+    unsigned long precision;
+};
+
+int
+_SbStr_ParseFormatSpec(const char *spec, struct str_conv_specifier* result)
+{
+    result->min_width = 0;
+    result->precision = -1;
+    result->conv_type = '\0';
+
+    if (spec[0] != '\0' && (spec[1] == '<' || spec[1] == '>' || spec[1] == '=' || spec[1] == '^')) {
+        result->filler = spec[0];
+        result->align_flag = spec[1];
+    }
+    else {
+        result->filler = ' ';
+        if (*spec == '<' || *spec == '>' || *spec == '=' || *spec == '^') {
+            result->align_flag = *spec;
+            ++spec;
+        }
+        else {
+            result->align_flag = '<';
+        }
+    }
+    if (*spec == '+' || *spec == '-' || *spec == ' ') {
+        result->sign_flag = *spec;
+        ++spec;
+    }
+    if (*spec == '#') {
+        result->use_alt_form = *spec;
+        ++spec;
+    }
+    if (*spec == '0') {
+        result->filler = '0';
+        result->align_flag = '=';
+        ++spec;
+    }
+    if (Sb_AtoUL(spec, &spec, 10, &result->min_width) < 0) {
+        result->min_width = 0;
+    }
+    result->use_precision = 0;
+    if (*spec == '.') {
+        ++spec;
+        if (Sb_AtoUL(spec, &spec, 10, &result->precision) >= 0) {
+            result->use_precision = 1;
+        }
+    }
+    if (*spec != '\0') {
+        result->conv_type = *spec;
+    }
+
+    return 0;
+}
+
+static SbObject *
+str_format(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbErr_RaiseWithString(SbErr_SystemError, "not implemented");
+    return NULL;
+}
+
+#endif /* SUPPORTS(STR_FORMAT) */
+
 #if SUPPORTS(STRING_INTERPOLATION)
 
 /* Ref: https://docs.python.org/2/library/stdtypes.html#string-formatting */
@@ -362,7 +437,7 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 str_interpolate(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbErr_RaiseWithString(SbErr_SystemError, "operation not implemented");
+    SbErr_RaiseWithString(SbErr_SystemError, "not implemented");
     return NULL;
 }
 
@@ -380,7 +455,9 @@ static const SbCMethodDef str_methods[] = {
 #if SUPPORTS(STRING_INTERPOLATION)
     { "__mod__", str_interpolate },
 #endif
-
+#if SUPPORTS(STR_FORMAT)
+    { "format", str_format },
+#endif
     /* Sentinel */
     { NULL, NULL },
 };
