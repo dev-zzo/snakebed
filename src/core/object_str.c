@@ -500,6 +500,146 @@ str_rjust(SbObject *self, SbObject *args, SbObject *kwargs)
     return str_justify_generic(self, args, kwargs, fill_rjust);
 }
 
+static int
+str_normalize_indices(Sb_ssize_t *p_start, Sb_ssize_t *p_end, Sb_ssize_t len)
+{
+    Sb_ssize_t index;
+
+    index = *p_start;
+    if (index < 0) {
+        index += len;
+        if (index < 0) {
+            goto index_oob;
+        }
+    }
+    *p_start = index;
+
+    index = *p_end;
+    if (index < 0) {
+        index += len;
+        if (index < 0) {
+            goto index_oob;
+        }
+    }
+    if (index > len) {
+        index = len;
+    }
+    *p_end = index;
+
+    return 0;
+
+index_oob:
+    SbErr_RaiseWithString(SbErr_IndexError, "index out of range");
+    return -1;
+}
+
+static Sb_ssize_t
+str_find_internal(SbObject *self, SbObject *args, SbObject *kwargs, Sb_ssize_t (*finder)(const char *, Sb_ssize_t, const char *, Sb_ssize_t))
+{
+    SbObject *o_pattern;
+    SbObject *o_start = NULL;
+    SbObject *o_end = NULL;
+    Sb_ssize_t start;
+    Sb_ssize_t end;
+    Sb_ssize_t str_len;
+    Sb_ssize_t pos;
+
+    if (SbArgs_Unpack(args, 1, 3, &o_pattern, &o_start, &o_end) < 0) {
+        return -2;
+    }
+    if (!SbStr_CheckExact(o_pattern)) {
+        SbErr_RaiseWithString(SbErr_TypeError, "expected str as pattern");
+        return -2;
+    }
+
+    start = 0;
+    end = SbStr_GetSizeUnsafe(self);
+    if (o_start) {
+        if (!SbInt_Check(o_start)) {
+            SbErr_RaiseWithString(SbErr_TypeError, "expected int as start");
+            return -2;
+        }
+        start = SbInt_AsNative(o_start);
+    }
+    if (o_end) {
+        if (!SbInt_Check(o_end)) {
+            SbErr_RaiseWithString(SbErr_TypeError, "expected int as end");
+            return -2;
+        }
+        end = SbInt_AsNative(o_end);
+    }
+
+    str_len = SbStr_GetSizeUnsafe(self);
+    if (str_normalize_indices(&start, &end, str_len) < 0) {
+        return -2;
+    }
+
+    if (start <= str_len) {
+        pos = finder(SbStr_AsStringUnsafe(self) + start, end - start,
+            SbStr_AsStringUnsafe(o_pattern), SbStr_GetSizeUnsafe(o_pattern));
+        if (pos >= 0) {
+            return pos + start;
+        }
+    }
+
+    return -1;
+}
+
+static SbObject *
+str_find(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    Sb_ssize_t pos;
+
+    pos = str_find_internal(self, args, kwargs, Sb_MemMem);
+    if (pos >= -1) {
+        return SbInt_FromNative(pos);
+    }
+    return NULL;
+}
+
+static SbObject *
+str_index(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    Sb_ssize_t pos;
+
+    pos = str_find_internal(self, args, kwargs, Sb_MemMem);
+    if (pos >= 0) {
+        return SbInt_FromNative(pos);
+    }
+    if (pos == -1) {
+        SbErr_RaiseWithString(SbErr_ValueError, "substring not found");
+    }
+    return NULL;
+}
+
+static SbObject *
+str_rfind(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    Sb_ssize_t pos;
+
+    pos = str_find_internal(self, args, kwargs, Sb_MemRMem);
+    if (pos >= -1) {
+        return SbInt_FromNative(pos);
+    }
+    return NULL;
+}
+
+static SbObject *
+str_rindex(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    Sb_ssize_t pos;
+
+    pos = str_find_internal(self, args, kwargs, Sb_MemRMem);
+    if (pos >= 0) {
+        return SbInt_FromNative(pos);
+    }
+    if (pos == -1) {
+        SbErr_RaiseWithString(SbErr_ValueError, "substring not found");
+    }
+    return NULL;
+}
+
+
 #if SUPPORTS(STR_FORMAT)
 
 /* Ref: https://www.python.org/dev/peps/pep-3101/ */
@@ -603,6 +743,11 @@ static const SbCMethodDef str_methods[] = {
     { "ljust", str_ljust },
     { "center", str_center },
     { "rjust", str_rjust },
+
+    { "find", str_find },
+    { "index", str_index },
+    { "rfind", str_rfind },
+    { "rindex", str_rindex },
 
 #if SUPPORTS(STRING_INTERPOLATION)
     { "__mod__", str_interpolate },

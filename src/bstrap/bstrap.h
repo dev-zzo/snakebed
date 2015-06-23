@@ -25,6 +25,8 @@ Sb_MemCmp(const void *p1, const void *p2, Sb_size_t count);
 
 const void *
 Sb_MemChr(const void *p, int value, Sb_size_t count);
+const void *
+Sb_MemRChr(const void *p, int value, Sb_size_t count);
 
 void
 Sb_BZero(void *ptr, Sb_size_t size);
@@ -44,5 +46,9 @@ Sb_AtoUL(const char *str, const char **pend, unsigned radix, unsigned long *resu
 int Sb_IsDigit(char c);
 int Sb_IsWhiteSpace(char c);
 
+Sb_ssize_t
+Sb_MemMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_len);
+Sb_ssize_t
+Sb_MemRMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_len);
 
 #endif // __SNAKEBED_BSTRAP_H
