@@ -49,6 +49,19 @@ Sb_MemCmp(const void *p1, const void *p2, Sb_size_t count)
     return memcmp(p1, p2, count);
 }
 
+const void *
+Sb_MemChr(const void *p, int value, Sb_size_t count)
+{
+    const char *s = (const char *)p;
+    while (count--) {
+        if (*s == value) {
+            return s;
+        }
+        ++s;
+    }
+    return NULL;
+}
+
 void
 Sb_MemSet(void *ptr, int ch, Sb_size_t count)
 {
