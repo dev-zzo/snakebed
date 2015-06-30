@@ -192,7 +192,7 @@ PopJumpIfXxx:
                         goto Xxx_incref_push_continue;
                     }
                 }
-                SbErr_RaiseWithFormat(SbExc_UnboundLocalError, "name '%s' used before being bound", SbStr_AsStringUnsafe(name));
+                SbErr_RaiseWithFormat(SbExc_UnboundLocalError, "name '%s' used before being bound", name);
                 break;
             case LoadName:
                 /* Tries: locals, globals, builtins */
@@ -211,7 +211,7 @@ PopJumpIfXxx:
                 if (o_result) {
                     goto Xxx_incref_push_continue;
                 }
-                SbErr_RaiseWithFormat(SbExc_NameError, "name '%s' not found", SbStr_AsStringUnsafe(name));
+                SbErr_RaiseWithFormat(SbExc_NameError, "name '%s' not found", name);
                 break;
             case LoadGlobal:
                 /* Tries: globals, builtins */
