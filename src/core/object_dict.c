@@ -1,5 +1,9 @@
 #include "snakebed.h"
 
+/*
+ * Dictinary object implementation
+ */
+
 /* Dictionary implementation details discussion
 
 The implementation is your good old hash table. Since the hash function 
@@ -488,8 +492,6 @@ fail0:
 }
 
 
-/* Python method thunks */
-
 static SbObject *
 dict_len(SbObject *self, SbObject *args, SbObject *kwargs)
 {
@@ -547,13 +549,61 @@ dict_delitem(SbObject *self, SbObject *args, SbObject *kwargs)
     Sb_RETURN_NONE;
 }
 
-/* Type initializer */
+
+typedef SbObject *(*iter_callback)(SbObject *key, SbObject *value);
+
+static SbObject *
+iter_new(SbObject *dict, iter_callback cb);
+
+static SbObject *
+iterkeys_callback(SbObject *key, SbObject *value)
+{
+    Sb_INCREF(key);
+    return key;
+}
+
+static SbObject *
+dict_iterkeys(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return iter_new(self, iterkeys_callback);
+}
+
+static SbObject *
+itervalues_callback(SbObject *key, SbObject *value)
+{
+    Sb_INCREF(value);
+    return value;
+}
+
+static SbObject *
+dict_itervalues(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return iter_new(self, itervalues_callback);
+}
+
+static SbObject *
+iteritems_callback(SbObject *key, SbObject *value)
+{
+    return SbTuple_Pack(2, key, value);
+}
+
+static SbObject *
+dict_iteritems(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return iter_new(self, iteritems_callback);
+}
+
 
 static const SbCMethodDef dict_methods[] = {
     { "__len__", dict_len },
     { "__getitem__", dict_getitem },
     { "__setitem__", dict_setitem },
     { "__delitem__", dict_delitem },
+
+    { "iterkeys", dict_iterkeys },
+    { "itervalues", dict_itervalues },
+    { "iteritems", dict_iteritems },
+
     /* Sentinel */
     { NULL, NULL },
 };
@@ -575,12 +625,102 @@ _Sb_TypeInit_Dict()
     return 0;
 }
 
+static int
+_Sb_TypeInit_DictIter();
+
 int
 _Sb_TypeInit2_Dict()
 {
     SbObject *dict;
 
     dict = _SbType_BuildMethodDict(dict_methods);
+    if (!dict) {
+        return -1;
+    }
     SbDict_Type->tp_dict = dict;
-    return dict ? 0 : -1;
+
+    return _Sb_TypeInit_DictIter();
+}
+
+/*
+ * Dictinary iterator object
+ */
+
+typedef struct _SbDictIterObject {
+    SbObject_HEAD;
+    SbObject *dict;
+    Sb_ssize_t state;
+    iter_callback cb;
+} SbDictIterObject;
+
+static SbTypeObject *SbDictIter_Type = NULL;
+
+static SbObject *
+iter_new(SbObject *dict, iter_callback cb)
+{
+    SbObject *self;
+
+    self = SbObject_New(SbDictIter_Type);
+    if (self) {
+        SbDictIterObject *myself = (SbDictIterObject *)self;
+        Sb_INCREF(dict);
+        myself->dict = dict;
+        myself->state = 0;
+        myself->cb = cb;
+    }
+    return self;
+}
+
+static void
+iter_destroy(SbObject *self)
+{
+    SbDictIterObject *myself = (SbDictIterObject *)self;
+
+    Sb_CLEAR(myself->dict);
+}
+
+static SbObject *
+iter_self(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    Sb_INCREF(self);
+    return self;
+}
+
+static SbObject *
+iter_next(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbDictIterObject *myself = (SbDictIterObject *)self;
+    SbObject *key;
+    SbObject *value;
+
+    switch (SbDict_Next(myself->dict, &myself->state, &key, &value)) {
+    case 0:
+        return SbErr_NoMoreItems();
+    case 1:
+        return myself->cb(key, value);
+    default:
+        return NULL;
+    }
+}
+
+static const SbCMethodDef iter_methods[] = {
+    { "__iter__", iter_self },
+    { "next", iter_next },
+    /* Sentinel */
+    { NULL, NULL },
+};
+
+static int
+_Sb_TypeInit_DictIter()
+{
+    SbTypeObject *tp;
+
+    tp = _SbType_FromCDefs("<dictiterator>", NULL, iter_methods, sizeof(SbDictIterObject));
+    if (!tp) {
+        return -1;
+    }
+    tp->tp_destroy = (SbDestroyFunc)iter_destroy;
+
+    SbDictIter_Type = tp;
+    return 0;
 }
