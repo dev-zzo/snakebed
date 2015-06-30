@@ -29,7 +29,7 @@ int main(int argc, const char *argv[])
             else {
                 SbObject *error_str;
 
-                error_str = SbObject_Str(SbExc_GetValue(exc));
+                error_str = SbObject_Str(exc);
                 SbFile_WriteString(SbSys_StdErr, "Uncaught exception:\r\n");
                 SbFile_WriteString(SbSys_StdErr, SbStr_AsStringUnsafe(error_str));
                 SbFile_Write(SbSys_StdErr, "\r\n", 2);
