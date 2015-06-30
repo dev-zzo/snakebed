@@ -13,13 +13,13 @@ tuple_check_type_pos(SbObject *p, Sb_ssize_t pos)
 {
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbTuple_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-tuple object passed to a tuple method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-tuple object passed to a tuple method");
         return -1;
     }
 #endif
     /* Do an unsigned comparison. */
     if ((Sb_size_t)pos >= (Sb_size_t)SbTuple_GetSizeUnsafe(p)) {
-        SbErr_RaiseWithString(SbErr_IndexError, "tuple index out of range");
+        SbErr_RaiseWithString(SbExc_IndexError, "tuple index out of range");
         return -1;
     }
     return 0;
@@ -47,7 +47,7 @@ SbTuple_New(Sb_ssize_t length)
     SbTupleObject *op;
 
     if (length < 0) {
-        SbErr_RaiseWithString(SbErr_ValueError, "tuple length cannot be negative");
+        SbErr_RaiseWithString(SbExc_ValueError, "tuple length cannot be negative");
         return NULL;
     }
 
@@ -73,7 +73,7 @@ SbTuple_PackVa(Sb_ssize_t count, va_list va)
         o = va_arg(va, SbObject *);
         if (!o) {
             Sb_DECREF(tuple);
-            SbErr_RaiseWithString(SbErr_ValueError, "a NULL pointer found when packing into a tuple");
+            SbErr_RaiseWithString(SbExc_ValueError, "a NULL pointer found when packing into a tuple");
             return NULL;
         }
         Sb_INCREF(o);
@@ -131,7 +131,7 @@ SbTuple_GetSize(SbObject *p)
 {
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbTuple_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-tuple object passed to a tuple method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-tuple object passed to a tuple method");
         return -1;
     }
 #endif

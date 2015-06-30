@@ -31,10 +31,10 @@ SbObject_IsTrue(SbObject *p)
     }
 
     result = SbObject_CallMethod(p, "__nonzero__", NULL, NULL);
-    if (!result && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
+    if (!result && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
         SbErr_Clear();
         result = SbObject_CallMethod(p, "__len__", NULL, NULL);
-        if (!result && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
+        if (!result && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
             SbErr_Clear();
             return 1;
         }
@@ -82,7 +82,7 @@ SbObject_Str(SbObject *p)
     SbObject *result;
 
     result = SbObject_CallMethod(p, "__str__", NULL, NULL);
-    if (!result && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
+    if (!result && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
         SbErr_Clear();
         result = SbObject_Repr(p);
     }
@@ -96,7 +96,7 @@ SbObject_Repr(SbObject *p)
     SbObject *result;
 
     result = SbObject_CallMethod(p, "__repr__", NULL, NULL);
-    if (!result && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
+    if (!result && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
         SbErr_Clear();
         result = SbObject_DefaultStr(p, NULL, NULL);
     }
@@ -130,7 +130,7 @@ SbObject_Compare(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
 
     result = SbObject_CallMethodObjArgs(p1, op_to_method[op], 1, p2);
     if (!result) {
-        if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
+        if (SbErr_Occurred() && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
             SbErr_Clear();
             Sb_INCREF(Sb_NotImplemented);
             return Sb_NotImplemented;
@@ -236,7 +236,7 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
         return attr;
     }
 
-    SbErr_RaiseWithString(SbErr_AttributeError, attr_name);
+    SbErr_RaiseWithString(SbExc_AttributeError, attr_name);
     return NULL;
 }
 
@@ -256,7 +256,7 @@ SbObject_SetAttrString(SbObject *p, const char *attr_name, SbObject *v)
         return result ? 0 : -1;
     }
 
-    SbErr_RaiseWithString(SbErr_AttributeError, attr_name);
+    SbErr_RaiseWithString(SbExc_AttributeError, attr_name);
     return -1;
 }
 
@@ -275,7 +275,7 @@ SbObject_DelAttrString(SbObject *p, const char *attr_name)
         return result ? 0 : -1;
     }
 
-    SbErr_RaiseWithString(SbErr_AttributeError, attr_name);
+    SbErr_RaiseWithString(SbExc_AttributeError, attr_name);
     return -1;
 }
 
@@ -304,7 +304,7 @@ SbObject_Call(SbObject *callable, SbObject *args, SbObject *kwargs)
         return result;
     }
 
-    SbErr_RaiseWithFormat(SbErr_AttributeError, "the `%s` instance has no `%s` method", Sb_TYPE(callable)->tp_name, "__call__");
+    SbErr_RaiseWithFormat(SbExc_AttributeError, "the `%s` instance has no `%s` method", Sb_TYPE(callable)->tp_name, "__call__");
     return NULL;
 }
 

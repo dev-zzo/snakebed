@@ -14,7 +14,7 @@ numeric_try_method2(SbObject * lhs, SbObject *rhs, const char *method)
         return result;
     }
 
-    if (SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
+    if (SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
         SbErr_Clear();
         result = Sb_NotImplemented;
         Sb_INCREF(result);
@@ -40,7 +40,7 @@ numeric_try_methods2(SbObject * lhs, SbObject *rhs, const char *method, char *rm
         return result;
     }
     Sb_DECREF(result);
-    SbErr_RaiseWithString(SbErr_TypeError, "unsupported operand type");
+    SbErr_RaiseWithString(SbExc_TypeError, "unsupported operand type");
     return NULL;
 }
 
@@ -124,7 +124,7 @@ numeric_try_method1(SbObject *rhs, const char *method)
     result = SbObject_CallMethod(rhs, method, NULL, NULL);
     if (result == Sb_NotImplemented) {
         Sb_DECREF(result);
-        SbErr_RaiseWithString(SbErr_TypeError, "unsupported operand type");
+        SbErr_RaiseWithString(SbExc_TypeError, "unsupported operand type");
         return NULL;
     }
 
@@ -132,9 +132,9 @@ numeric_try_method1(SbObject *rhs, const char *method)
         return result;
     }
 
-    if (SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_AttributeError)) {
+    if (SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
         SbErr_Clear();
-        SbErr_RaiseWithString(SbErr_TypeError, "unsupported operand type");
+        SbErr_RaiseWithString(SbExc_TypeError, "unsupported operand type");
     }
     return result;
 }

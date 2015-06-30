@@ -75,7 +75,7 @@ read_object(SbObject *input, marshal_state *state)
     SbObject *result = NULL;
 
     if (SbFile_Read(input, &type_marker, 1) < 1) {
-        SbErr_RaiseWithString(SbErr_ValueError, "marshal: premature EOF encountered");
+        SbErr_RaiseWithString(SbExc_ValueError, "marshal: premature EOF encountered");
         return NULL;
     }
 
@@ -138,7 +138,7 @@ do_string:
         }
 do_strref:
         if (n >= SbList_GetSizeUnsafe(state->strtab)) {
-            SbErr_RaiseWithString(SbErr_ValueError, "marshal: strref out of bounds");
+            SbErr_RaiseWithString(SbExc_ValueError, "marshal: strref out of bounds");
             result = NULL;
             break;
         }
@@ -294,7 +294,7 @@ code_end_1:
         }
 
     default:
-        SbErr_RaiseWithString(SbErr_ValueError, "marshal: unknown data type");
+        SbErr_RaiseWithString(SbExc_ValueError, "marshal: unknown data type");
         result = NULL;
         break;
     }

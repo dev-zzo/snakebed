@@ -14,7 +14,7 @@ iter_next_iterable(SbIterObject *myself)
         Sb_INCREF(result);
         return result;
     }
-    if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_IndexError)) {
+    if (SbErr_Occurred() && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_IndexError)) {
         SbErr_Clear();
     }
     return NULL;
@@ -151,7 +151,7 @@ iter_new(SbObject *cls, SbObject *args, SbObject *kwargs)
     if (sentinel) {
         /* If the second argument, sentinel, is given, then o must be a callable object. */
         if (!SbDict_GetItemString(o_type->tp_dict, "__call__")) {
-            SbErr_RaiseWithFormat(SbErr_TypeError, "'%s' object is not callable", o_type->tp_name);
+            SbErr_RaiseWithFormat(SbExc_TypeError, "'%s' object is not callable", o_type->tp_name);
             return NULL;
         }
         result = SbIter_New2(o, sentinel);
@@ -169,7 +169,7 @@ iter_new(SbObject *cls, SbObject *args, SbObject *kwargs)
             result = SbIter_New(o);
             return result;
         }
-        SbErr_RaiseWithFormat(SbErr_TypeError, "'%s' object is not iterable", o_type->tp_name);
+        SbErr_RaiseWithFormat(SbExc_TypeError, "'%s' object is not iterable", o_type->tp_name);
         return NULL;
     }
 }
@@ -223,7 +223,7 @@ SbIter_Next(SbObject *o)
 
     r = SbObject_CallMethod(o, "next", NULL, NULL);
     if (!r) {
-        if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_StopIteration)) {
+        if (SbErr_Occurred() && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_StopIteration)) {
             SbErr_Clear();
         }
     }

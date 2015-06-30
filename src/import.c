@@ -52,7 +52,7 @@ Sb_LoadModule(const char *name, const char *path)
     }
     if (!SbCode_Check(module_code)) {
         Sb_DECREF(module_code);
-        SbErr_RaiseWithString(SbErr_ValueError, "the loaded object is not code");
+        SbErr_RaiseWithString(SbExc_ValueError, "the loaded object is not code");
         goto fail1;
     }
 
@@ -98,6 +98,6 @@ SB_Import(const char *name)
     }
 
     /* NOTE: Temporary until I implement some package support. */
-    SbErr_RaiseWithFormat(SbErr_ImportError, "no module named '%s'", name);
+    SbErr_RaiseWithFormat(SbExc_ImportError, "no module named '%s'", name);
     return NULL;
 }

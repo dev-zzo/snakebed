@@ -112,7 +112,7 @@ SbObject_DefaultSetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
     if (!SbStr_CheckExact(attr_name)) {
-        SbErr_RaiseWithString(SbErr_TypeError, "attribute name must be a string");
+        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
         return NULL;
     }
 
@@ -135,7 +135,7 @@ SbObject_DefaultDelAttr(SbObject *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
     if (!SbStr_CheckExact(attr_name)) {
-        SbErr_RaiseWithString(SbErr_TypeError, "attribute name must be a string");
+        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
         return NULL;
     }
 

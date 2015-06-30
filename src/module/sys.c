@@ -29,7 +29,7 @@ exc_info(SbObject *self, SbObject *args, SbObject *kwargs)
 
     exc = SbErr_Occurred();
     if (exc) {
-        return SbTuple_Pack(3, Sb_TYPE(exc), SbErr_GetValue(exc), Sb_None);
+        return SbTuple_Pack(3, Sb_TYPE(exc), SbExc_GetValue(exc), Sb_None);
     }
     else {
         SbObject *none = Sb_None;
@@ -42,7 +42,7 @@ static SbObject *
 _sys_exit(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     /* TODO: handle the passed arg. */
-    SbErr_RaiseWithObject(SbErr_SystemExit, NULL);
+    SbErr_RaiseWithObject(SbExc_SystemExit, NULL);
     return NULL;
 }
 

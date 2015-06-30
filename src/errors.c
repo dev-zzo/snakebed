@@ -3,8 +3,8 @@
 SbObject *SbErr_Current = NULL;
 
 /* Cached MemoryError instance -- when we don't have memory to create another one */
-extern SbObject *_SbErr_MemoryErrorInstance;
-extern SbObject *_SbErr_StopIterationInstance;
+extern SbObject *_SbExc_MemoryErrorInstance;
+extern SbObject *_SbExc_StopIterationInstance;
 
 SbObject *
 SbErr_Occurred(void)
@@ -13,17 +13,17 @@ SbErr_Occurred(void)
 }
 
 int
-SbErr_ExceptionMatches(SbObject *exc, SbObject *what)
+SbExc_ExceptionMatches(SbObject *exc, SbObject *what)
 {
     if (!exc) {
         return 0;
     }
 
-    return SbErr_ExceptionTypeMatches(Sb_TYPE(exc), what);
+    return SbExc_ExceptionTypeMatches(Sb_TYPE(exc), what);
 }
 
 int
-SbErr_ExceptionTypeMatches(SbTypeObject *exc_type, SbObject *what)
+SbExc_ExceptionTypeMatches(SbTypeObject *exc_type, SbObject *what)
 {
     if (SbType_Check(what)) {
         if (SbType_IsSubtype(exc_type, (SbTypeObject *)what)) {
@@ -136,7 +136,7 @@ SbErr_RaiseIOError(SbInt_Native_t error_code, const char *error_text)
     value = SbTuple_Pack(2, o_errno, o_strerror);
     Sb_DECREF(o_errno);
     Sb_DECREF(o_strerror);
-    SbErr_RaiseWithObject(SbErr_IOError, value);
+    SbErr_RaiseWithObject(SbExc_IOError, value);
 }
 
 static SbObject *
@@ -151,11 +151,11 @@ err_raise_singleton(SbObject *which)
 SbObject *
 SbErr_NoMemory(void)
 {
-    return err_raise_singleton(_SbErr_MemoryErrorInstance);
+    return err_raise_singleton(_SbExc_MemoryErrorInstance);
 }
 
 SbObject *
 SbErr_NoMoreItems(void)
 {
-    return err_raise_singleton(_SbErr_StopIterationInstance);
+    return err_raise_singleton(_SbExc_StopIterationInstance);
 }

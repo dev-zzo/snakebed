@@ -32,12 +32,12 @@ SbArgs_ParseVa(SbObject *args, SbObject *kwds, Sb_ssize_t count_min, Sb_ssize_t 
 
         if (!arg_value && arg_pos < count_min) {
             if (count_min == count_max) {
-                SbErr_RaiseWithFormat(SbErr_TypeError, "function takes exactly %d args (%d passed)",
+                SbErr_RaiseWithFormat(SbExc_TypeError, "function takes exactly %d args (%d passed)",
                     count_min,
                     passed_posarg_count);
             }
             else {
-                SbErr_RaiseWithFormat(SbErr_TypeError, "function takes between %d and %d args (%d passed)",
+                SbErr_RaiseWithFormat(SbExc_TypeError, "function takes between %d and %d args (%d passed)",
                     count_min,
                     count_max,
                     passed_posarg_count);

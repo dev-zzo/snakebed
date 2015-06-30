@@ -192,7 +192,7 @@ PopJumpIfXxx:
                         goto Xxx_incref_push_continue;
                     }
                 }
-                SbErr_RaiseWithFormat(SbErr_UnboundLocalError, "name '%s' used before being bound", SbStr_AsStringUnsafe(name));
+                SbErr_RaiseWithFormat(SbExc_UnboundLocalError, "name '%s' used before being bound", SbStr_AsStringUnsafe(name));
                 break;
             case LoadName:
                 /* Tries: locals, globals, builtins */
@@ -211,7 +211,7 @@ PopJumpIfXxx:
                 if (o_result) {
                     goto Xxx_incref_push_continue;
                 }
-                SbErr_RaiseWithFormat(SbErr_NameError, "name '%s' not found", SbStr_AsStringUnsafe(name));
+                SbErr_RaiseWithFormat(SbExc_NameError, "name '%s' not found", SbStr_AsStringUnsafe(name));
                 break;
             case LoadGlobal:
                 /* Tries: globals, builtins */
@@ -224,7 +224,7 @@ PopJumpIfXxx:
                 if (o_result) {
                     goto Xxx_incref_push_continue;
                 }
-                SbErr_RaiseWithFormat(SbErr_NameError, "global name '%s' not found", name);
+                SbErr_RaiseWithFormat(SbExc_NameError, "global name '%s' not found", name);
                 break;
 
             case StoreFast:
@@ -254,7 +254,7 @@ StoreXxx_common:
                 if (i_result >= 0) {
                     continue;
                 }
-                if (!SbErr_Occurred() || !SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_KeyError)) {
+                if (!SbErr_Occurred() || !SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_KeyError)) {
                     break;
                 }
                 SbErr_Clear();
@@ -278,7 +278,7 @@ DeleteXxx_common:
                     continue;
                 }
                 /* No need to clear - SbObject_GetAttrString() doesn't raise */
-                SbErr_RaiseWithString(SbErr_AttributeError, name);
+                SbErr_RaiseWithString(SbExc_AttributeError, name);
                 break;
             case StoreAttr:
                 /* X Y -> */
@@ -301,7 +301,7 @@ XxxName_check_iresult:
                     continue;
                 }
                 SbErr_Clear();
-                SbErr_RaiseWithString(SbErr_AttributeError, name);
+                SbErr_RaiseWithString(SbExc_AttributeError, name);
                 break;
 
 
@@ -470,7 +470,7 @@ XxxName_check_iresult:
                     goto Xxx_incref_push_continue;
                 }
                 if (!SbErr_Occurred()) {
-                    SbErr_RaiseWithString(SbErr_NameError, name);
+                    SbErr_RaiseWithString(SbExc_NameError, name);
                 }
                 break;
 
@@ -534,14 +534,14 @@ UnaryXxx_common:
                     goto Xxx_drop2_check_oresult;
                 }
                 if (opcode_arg == SbCmp_EXC_MATCH) {
-                    i_result = SbErr_ExceptionTypeMatches((SbTypeObject *)op1, op2);
+                    i_result = SbExc_ExceptionTypeMatches((SbTypeObject *)op1, op2);
                     if (i_result < 0) {
                         goto Xxx_check_error;
                     }
                     o_result = SbBool_FromLong(i_result);
                     goto Xxx_drop2_check_oresult;
                 }
-                SbErr_RaiseWithFormat(SbErr_SystemError, "compare op %d not implemented", opcode_arg);
+                SbErr_RaiseWithFormat(SbExc_SystemError, "compare op %d not implemented", opcode_arg);
                 break;
 
             case InPlaceAdd:
@@ -671,7 +671,7 @@ BinaryXxx_common:
                         if (!SbType_Check(op1)) {
                             Sb_XDECREF(op2);
                             Sb_XDECREF(op1);
-                            SbErr_RaiseWithString(SbErr_TypeError, "only type objects can be passed at 1st parameter to raise");
+                            SbErr_RaiseWithString(SbExc_TypeError, "only type objects can be passed at 1st parameter to raise");
                             break;
                         }
                     }
@@ -685,7 +685,7 @@ BinaryXxx_common:
 
                     /* Reraise the previous exception */
                     if (!current_exc) {
-                        SbErr_RaiseWithString(SbErr_ValueError, "cannot reraise if no exception has been raised");
+                        SbErr_RaiseWithString(SbExc_ValueError, "cannot reraise if no exception has been raised");
                         break;
                     }
 
@@ -736,7 +736,7 @@ BinaryXxx_common:
                     break;
                 }
 
-                SbErr_RaiseWithString(SbErr_SystemError, "END_FINALLY found something odd on the stack");
+                SbErr_RaiseWithString(SbExc_SystemError, "END_FINALLY found something odd on the stack");
                 break;
 
 
@@ -879,7 +879,7 @@ DeleteSliceXxx:
 
             default:
                 /* Not implemented. */
-                SbErr_RaiseWithFormat(SbErr_SystemError, "opcode %d not implemented", opcode);
+                SbErr_RaiseWithFormat(SbExc_SystemError, "opcode %d not implemented", opcode);
                 break;
 
 Xxx_drop3_check_oresult:
@@ -911,7 +911,7 @@ Xxx_drop1_check_iresult:
                 }
 Xxx_check_error:
                 if (!SbErr_Occurred()) {
-                    SbErr_RaiseWithString(SbErr_SystemError, "call result is NULL or -1 but no error is set");
+                    SbErr_RaiseWithString(SbExc_SystemError, "call result is NULL or -1 but no error is set");
                 }
                 break;
             } /* switch (opcode) */

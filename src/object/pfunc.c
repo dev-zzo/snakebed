@@ -10,11 +10,11 @@ SbPFunction_New(SbCodeObject *code, SbObject *defaults, SbObject *globals)
     SbObject *p;
 
     if (!SbTuple_CheckExact(defaults)) {
-        SbErr_RaiseWithString(SbErr_ValueError, "expected a tuple for `defaults`");
+        SbErr_RaiseWithString(SbExc_ValueError, "expected a tuple for `defaults`");
         return NULL;
     }
     if (!SbDict_CheckExact(globals)) {
-        SbErr_RaiseWithString(SbErr_ValueError, "expected a dict for `globals`");
+        SbErr_RaiseWithString(SbExc_ValueError, "expected a dict for `globals`");
         return NULL;
     }
 
@@ -51,7 +51,7 @@ SbPFunction_Call(SbObject *p, SbObject *args, SbObject *kwargs)
 
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbPFunction_Check(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-function object passed to a function method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-function object passed to a function method");
         goto fail0;
     }
 #endif

@@ -26,7 +26,7 @@ SbCFunction_Call(SbObject *p, SbObject *self, SbObject *args, SbObject *kwargs)
 {
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbCFunction_Check(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-cfunc object passed to a cfunc method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-cfunc object passed to a cfunc method");
         return NULL;
     }
 #endif

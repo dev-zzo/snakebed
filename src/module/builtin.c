@@ -126,23 +126,23 @@ _Sb_ModuleInit_Builtin()
         return -1;
     }
 
-    SbDict_SetItemString(dict, "BaseException", (SbObject *)SbErr_BaseException);
-    SbDict_SetItemString(dict, "Exception", (SbObject *)SbErr_Exception);
-    SbDict_SetItemString(dict, "StandardError", (SbObject *)SbErr_StandardError);
-    SbDict_SetItemString(dict, "AttributeError", (SbObject *)SbErr_AttributeError);
-    SbDict_SetItemString(dict, "EnvironmentError", (SbObject *)SbErr_EnvironmentError);
-    SbDict_SetItemString(dict, "IOError", (SbObject *)SbErr_IOError);
-    SbDict_SetItemString(dict, "ImportError", (SbObject *)SbErr_ImportError);
-    SbDict_SetItemString(dict, "LookupError", (SbObject *)SbErr_LookupError);
-    SbDict_SetItemString(dict, "IndexError", (SbObject *)SbErr_IndexError);
-    SbDict_SetItemString(dict, "KeyError", (SbObject *)SbErr_KeyError);
-    SbDict_SetItemString(dict, "MemoryError", (SbObject *)SbErr_MemoryError);
-    SbDict_SetItemString(dict, "NameError", (SbObject *)SbErr_NameError);
-    SbDict_SetItemString(dict, "UnboundLocalError", (SbObject *)SbErr_UnboundLocalError);
-    SbDict_SetItemString(dict, "SystemError", (SbObject *)SbErr_SystemError);
-    SbDict_SetItemString(dict, "TypeError", (SbObject *)SbErr_TypeError);
-    SbDict_SetItemString(dict, "ValueError", (SbObject *)SbErr_ValueError);
-    SbDict_SetItemString(dict, "StopIteration", (SbObject *)SbErr_StopIteration);
+    SbDict_SetItemString(dict, "BaseException", (SbObject *)SbExc_BaseException);
+    SbDict_SetItemString(dict, "Exception", (SbObject *)SbExc_Exception);
+    SbDict_SetItemString(dict, "StandardError", (SbObject *)SbExc_StandardError);
+    SbDict_SetItemString(dict, "AttributeError", (SbObject *)SbExc_AttributeError);
+    SbDict_SetItemString(dict, "EnvironmentError", (SbObject *)SbExc_EnvironmentError);
+    SbDict_SetItemString(dict, "IOError", (SbObject *)SbExc_IOError);
+    SbDict_SetItemString(dict, "ImportError", (SbObject *)SbExc_ImportError);
+    SbDict_SetItemString(dict, "LookupError", (SbObject *)SbExc_LookupError);
+    SbDict_SetItemString(dict, "IndexError", (SbObject *)SbExc_IndexError);
+    SbDict_SetItemString(dict, "KeyError", (SbObject *)SbExc_KeyError);
+    SbDict_SetItemString(dict, "MemoryError", (SbObject *)SbExc_MemoryError);
+    SbDict_SetItemString(dict, "NameError", (SbObject *)SbExc_NameError);
+    SbDict_SetItemString(dict, "UnboundLocalError", (SbObject *)SbExc_UnboundLocalError);
+    SbDict_SetItemString(dict, "SystemError", (SbObject *)SbExc_SystemError);
+    SbDict_SetItemString(dict, "TypeError", (SbObject *)SbExc_TypeError);
+    SbDict_SetItemString(dict, "ValueError", (SbObject *)SbExc_ValueError);
+    SbDict_SetItemString(dict, "StopIteration", (SbObject *)SbExc_StopIteration);
 
     SbDict_SetItemString(dict, "type", (SbObject *)SbType_Type);
     SbDict_SetItemString(dict, "int", (SbObject *)SbInt_Type);

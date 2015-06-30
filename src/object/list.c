@@ -57,13 +57,13 @@ list_check_type_pos(SbObject *p, Sb_ssize_t pos)
 {
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbList_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-list object passed to a list method");
         return -1;
     }
 #endif
     /* Do an unsigned comparison. */
     if ((Sb_size_t)pos >= (Sb_size_t)SbList_GetSizeUnsafe(p)) {
-        SbErr_RaiseWithString(SbErr_IndexError, "list index out of range");
+        SbErr_RaiseWithString(SbExc_IndexError, "list index out of range");
         return -1;
     }
     return 0;
@@ -98,7 +98,7 @@ SbList_New(Sb_ssize_t length)
     SbListObject *op;
 
     if (length < 0) {
-        SbErr_RaiseWithString(SbErr_ValueError, "list length cannot be negative");
+        SbErr_RaiseWithString(SbExc_ValueError, "list length cannot be negative");
         goto fail0;
     }
 
@@ -134,7 +134,7 @@ SbList_Pack(Sb_ssize_t count, ...)
             o = va_arg(args, SbObject *);
             if (!o) {
                 Sb_DECREF(list);
-                SbErr_RaiseWithString(SbErr_ValueError, "a NULL pointer found when packing into a list");
+                SbErr_RaiseWithString(SbExc_ValueError, "a NULL pointer found when packing into a list");
                 return NULL;
             }
             SbList_SetItemUnsafe(list, pos, o);
@@ -151,7 +151,7 @@ SbList_GetSize(SbObject *p)
 {
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbList_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-list object passed to a list method");
         return -1;
     }
 #endif
@@ -192,7 +192,7 @@ SbList_Append(SbObject *p, SbObject *o)
 
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbList_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-list object passed to a list method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-list object passed to a list method");
         goto fail0;
     }
 #endif

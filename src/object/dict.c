@@ -64,7 +64,7 @@ SbDict_GetSize(SbObject *p)
 {
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-dict object passed to a dict method");
         return -1;
     }
 #endif
@@ -103,7 +103,7 @@ SbDict_Clear(SbObject *p)
 {
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-dict object passed to a dict method");
         return;
     }
 #endif
@@ -149,7 +149,7 @@ SbDict_GetItemString(SbObject *p, const char *key)
 
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-dict object passed to a dict method");
         return NULL;
     }
 #endif
@@ -172,7 +172,7 @@ SbDict_GetItem(SbObject *p, SbObject *key)
 
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-dict object passed to a dict method");
         return NULL;
     }
 #endif
@@ -195,7 +195,7 @@ SbDict_SetItemString(SbObject *p, const char *key, SbObject *value)
 
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-dict object passed to a dict method");
         return -1;
     }
 #endif
@@ -251,7 +251,7 @@ SbDict_SetItem(SbObject *p, SbObject *key, SbObject *value)
 
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-dict object passed to a dict method");
         return -1;
     }
 #endif
@@ -302,7 +302,7 @@ SbDict_DelItemString(SbObject *p, const char *key)
 
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-dict object passed to a dict method");
         return -1;
     }
 #endif
@@ -329,7 +329,7 @@ SbDict_DelItemString(SbObject *p, const char *key)
         entry = entry->e_next;
     }
 
-    SbErr_RaiseWithString(SbErr_KeyError, key);
+    SbErr_RaiseWithString(SbExc_KeyError, key);
     return -1;
 }
 
@@ -344,7 +344,7 @@ SbDict_DelItem(SbObject *p, SbObject *key)
 
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-dict object passed to a dict method");
         return -1;
     }
 #endif
@@ -372,7 +372,7 @@ SbDict_DelItem(SbObject *p, SbObject *key)
         entry = entry->e_next;
     }
 
-    SbErr_RaiseWithObject(SbErr_KeyError, key);
+    SbErr_RaiseWithObject(SbExc_KeyError, key);
     return -1;
 }
 
@@ -392,7 +392,7 @@ SbDict_Next(SbObject *p, Sb_ssize_t *state, SbObject **key, SbObject **value)
 
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbDict_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-dict object passed to a dict method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-dict object passed to a dict method");
         return -1;
     }
 #endif

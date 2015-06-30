@@ -181,7 +181,7 @@ SbStr_GetSize(SbObject *p)
 {
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbStr_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-string object passed to a string method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-string object passed to a string method");
         return -1;
     }
 #endif
@@ -194,7 +194,7 @@ SbStr_AsString(SbObject *p)
 {
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbStr_CheckExact(p)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-string object passed to a string method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-string object passed to a string method");
         return NULL;
     }
 #endif
@@ -382,7 +382,7 @@ str_join(SbObject *self, SbObject *args, SbObject *kwargs)
         if (!SbStr_CheckExact(o)) {
             Sb_DECREF(o);
             Sb_DECREF(it);
-            SbErr_RaiseWithFormat(SbErr_TypeError, "invalid type: expected str, found %s", Sb_TYPE(o)->tp_name);
+            SbErr_RaiseWithFormat(SbExc_TypeError, "invalid type: expected str, found %s", Sb_TYPE(o)->tp_name);
             return NULL;
         }
         total_length += SbStr_GetSizeUnsafe(o);
@@ -456,7 +456,7 @@ str_justify_generic(SbObject *self, SbObject *args, SbObject *kwargs, void (*pro
     }
     if (o_fillchar) {
         if (!SbStr_CheckExact(o_fillchar) || SbStr_GetSizeUnsafe(o_fillchar) != 1) {
-            SbErr_RaiseWithString(SbErr_TypeError, "expected str of length 1 as fillchar");
+            SbErr_RaiseWithString(SbExc_TypeError, "expected str of length 1 as fillchar");
             return NULL;
         }
         fillchar = SbStr_AsStringUnsafe(o_fillchar)[0];
@@ -465,7 +465,7 @@ str_justify_generic(SbObject *self, SbObject *args, SbObject *kwargs, void (*pro
         width = SbInt_AsNative(o_width);
     }
     else {
-        SbErr_RaiseWithString(SbErr_TypeError, "expected int as width");
+        SbErr_RaiseWithString(SbExc_TypeError, "expected int as width");
         return NULL;
     }
 
@@ -530,7 +530,7 @@ str_normalize_indices(Sb_ssize_t *p_start, Sb_ssize_t *p_end, Sb_ssize_t len)
     return 0;
 
 index_oob:
-    SbErr_RaiseWithString(SbErr_IndexError, "index out of range");
+    SbErr_RaiseWithString(SbExc_IndexError, "index out of range");
     return -1;
 }
 
@@ -551,7 +551,7 @@ str_find_internal(SbObject *self, SbObject *args, SbObject *kwargs, str_searcher
         return -2;
     }
     if (!SbStr_CheckExact(o_pattern)) {
-        SbErr_RaiseWithString(SbErr_TypeError, "expected str as pattern");
+        SbErr_RaiseWithString(SbExc_TypeError, "expected str as pattern");
         return -2;
     }
 
@@ -559,14 +559,14 @@ str_find_internal(SbObject *self, SbObject *args, SbObject *kwargs, str_searcher
     end = SbStr_GetSizeUnsafe(self);
     if (o_start) {
         if (!SbInt_Check(o_start)) {
-            SbErr_RaiseWithString(SbErr_TypeError, "expected int as start");
+            SbErr_RaiseWithString(SbExc_TypeError, "expected int as start");
             return -2;
         }
         start = SbInt_AsNative(o_start);
     }
     if (o_end) {
         if (!SbInt_Check(o_end)) {
-            SbErr_RaiseWithString(SbErr_TypeError, "expected int as end");
+            SbErr_RaiseWithString(SbExc_TypeError, "expected int as end");
             return -2;
         }
         end = SbInt_AsNative(o_end);
@@ -622,7 +622,7 @@ str_xindex(SbObject *self, SbObject *args, SbObject *kwargs, str_searcher_t find
         return SbInt_FromNative(pos);
     }
     if (pos == -1) {
-        SbErr_RaiseWithString(SbErr_ValueError, "substring not found");
+        SbErr_RaiseWithString(SbExc_ValueError, "substring not found");
     }
     return NULL;
 }
@@ -647,7 +647,7 @@ str_rindex(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 str_format(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbErr_RaiseWithString(SbErr_SystemError, "not implemented");
+    SbErr_RaiseWithString(SbExc_SystemError, "not implemented");
     return NULL;
 }
 
@@ -660,7 +660,7 @@ str_format(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 str_interpolate(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbErr_RaiseWithString(SbErr_SystemError, "not implemented");
+    SbErr_RaiseWithString(SbExc_SystemError, "not implemented");
     return NULL;
 }
 

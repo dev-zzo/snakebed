@@ -131,7 +131,7 @@ SbFile_Seek(SbObject *self, Sb_ssize_t offset, int whence)
     }
 
     if ((unsigned)whence > 2) {
-        SbErr_RaiseWithString(SbErr_ValueError, "`whence` can be {0|1|2} only");
+        SbErr_RaiseWithString(SbExc_ValueError, "`whence` can be {0|1|2} only");
         return -1;
     }
 
@@ -178,7 +178,7 @@ file_read(SbObject *self, SbObject *args, SbObject *kwargs)
     }
 
     if (maxcount <= 0) {
-        SbErr_RaiseWithString(SbErr_ValueError, "`maxcount` must be a positive number");
+        SbErr_RaiseWithString(SbExc_ValueError, "`maxcount` must be a positive number");
     }
 
     buffer = Sb_Malloc(maxcount);
@@ -207,7 +207,7 @@ file_write(SbObject *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
     if (!SbStr_CheckExact(o_data)) {
-        SbErr_RaiseWithString(SbErr_TypeError, "expected a str");
+        SbErr_RaiseWithString(SbExc_TypeError, "expected a str");
         return NULL;
     }
 

@@ -36,7 +36,7 @@ SbInt_AsNative(SbObject *op)
 {
 #if SUPPORTS(BUILTIN_TYPECHECKS)
     if (!SbInt_Check(op)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-int object passed to an int method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-int object passed to an int method");
         return -1;
     }
 #endif
@@ -50,7 +50,7 @@ _SbInt_Parse(const char *str, const char **pend, unsigned base, SbInt_Native_t *
     SbInt_Native_t value = 0;
 
     if (base != 0 && (base > 36 || base < 2)) {
-        SbErr_RaiseWithString(SbErr_ValueError, "incorrect `base` value (expected 2<=base<=36)");
+        SbErr_RaiseWithString(SbExc_ValueError, "incorrect `base` value (expected 2<=base<=36)");
         return -1;
     }
 
@@ -84,7 +84,7 @@ _SbInt_Convert(SbObject *o, SbObject *base, SbInt_Native_t *value)
         if (base) {
             /* TODO: Try converting to int first? */
             if (!SbInt_CheckExact(base)) {
-                SbErr_RaiseWithString(SbErr_ValueError, "incorrect `base` type");
+                SbErr_RaiseWithString(SbExc_ValueError, "incorrect `base` type");
                 return -1;
             }
             base_conv = SbInt_AsNativeUnsafe(base);
@@ -97,7 +97,7 @@ _SbInt_Convert(SbObject *o, SbObject *base, SbInt_Native_t *value)
     }
     /* if (SbLong_CheckExact(o)) ... */
     /* if (SbFloat_CheckExact(o)) ... */
-    SbErr_RaiseWithString(SbErr_ValueError, "cannot convert the object to an int");
+    SbErr_RaiseWithString(SbExc_ValueError, "cannot convert the object to an int");
     return -1;
 }
 
@@ -107,7 +107,7 @@ SbInt_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
     SbInt_Native_t v1, v2;
 
     if (!SbInt_CheckExact(p1) || !SbInt_CheckExact(p2)) {
-        SbErr_RaiseWithString(SbErr_SystemError, "non-int object passed to an int method");
+        SbErr_RaiseWithString(SbExc_SystemError, "non-int object passed to an int method");
         return -1;
     }
 

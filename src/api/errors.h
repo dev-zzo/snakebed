@@ -13,9 +13,9 @@ SbErr_Occurred(void);
    Typically, `exc` is what is returned by SbErr_Occurred().
    Returns: 1 if yes, 0 if no, -1 on failure. */
 int
-SbErr_ExceptionMatches(SbObject *exc, SbObject *what);
+SbExc_ExceptionMatches(SbObject *exc, SbObject *what);
 int
-SbErr_ExceptionTypeMatches(SbTypeObject *exc_type, SbObject *what);
+SbExc_ExceptionTypeMatches(SbTypeObject *exc_type, SbObject *what);
 
 /* Clear error indicator. */
 void

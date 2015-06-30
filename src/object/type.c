@@ -32,7 +32,7 @@ SbType_GenericNew(SbObject *dummy, SbObject *args, SbObject *kwds)
 
     tp = (SbTypeObject *)SbTuple_GetItem(args, 0);
     if (tp->tp_itemsize) {
-        SbErr_RaiseWithString(SbErr_TypeError, "can't create a varobject with generic `__new__`");
+        SbErr_RaiseWithString(SbExc_TypeError, "can't create a varobject with generic `__new__`");
         return NULL;
     }
 
@@ -114,21 +114,21 @@ _SbType_New(SbObject *name, SbObject *bases, SbObject *dict)
     SbTypeObject *result;
 
     if (!SbStr_CheckExact(name)) {
-        SbErr_RaiseWithString(SbErr_TypeError, "expected `name` to be a str");
+        SbErr_RaiseWithString(SbExc_TypeError, "expected `name` to be a str");
         return NULL;
     }
     if (!SbTuple_CheckExact(bases)) {
-        SbErr_RaiseWithString(SbErr_TypeError, "expected `base` to be a tuple");
+        SbErr_RaiseWithString(SbExc_TypeError, "expected `base` to be a tuple");
         return NULL;
     }
     base_count = SbTuple_GetSizeUnsafe(bases);
     if (base_count > 1) {
-        SbErr_RaiseWithString(SbErr_TypeError, "expected `base` to contain only one type");
+        SbErr_RaiseWithString(SbExc_TypeError, "expected `base` to contain only one type");
         return NULL;
     }
     base = (SbTypeObject *)(base_count > 0 ? SbTuple_GetItemUnsafe(bases, 0) : NULL);
     if (!SbDict_CheckExact(dict)) {
-        SbErr_RaiseWithString(SbErr_TypeError, "expected `dict` to be a dict");
+        SbErr_RaiseWithString(SbExc_TypeError, "expected `dict` to be a dict");
         return NULL;
     }
 
@@ -226,7 +226,7 @@ type_call(SbTypeObject *self, SbObject *args, SbObject *kwargs)
             return tp;
         }
         if (count != 3) {
-            SbErr_RaiseWithString(SbErr_TypeError, "type() takes 1 or 3 parameters");
+            SbErr_RaiseWithString(SbExc_TypeError, "type() takes 1 or 3 parameters");
             return NULL;
         }
         /* Fall through */

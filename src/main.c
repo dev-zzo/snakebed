@@ -18,18 +18,18 @@ int main(int argc, const char *argv[])
     SbErr_Fetch(&exc);
     Sb_XDECREF(main_module);
     if (exc) {
-        if (SbErr_ExceptionMatches(exc, (SbObject *)SbErr_SystemExit)) {
+        if (SbExc_ExceptionMatches(exc, (SbObject *)SbExc_SystemExit)) {
             SbErr_Clear();
             rv = 0;
         }
         else {
-            if (SbErr_ExceptionMatches(exc, (SbObject *)SbErr_MemoryError)) {
+            if (SbExc_ExceptionMatches(exc, (SbObject *)SbExc_MemoryError)) {
                 SbFile_WriteString(SbSys_StdErr, "OOM DEATH!\r\n");
             }
             else {
                 SbObject *error_str;
 
-                error_str = SbObject_Str(SbErr_GetValue(exc));
+                error_str = SbObject_Str(SbExc_GetValue(exc));
                 SbFile_WriteString(SbSys_StdErr, "Uncaught exception:\r\n");
                 SbFile_WriteString(SbSys_StdErr, SbStr_AsStringUnsafe(error_str));
                 SbFile_Write(SbSys_StdErr, "\r\n", 2);

@@ -1,32 +1,32 @@
 #include "snakebed.h"
 #include "internal.h"
 
-SbTypeObject *SbErr_BaseException = NULL;
-SbTypeObject  *SbErr_Exception = NULL;
-SbTypeObject   *SbErr_StandardError = NULL;
-SbTypeObject    *SbErr_AttributeError = NULL;
-SbTypeObject    *SbErr_EnvironmentError = NULL;
-SbTypeObject     *SbErr_IOError = NULL;
-SbTypeObject    *SbErr_ImportError = NULL;
-SbTypeObject    *SbErr_LookupError = NULL;
-SbTypeObject     *SbErr_IndexError = NULL;
-SbTypeObject     *SbErr_KeyError = NULL;
-SbTypeObject    *SbErr_MemoryError = NULL;
-SbTypeObject    *SbErr_NameError = NULL;
-SbTypeObject     *SbErr_UnboundLocalError = NULL;
-SbTypeObject    *SbErr_SystemError = NULL;
-SbTypeObject    *SbErr_TypeError = NULL;
-SbTypeObject    *SbErr_ValueError = NULL;
-SbTypeObject   *SbErr_StopIteration = NULL;
-SbTypeObject  *SbErr_SystemExit = NULL;
+SbTypeObject *SbExc_BaseException = NULL;
+SbTypeObject  *SbExc_Exception = NULL;
+SbTypeObject   *SbExc_StandardError = NULL;
+SbTypeObject    *SbExc_AttributeError = NULL;
+SbTypeObject    *SbExc_EnvironmentError = NULL;
+SbTypeObject     *SbExc_IOError = NULL;
+SbTypeObject    *SbExc_ImportError = NULL;
+SbTypeObject    *SbExc_LookupError = NULL;
+SbTypeObject     *SbExc_IndexError = NULL;
+SbTypeObject     *SbExc_KeyError = NULL;
+SbTypeObject    *SbExc_MemoryError = NULL;
+SbTypeObject    *SbExc_NameError = NULL;
+SbTypeObject     *SbExc_UnboundLocalError = NULL;
+SbTypeObject    *SbExc_SystemError = NULL;
+SbTypeObject    *SbExc_TypeError = NULL;
+SbTypeObject    *SbExc_ValueError = NULL;
+SbTypeObject   *SbExc_StopIteration = NULL;
+SbTypeObject  *SbExc_SystemExit = NULL;
 
-SbObject *_SbErr_MemoryErrorInstance = NULL;
-SbObject *_SbErr_StopIterationInstance = NULL;
+SbObject *_SbExc_MemoryErrorInstance = NULL;
+SbObject *_SbExc_StopIterationInstance = NULL;
 
 int
-SbErr_Check(SbObject *o)
+SbExc_Check(SbObject *o)
 {
-    return SbType_IsSubtype(Sb_TYPE(o), SbErr_BaseException);
+    return SbType_IsSubtype(Sb_TYPE(o), SbExc_BaseException);
 }
 
 static void
@@ -70,7 +70,7 @@ exception_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
     if (!SbStr_CheckExact(attr_name)) {
-        SbErr_RaiseWithString(SbErr_TypeError, "attribute name must be a string");
+        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
         return NULL;
     }
     return exception_getattr_internal(self, attr_name);
@@ -152,7 +152,7 @@ enverror_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
     if (!SbStr_CheckExact(attr_name)) {
-        SbErr_RaiseWithString(SbErr_TypeError, "attribute name must be a string");
+        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
         return NULL;
     }
 
@@ -207,45 +207,45 @@ _Sb_TypeInit_Exceptions()
 
     tp = _SbType_FromCDefs("BaseException", NULL, exception_methods, sizeof(SbBaseExceptionObject));
     tp->tp_destroy = (SbDestroyFunc)exception_destroy;
-    SbErr_BaseException = tp;
+    SbExc_BaseException = tp;
 
-    SbErr_Exception = SbErr_NewException("Exception", SbErr_BaseException);
-    SbErr_StandardError = SbErr_NewException("StandardError", SbErr_Exception);
+    SbExc_Exception = SbExc_NewException("Exception", SbExc_BaseException);
+    SbExc_StandardError = SbExc_NewException("StandardError", SbExc_Exception);
 
-    SbErr_AttributeError = SbErr_NewException("AttributeError", SbErr_StandardError);
+    SbExc_AttributeError = SbExc_NewException("AttributeError", SbExc_StandardError);
 
-    tp = _SbType_FromCDefs("EnvironmentError", SbErr_StandardError, enverror_methods, sizeof(SbBaseExceptionObject));
+    tp = _SbType_FromCDefs("EnvironmentError", SbExc_StandardError, enverror_methods, sizeof(SbBaseExceptionObject));
     tp->tp_destroy = (SbDestroyFunc)exception_destroy;
-    SbErr_EnvironmentError = tp;
+    SbExc_EnvironmentError = tp;
 
-    SbErr_ImportError = SbErr_NewException("ImportError", SbErr_StandardError);
-    SbErr_LookupError = SbErr_NewException("LookupError", SbErr_StandardError);
-    SbErr_MemoryError = SbErr_NewException("MemoryError", SbErr_StandardError);
-    SbErr_NameError = SbErr_NewException("NameError", SbErr_StandardError);
-    SbErr_SystemError = SbErr_NewException("SystemError", SbErr_StandardError);
-    SbErr_TypeError = SbErr_NewException("TypeError", SbErr_StandardError);
-    SbErr_ValueError = SbErr_NewException("ValueError", SbErr_StandardError);
+    SbExc_ImportError = SbExc_NewException("ImportError", SbExc_StandardError);
+    SbExc_LookupError = SbExc_NewException("LookupError", SbExc_StandardError);
+    SbExc_MemoryError = SbExc_NewException("MemoryError", SbExc_StandardError);
+    SbExc_NameError = SbExc_NewException("NameError", SbExc_StandardError);
+    SbExc_SystemError = SbExc_NewException("SystemError", SbExc_StandardError);
+    SbExc_TypeError = SbExc_NewException("TypeError", SbExc_StandardError);
+    SbExc_ValueError = SbExc_NewException("ValueError", SbExc_StandardError);
 
-    SbErr_IOError = SbErr_NewException("IOError", SbErr_EnvironmentError);
+    SbExc_IOError = SbExc_NewException("IOError", SbExc_EnvironmentError);
 
-    SbErr_IndexError = SbErr_NewException("IndexError", SbErr_LookupError);
-    SbErr_KeyError = SbErr_NewException("KeyError", SbErr_LookupError);
+    SbExc_IndexError = SbExc_NewException("IndexError", SbExc_LookupError);
+    SbExc_KeyError = SbExc_NewException("KeyError", SbExc_LookupError);
 
-    SbErr_UnboundLocalError = SbErr_NewException("UnboundLocalError", SbErr_NameError);
+    SbExc_UnboundLocalError = SbExc_NewException("UnboundLocalError", SbExc_NameError);
 
-    SbErr_StopIteration = SbErr_NewException("StopIteration", SbErr_Exception);
+    SbExc_StopIteration = SbExc_NewException("StopIteration", SbExc_Exception);
 
-    SbErr_SystemExit = SbErr_NewException("SystemExit", SbErr_BaseException);
+    SbExc_SystemExit = SbExc_NewException("SystemExit", SbExc_BaseException);
 
-    _SbErr_MemoryErrorInstance = SbObject_Call((SbObject *)SbErr_MemoryError, NULL, NULL);
-    _SbErr_StopIterationInstance = SbObject_Call((SbObject *)SbErr_StopIteration, NULL, NULL);
+    _SbExc_MemoryErrorInstance = SbObject_Call((SbObject *)SbExc_MemoryError, NULL, NULL);
+    _SbExc_StopIterationInstance = SbObject_Call((SbObject *)SbExc_StopIteration, NULL, NULL);
 
     return 0;
 }
 
 
 SbTypeObject *
-SbErr_NewException(const char *name, SbTypeObject *base)
+SbExc_NewException(const char *name, SbTypeObject *base)
 {
     SbTypeObject *tp;
 

@@ -10,36 +10,36 @@ typedef struct _SbBaseExceptionObject {
 } SbBaseExceptionObject;
 
 /* Built-in exception types. */
-extern SbTypeObject *SbErr_BaseException;
-extern SbTypeObject  *SbErr_Exception;
-extern SbTypeObject   *SbErr_StandardError;
-extern SbTypeObject    *SbErr_AttributeError;
-extern SbTypeObject    *SbErr_EnvironmentError;
-extern SbTypeObject     *SbErr_IOError;
-extern SbTypeObject    *SbErr_ImportError;
-extern SbTypeObject    *SbErr_LookupError;
-extern SbTypeObject     *SbErr_IndexError;
-extern SbTypeObject     *SbErr_KeyError;
-extern SbTypeObject    *SbErr_MemoryError;
-extern SbTypeObject    *SbErr_NameError;
-extern SbTypeObject     *SbErr_UnboundLocalError;
-extern SbTypeObject    *SbErr_SystemError;
-extern SbTypeObject    *SbErr_TypeError;
-extern SbTypeObject    *SbErr_ValueError;
-extern SbTypeObject   *SbErr_StopIteration;
-extern SbTypeObject  *SbErr_SystemExit;
+extern SbTypeObject *SbExc_BaseException;
+extern SbTypeObject  *SbExc_Exception;
+extern SbTypeObject   *SbExc_StandardError;
+extern SbTypeObject    *SbExc_AttributeError;
+extern SbTypeObject    *SbExc_EnvironmentError;
+extern SbTypeObject     *SbExc_IOError;
+extern SbTypeObject    *SbExc_ImportError;
+extern SbTypeObject    *SbExc_LookupError;
+extern SbTypeObject     *SbExc_IndexError;
+extern SbTypeObject     *SbExc_KeyError;
+extern SbTypeObject    *SbExc_MemoryError;
+extern SbTypeObject    *SbExc_NameError;
+extern SbTypeObject     *SbExc_UnboundLocalError;
+extern SbTypeObject    *SbExc_SystemError;
+extern SbTypeObject    *SbExc_TypeError;
+extern SbTypeObject    *SbExc_ValueError;
+extern SbTypeObject   *SbExc_StopIteration;
+extern SbTypeObject  *SbExc_SystemExit;
 
 /* Verify the given object is an exception instance.
    Returns: 1 if true, 0 otherwise. */
 int
-SbErr_Check(SbObject *o);
+SbExc_Check(SbObject *o);
 
 /* Create a new exception type.
    Returns: New reference. */
 SbTypeObject *
-SbErr_NewException(const char *name, SbTypeObject *base);
+SbExc_NewException(const char *name, SbTypeObject *base);
 
-#define SbErr_GetValue(p) \
+#define SbExc_GetValue(p) \
     (((SbBaseExceptionObject *)p)->args)
 
 #ifdef __cplusplus

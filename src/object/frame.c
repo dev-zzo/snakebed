@@ -112,7 +112,7 @@ SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObjec
         }
         if (!arg_value) {
             /* TypeError: too few arguments passed */
-            SbErr_RaiseWithFormat(SbErr_TypeError, "callable takes %d args (%d passed)", expected_arg_count, passed_posarg_count);
+            SbErr_RaiseWithFormat(SbExc_TypeError, "callable takes %d args (%d passed)", expected_arg_count, passed_posarg_count);
             goto fail0;
         }
         if (SbDict_SetItemString(locals, arg_name, arg_value) < 0) {
@@ -146,7 +146,7 @@ SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObjec
         }
         else {
             /* TypeError: too many args passed. */
-            SbErr_RaiseWithFormat(SbErr_TypeError, "callable takes %d args (%d passed)", expected_arg_count, passed_posarg_count);
+            SbErr_RaiseWithFormat(SbExc_TypeError, "callable takes %d args (%d passed)", expected_arg_count, passed_posarg_count);
             goto fail0;
         }
     }
@@ -163,7 +163,7 @@ SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObjec
         }
         else {
             /* TypeError: unexpected keyword args passed. */
-            SbErr_RaiseWithFormat(SbErr_TypeError, "%d unexpected kwarg(s) passed", SbDict_GetSize(kwds));
+            SbErr_RaiseWithFormat(SbExc_TypeError, "%d unexpected kwarg(s) passed", SbDict_GetSize(kwds));
             goto fail0;
         }
     }
