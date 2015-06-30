@@ -116,6 +116,14 @@ SbTuple_SetItemUnsafe(SbObject *p, Sb_ssize_t pos, SbObject *o)
     Sb_XDECREF(oldp);
 }
 
+void
+SbTuple_SetNoneUnsafe(SbObject *p, Sb_ssize_t pos)
+{
+    SbObject *none = Sb_None;
+
+    Sb_INCREF(none);
+    SbTuple_SetItemUnsafe(p, pos, none);
+}
 
 Sb_ssize_t
 SbTuple_GetSize(SbObject *p)

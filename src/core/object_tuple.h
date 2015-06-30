@@ -47,6 +47,8 @@ SbTuple_GetItemUnsafe(SbObject *p, Sb_ssize_t pos);
    WARNING: no type/range checks are performed. */
 void
 SbTuple_SetItemUnsafe(SbObject *p, Sb_ssize_t pos, SbObject *o);
+void
+SbTuple_SetNoneUnsafe(SbObject *p, Sb_ssize_t pos);
 
 /* Return a tuple's size.
    Returns: size if OK, -1 otherwise. */
