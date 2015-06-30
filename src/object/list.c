@@ -362,6 +362,22 @@ list_iter(SbObject *self, SbObject *args, SbObject *kwargs)
     return SbArrayIter_New(base, base + SbList_GetSizeUnsafe(self));
 }
 
+
+static SbObject *
+list_append(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o;
+
+    if (SbArgs_Unpack(args, 1, 1, &o) < 0) {
+        return NULL;
+    }
+
+    if (SbList_Append(self, o) < 0) {
+        return NULL;
+    }
+    Sb_RETURN_NONE;
+}
+
 /* Type initializer */
 
 static const SbCMethodDef list_methods[] = {
@@ -370,6 +386,8 @@ static const SbCMethodDef list_methods[] = {
     { "__setitem__", list_setitem },
     { "__delitem__", list_delitem },
     { "__iter__", list_iter },
+
+    { "append", list_append },
     /* Sentinel */
     { NULL, NULL },
 };
