@@ -533,8 +533,10 @@ index_oob:
     return -1;
 }
 
+typedef Sb_ssize_t (*str_searcher_t)(const char *, Sb_ssize_t, const char *, Sb_ssize_t);
+
 static Sb_ssize_t
-str_find_internal(SbObject *self, SbObject *args, SbObject *kwargs, Sb_ssize_t (*finder)(const char *, Sb_ssize_t, const char *, Sb_ssize_t))
+str_find_internal(SbObject *self, SbObject *args, SbObject *kwargs, str_searcher_t finder)
 {
     SbObject *o_pattern;
     SbObject *o_start = NULL;
@@ -586,13 +588,40 @@ str_find_internal(SbObject *self, SbObject *args, SbObject *kwargs, Sb_ssize_t (
 }
 
 static SbObject *
-str_find(SbObject *self, SbObject *args, SbObject *kwargs)
+str_xfind(SbObject *self, SbObject *args, SbObject *kwargs, str_searcher_t finder)
 {
     Sb_ssize_t pos;
 
-    pos = str_find_internal(self, args, kwargs, Sb_MemMem);
+    pos = str_find_internal(self, args, kwargs, finder);
     if (pos >= -1) {
         return SbInt_FromNative(pos);
+    }
+    return NULL;
+}
+
+static SbObject *
+str_find(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return str_xfind(self, args, kwargs, Sb_MemMem);
+}
+
+static SbObject *
+str_rfind(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return str_xfind(self, args, kwargs, Sb_MemRMem);
+}
+
+static SbObject *
+str_xindex(SbObject *self, SbObject *args, SbObject *kwargs, str_searcher_t finder)
+{
+    Sb_ssize_t pos;
+
+    pos = str_find_internal(self, args, kwargs, finder);
+    if (pos >= 0) {
+        return SbInt_FromNative(pos);
+    }
+    if (pos == -1) {
+        SbErr_RaiseWithString(SbErr_ValueError, "substring not found");
     }
     return NULL;
 }
@@ -600,111 +629,19 @@ str_find(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 str_index(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    Sb_ssize_t pos;
-
-    pos = str_find_internal(self, args, kwargs, Sb_MemMem);
-    if (pos >= 0) {
-        return SbInt_FromNative(pos);
-    }
-    if (pos == -1) {
-        SbErr_RaiseWithString(SbErr_ValueError, "substring not found");
-    }
-    return NULL;
-}
-
-static SbObject *
-str_rfind(SbObject *self, SbObject *args, SbObject *kwargs)
-{
-    Sb_ssize_t pos;
-
-    pos = str_find_internal(self, args, kwargs, Sb_MemRMem);
-    if (pos >= -1) {
-        return SbInt_FromNative(pos);
-    }
-    return NULL;
+    return str_xindex(self, args, kwargs, Sb_MemMem);
 }
 
 static SbObject *
 str_rindex(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    Sb_ssize_t pos;
-
-    pos = str_find_internal(self, args, kwargs, Sb_MemRMem);
-    if (pos >= 0) {
-        return SbInt_FromNative(pos);
-    }
-    if (pos == -1) {
-        SbErr_RaiseWithString(SbErr_ValueError, "substring not found");
-    }
-    return NULL;
+    return str_xindex(self, args, kwargs, Sb_MemRMem);
 }
 
 
 #if SUPPORTS(STR_FORMAT)
 
 /* Ref: https://www.python.org/dev/peps/pep-3101/ */
-
-struct str_conv_specifier {
-    char filler;
-    char align_flag;
-    char sign_flag;
-    char use_alt_form;
-    char use_precision;
-    char conv_type;
-    unsigned long min_width;
-    unsigned long precision;
-};
-
-int
-_SbStr_ParseFormatSpec(const char *spec, struct str_conv_specifier* result)
-{
-    result->min_width = 0;
-    result->precision = -1;
-    result->conv_type = '\0';
-
-    if (spec[0] != '\0' && (spec[1] == '<' || spec[1] == '>' || spec[1] == '=' || spec[1] == '^')) {
-        result->filler = spec[0];
-        result->align_flag = spec[1];
-    }
-    else {
-        result->filler = ' ';
-        if (*spec == '<' || *spec == '>' || *spec == '=' || *spec == '^') {
-            result->align_flag = *spec;
-            ++spec;
-        }
-        else {
-            result->align_flag = '<';
-        }
-    }
-    if (*spec == '+' || *spec == '-' || *spec == ' ') {
-        result->sign_flag = *spec;
-        ++spec;
-    }
-    if (*spec == '#') {
-        result->use_alt_form = *spec;
-        ++spec;
-    }
-    if (*spec == '0') {
-        result->filler = '0';
-        result->align_flag = '=';
-        ++spec;
-    }
-    if (Sb_AtoUL(spec, &spec, 10, &result->min_width) < 0) {
-        result->min_width = 0;
-    }
-    result->use_precision = 0;
-    if (*spec == '.') {
-        ++spec;
-        if (Sb_AtoUL(spec, &spec, 10, &result->precision) >= 0) {
-            result->use_precision = 1;
-        }
-    }
-    if (*spec != '\0') {
-        result->conv_type = *spec;
-    }
-
-    return 0;
-}
 
 static SbObject *
 str_format(SbObject *self, SbObject *args, SbObject *kwargs)
