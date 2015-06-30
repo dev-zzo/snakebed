@@ -47,11 +47,9 @@ SbObject_New(SbTypeObject *type)
     SbObject *p;
     p = (SbObject *)type->tp_alloc(type, 0);
     SbObject_INIT(p, type);
-    /*
     if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
         SbObject_DICT(p) = SbDict_New();
     }
-    */
 #if __TRACE_ALLOCS
     printf("Object at %p (type %s) allocated.\n", p, type->tp_name);
 #endif /* __TRACE_ALLOCS */
@@ -67,11 +65,9 @@ SbObject_NewVar(SbTypeObject *type, Sb_ssize_t count)
     SbVarObject *p;
     p = (SbVarObject *)type->tp_alloc(type, count);
     SbObject_INIT_VAR(p, type, count);
-    /*
     if (type->tp_flags & SbType_FLAGS_HAS_DICT) {
         SbObject_DICT(p) = SbDict_New();
     }
-    */
 #if __TRACE_ALLOCS
     printf("Object at %p (type %s) allocated.\n", p, type->tp_name);
 #endif /* __TRACE_ALLOCS */
@@ -100,6 +96,40 @@ SbObject *
 SbObject_DefaultHash(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     return SbInt_FromNative((long)self);
+}
+
+SbObject *
+SbObject_DefaultGetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o_name;
+    SbObject *result;
+    const char *attr_name;
+
+    if (SbArgs_Unpack(args, 1, 1, &o_name) < 0) {
+        return NULL;
+    }
+    if (!SbStr_CheckExact(o_name)) {
+        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
+        return NULL;
+    }
+
+    attr_name = SbStr_AsStringUnsafe(o_name);
+    /* Some hardcoded values... */
+    if (!Sb_StrCmp(attr_name, "__class__")) {
+        result = (SbObject *)Sb_TYPE(self);
+        Sb_INCREF(result);
+        return result;
+    }
+    if (!Sb_StrCmp(attr_name, "__dict__")) {
+        if (Sb_TYPE(self)->tp_flags & SbType_FLAGS_HAS_DICT) {
+            result = (SbObject *)SbObject_DICT(self);
+            Sb_INCREF(result);
+            return result;
+        }
+    }
+
+    SbErr_RaiseWithObject(SbExc_AttributeError, o_name);
+    return NULL;
 }
 
 SbObject *
@@ -163,6 +193,7 @@ static const SbCMethodDef object_methods[] = {
     { "__str__", SbObject_DefaultStr },
     { "__repr__", SbObject_DefaultStr },
 
+    { "__getattr__", SbObject_DefaultGetAttr },
     { "__setattr__", SbObject_DefaultSetAttr },
     { "__delattr__", SbObject_DefaultDelAttr },
 

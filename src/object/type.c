@@ -271,6 +271,9 @@ static const SbCMethodDef type_methods[] = {
     { "__new__", (SbCFunction)type_new },
     { "__init__", (SbCFunction)type_init },
     { "__call__", (SbCFunction)type_call },
+    { "__getattr__", SbObject_DefaultGetAttr },
+    { "__setattr__", SbObject_DefaultSetAttr },
+    { "__delattr__", SbObject_DefaultDelAttr },
     /* Sentinel */
     { NULL, NULL },
 };

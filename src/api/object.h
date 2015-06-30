@@ -96,8 +96,9 @@ SbObject *
 SbObject_DefaultHash(SbObject *self, SbObject *args, SbObject *kwargs);
 
 SbObject *
+SbObject_DefaultGetAttr(SbObject *self, SbObject *args, SbObject *kwargs);
+SbObject *
 SbObject_DefaultSetAttr(SbObject *self, SbObject *args, SbObject *kwargs);
-
 SbObject *
 SbObject_DefaultDelAttr(SbObject *self, SbObject *args, SbObject *kwargs);
 
