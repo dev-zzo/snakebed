@@ -38,6 +38,7 @@
     <ClCompile Include="..\src\object\str.c" />
     <ClCompile Include="..\src\object\tuple.c" />
     <ClCompile Include="..\src\object\type.c" />
+    <ClCompile Include="..\src\protocol\pr_iterator.c" />
     <ClCompile Include="..\src\protocol\pr_number.c" />
     <ClCompile Include="..\src\protocol\pr_object.c" />
     <ClCompile Include="..\src\protocol\pr_seqmap.c" />

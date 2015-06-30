@@ -115,6 +115,9 @@
     <ClCompile Include="..\src\runtime\win32\files.c">
       <Filter>runtime</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\protocol\pr_iterator.c">
+      <Filter>protocol</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\module\builtin.h">

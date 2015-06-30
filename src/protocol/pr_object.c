@@ -364,10 +364,3 @@ SbObject_CallMethodObjArgs(SbObject *o, const char *method, Sb_ssize_t count, ..
     return result;
 }
 
-
-SbObject *
-SbObject_GetIter(SbObject *o)
-{
-    return SbObject_CallMethod(o, "__iter__", NULL, NULL);
-}
-
