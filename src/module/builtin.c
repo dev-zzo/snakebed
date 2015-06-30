@@ -153,6 +153,11 @@ _Sb_ModuleInit_Builtin()
     SbDict_SetItemString(dict, "dict", (SbObject *)SbDict_Type);
     SbDict_SetItemString(dict, "iter", (SbObject *)SbIter_Type);
 
+    SbDict_SetItemString(dict, "True", Sb_True);
+    SbDict_SetItemString(dict, "False", Sb_False);
+    SbDict_SetItemString(dict, "None", Sb_None);
+    SbDict_SetItemString(dict, "NotImplemented", Sb_NotImplemented);
+
 #if SUPPORTS(BUILTIN_PRINT)
     add_func(dict, "print", _builtin_print);
 #endif
