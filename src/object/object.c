@@ -163,6 +163,9 @@ static const SbCMethodDef object_methods[] = {
     { "__str__", SbObject_DefaultStr },
     { "__repr__", SbObject_DefaultStr },
 
+    { "__setattr__", SbObject_DefaultSetAttr },
+    { "__delattr__", SbObject_DefaultDelAttr },
+
     /* Sentinel */
     { NULL, NULL },
 };
