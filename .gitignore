@@ -7,6 +7,8 @@
 Debug
 Release
 ipch
+build
+build_tmp
 
 # MSVC crap
 *.suo
