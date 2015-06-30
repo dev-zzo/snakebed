@@ -1,0 +1,213 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="api">
+      <UniqueIdentifier>{23c4d76e-a67b-4b72-b910-a736cba9de8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="module">
+      <UniqueIdentifier>{8d2bb550-a76e-44d9-bcd8-dbe6e77b9812}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="object">
+      <UniqueIdentifier>{dd242592-da3e-48b5-a913-5c28b16a1f43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="runtime">
+      <UniqueIdentifier>{616bc0ff-c8a3-46de-b58f-79a94fdf78bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="protocol">
+      <UniqueIdentifier>{e9598b2e-c322-4e09-8091-6f34f8bd350d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\module\builtin.c">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\module\sys.c">
+      <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\runtime\conv.c">
+      <Filter>runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\runtime\ctypes.c">
+      <Filter>runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\runtime\string.c">
+      <Filter>runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\runtime\thunks.c">
+      <Filter>runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\bool.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\builtins.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\cfunc.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\code.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\dict.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\file.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\frame.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\int.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\iter.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\list.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\method.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\module.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\object.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\pfunc.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\slice.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\str.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\tuple.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\type.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\args.c" />
+    <ClCompile Include="..\src\import.c" />
+    <ClCompile Include="..\src\internal.c" />
+    <ClCompile Include="..\src\interp.c" />
+    <ClCompile Include="..\src\marshal.c" />
+    <ClCompile Include="..\src\snakebed.c" />
+    <ClCompile Include="..\src\protocol\pr_object.c">
+      <Filter>protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\protocol\pr_number.c">
+      <Filter>protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\protocol\pr_seqmap.c">
+      <Filter>protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\object\exc.c">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\errors.c" />
+    <ClCompile Include="..\src\runtime\win32\error.c">
+      <Filter>runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\runtime\win32\files.c">
+      <Filter>runtime</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\module\builtin.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\module\sys.h">
+      <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\args.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\import.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\interp.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_bool.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_cfunc.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_code.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_dict.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_exc.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_file.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_frame.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_int.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_iter.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_list.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_method.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_module.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_pfunc.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_slice.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_str.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_tuple.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_type.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\platform.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\platform_win32.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\proto.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\runtime.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\snakebed.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\supports.h">
+      <Filter>api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\internal.h" />
+    <ClInclude Include="..\src\opcode.h" />
+    <ClInclude Include="..\src\api\errors.h">
+      <Filter>api</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

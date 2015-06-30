@@ -10,6 +10,79 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\args.c" />
+    <ClCompile Include="..\src\errors.c" />
+    <ClCompile Include="..\src\import.c" />
+    <ClCompile Include="..\src\internal.c" />
+    <ClCompile Include="..\src\interp.c" />
+    <ClCompile Include="..\src\marshal.c" />
+    <ClCompile Include="..\src\module\builtin.c" />
+    <ClCompile Include="..\src\module\sys.c" />
+    <ClCompile Include="..\src\object\bool.c" />
+    <ClCompile Include="..\src\object\builtins.c" />
+    <ClCompile Include="..\src\object\cfunc.c" />
+    <ClCompile Include="..\src\object\code.c" />
+    <ClCompile Include="..\src\object\dict.c" />
+    <ClCompile Include="..\src\object\exc.c" />
+    <ClCompile Include="..\src\object\file.c" />
+    <ClCompile Include="..\src\object\frame.c" />
+    <ClCompile Include="..\src\object\int.c" />
+    <ClCompile Include="..\src\object\iter.c" />
+    <ClCompile Include="..\src\object\list.c" />
+    <ClCompile Include="..\src\object\method.c" />
+    <ClCompile Include="..\src\object\module.c" />
+    <ClCompile Include="..\src\object\object.c" />
+    <ClCompile Include="..\src\object\pfunc.c" />
+    <ClCompile Include="..\src\object\slice.c" />
+    <ClCompile Include="..\src\object\str.c" />
+    <ClCompile Include="..\src\object\tuple.c" />
+    <ClCompile Include="..\src\object\type.c" />
+    <ClCompile Include="..\src\protocol\pr_number.c" />
+    <ClCompile Include="..\src\protocol\pr_object.c" />
+    <ClCompile Include="..\src\protocol\pr_seqmap.c" />
+    <ClCompile Include="..\src\runtime\conv.c" />
+    <ClCompile Include="..\src\runtime\ctypes.c" />
+    <ClCompile Include="..\src\runtime\string.c" />
+    <ClCompile Include="..\src\runtime\thunks.c" />
+    <ClCompile Include="..\src\runtime\win32\error.c" />
+    <ClCompile Include="..\src\runtime\win32\files.c" />
+    <ClCompile Include="..\src\snakebed.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\api\args.h" />
+    <ClInclude Include="..\src\api\errors.h" />
+    <ClInclude Include="..\src\api\import.h" />
+    <ClInclude Include="..\src\api\interp.h" />
+    <ClInclude Include="..\src\api\object.h" />
+    <ClInclude Include="..\src\api\object_bool.h" />
+    <ClInclude Include="..\src\api\object_cfunc.h" />
+    <ClInclude Include="..\src\api\object_code.h" />
+    <ClInclude Include="..\src\api\object_dict.h" />
+    <ClInclude Include="..\src\api\object_exc.h" />
+    <ClInclude Include="..\src\api\object_file.h" />
+    <ClInclude Include="..\src\api\object_frame.h" />
+    <ClInclude Include="..\src\api\object_int.h" />
+    <ClInclude Include="..\src\api\object_iter.h" />
+    <ClInclude Include="..\src\api\object_list.h" />
+    <ClInclude Include="..\src\api\object_method.h" />
+    <ClInclude Include="..\src\api\object_module.h" />
+    <ClInclude Include="..\src\api\object_pfunc.h" />
+    <ClInclude Include="..\src\api\object_slice.h" />
+    <ClInclude Include="..\src\api\object_str.h" />
+    <ClInclude Include="..\src\api\object_tuple.h" />
+    <ClInclude Include="..\src\api\object_type.h" />
+    <ClInclude Include="..\src\api\platform.h" />
+    <ClInclude Include="..\src\api\platform_win32.h" />
+    <ClInclude Include="..\src\api\proto.h" />
+    <ClInclude Include="..\src\api\runtime.h" />
+    <ClInclude Include="..\src\api\snakebed.h" />
+    <ClInclude Include="..\src\api\supports.h" />
+    <ClInclude Include="..\src\internal.h" />
+    <ClInclude Include="..\src\module\builtin.h" />
+    <ClInclude Include="..\src\module\sys.h" />
+    <ClInclude Include="..\src\opcode.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8F00D237-4358-4A21-940B-9B14D477E65C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -19,34 +92,30 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>false</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="snakebed.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="snakebed.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Configuration)\$(ProjectName)\</OutDir>
-    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Configuration)\$(ProjectName)\</OutDir>
-    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -55,7 +124,6 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\src\core;..\src\bstrap;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -71,7 +139,6 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\src\core;..\src\bstrap;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerOutput>All</AssemblerOutput>
       <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
@@ -82,77 +149,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ProjectReference Include="SbBootStrap.vcxproj">
-      <Project>{f80ad364-9c79-4c12-9364-280f33aaf1c4}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\src\core\args.c" />
-    <ClCompile Include="..\src\core\exception.c" />
-    <ClCompile Include="..\src\core\import.c" />
-    <ClCompile Include="..\src\core\internal.c" />
-    <ClCompile Include="..\src\core\interp.c">
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MaxSpeed</Optimization>
-    </ClCompile>
-    <ClCompile Include="..\src\core\marshal.c" />
-    <ClCompile Include="..\src\core\module_builtin.c" />
-    <ClCompile Include="..\src\core\module_sys.c" />
-    <ClCompile Include="..\src\core\object.c" />
-    <ClCompile Include="..\src\core\object_bool.c" />
-    <ClCompile Include="..\src\core\object_builtins.c" />
-    <ClCompile Include="..\src\core\object_cfunc.c" />
-    <ClCompile Include="..\src\core\object_code.c" />
-    <ClCompile Include="..\src\core\object_dict.c" />
-    <ClCompile Include="..\src\core\object_exc.c" />
-    <ClCompile Include="..\src\core\object_file.c" />
-    <ClCompile Include="..\src\core\object_frame.c" />
-    <ClCompile Include="..\src\core\object_int.c" />
-    <ClCompile Include="..\src\core\object_iter.c" />
-    <ClCompile Include="..\src\core\object_list.c" />
-    <ClCompile Include="..\src\core\object_method.c" />
-    <ClCompile Include="..\src\core\object_module.c" />
-    <ClCompile Include="..\src\core\object_pfunc.c" />
-    <ClCompile Include="..\src\core\object_slice.c" />
-    <ClCompile Include="..\src\core\object_str.c" />
-    <ClCompile Include="..\src\core\object_tuple.c" />
-    <ClCompile Include="..\src\core\object_type.c" />
-    <ClCompile Include="..\src\core\proto_number.c" />
-    <ClCompile Include="..\src\core\proto_object.c" />
-    <ClCompile Include="..\src\core\proto_seqmap.c" />
-    <ClCompile Include="..\src\core\snakebed.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\src\core\args.h" />
-    <ClInclude Include="..\src\core\exception.h" />
-    <ClInclude Include="..\src\core\import.h" />
-    <ClInclude Include="..\src\core\internal.h" />
-    <ClInclude Include="..\src\core\interp.h" />
-    <ClInclude Include="..\src\core\module_builtin.h" />
-    <ClInclude Include="..\src\core\module_sys.h" />
-    <ClInclude Include="..\src\core\object.h" />
-    <ClInclude Include="..\src\core\object_bool.h" />
-    <ClInclude Include="..\src\core\object_cfunc.h" />
-    <ClInclude Include="..\src\core\object_code.h" />
-    <ClInclude Include="..\src\core\object_dict.h" />
-    <ClInclude Include="..\src\core\object_file.h" />
-    <ClInclude Include="..\src\core\object_frame.h" />
-    <ClInclude Include="..\src\core\object_int.h" />
-    <ClInclude Include="..\src\core\object_iter.h" />
-    <ClInclude Include="..\src\core\object_list.h" />
-    <ClInclude Include="..\src\core\object_method.h" />
-    <ClInclude Include="..\src\core\object_module.h" />
-    <ClInclude Include="..\src\core\object_pfunc.h" />
-    <ClInclude Include="..\src\core\object_slice.h" />
-    <ClInclude Include="..\src\core\object_str.h" />
-    <ClInclude Include="..\src\core\object_tuple.h" />
-    <ClInclude Include="..\src\core\object_type.h" />
-    <ClInclude Include="..\src\core\object_exc.h" />
-    <ClInclude Include="..\src\core\opcode.h" />
-    <ClInclude Include="..\src\core\proto.h" />
-    <ClInclude Include="..\src\core\snakebed.h" />
-    <ClInclude Include="..\src\core\supports.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
