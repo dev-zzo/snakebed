@@ -201,6 +201,22 @@ SbStr_AsString(SbObject *p)
     return SbStr_AsStringUnsafe(p);
 }
 
+int
+SbStr_StartsWithString(SbObject *p1, const char *p2)
+{
+    Sb_ssize_t length;
+
+    if (!SbStr_CheckExact(p1)) {
+        return -1;
+    }
+    length = Sb_StrLen(p2);
+    if (length > SbStr_GetSizeUnsafe(p1)) {
+        return 0;
+    }
+    return Sb_MemCmp(SbStr_AsString(p1), p2, length) == 0;
+}
+
+
 long
 _SbStr_Hash(SbObject *p)
 {
@@ -640,6 +656,32 @@ str_rindex(SbObject *self, SbObject *args, SbObject *kwargs)
 }
 
 
+static SbObject *
+str_startswith(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o_prefix;
+    const char *prefix;
+
+    /* NOTE: tuple prefix not implemented; start/end indices not implemented. */
+    if (SbArgs_Unpack(args, 1, 1, &o_prefix) < 0) {
+        return NULL;
+    }
+    if (!SbStr_CheckExact(o_prefix)) {
+        SbErr_RaiseWithString(SbExc_TypeError, "expected str as prefix");
+        return NULL;
+    }
+    prefix = SbStr_AsStringUnsafe(o_prefix);
+    switch (SbStr_StartsWithString(self, prefix)) {
+    case 0:
+        Sb_RETURN_FALSE;
+    case 1:
+        Sb_RETURN_TRUE;
+    default:
+        return NULL;
+    }
+}
+
+
 #if SUPPORTS(STR_FORMAT)
 
 /* Ref: https://www.python.org/dev/peps/pep-3101/ */
@@ -686,6 +728,8 @@ static const SbCMethodDef str_methods[] = {
     { "index", str_index },
     { "rfind", str_rfind },
     { "rindex", str_rindex },
+
+    { "startswith", str_startswith },
 
 #if SUPPORTS(STRING_INTERPOLATION)
     { "__mod__", str_interpolate },

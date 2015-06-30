@@ -54,6 +54,12 @@ SbStr_GetSize(SbObject *p);
 const Sb_byte_t *
 SbStr_AsString(SbObject *p);
 
+/* Check whether or not p2 starts with p2.
+   Returns: 1 if yes, 0 if no, -1 on error.
+*/
+int
+SbStr_StartsWithString(SbObject *p1, const char *p2);
+
 /* METHODS USED INTERNALLY */
 
 long
