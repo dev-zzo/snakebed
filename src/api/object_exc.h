@@ -28,6 +28,7 @@ extern SbTypeObject    *SbExc_TypeError;
 extern SbTypeObject    *SbExc_ValueError;
 extern SbTypeObject   *SbExc_StopIteration;
 extern SbTypeObject  *SbExc_SystemExit;
+extern SbTypeObject  *SbExc_KeyboardInterrupt;
 
 /* Verify the given object is an exception instance.
    Returns: 1 if true, 0 otherwise. */

@@ -19,6 +19,7 @@ SbTypeObject    *SbExc_TypeError = NULL;
 SbTypeObject    *SbExc_ValueError = NULL;
 SbTypeObject   *SbExc_StopIteration = NULL;
 SbTypeObject  *SbExc_SystemExit = NULL;
+SbTypeObject  *SbExc_KeyboardInterrupt = NULL;
 
 SbObject *_SbExc_MemoryErrorInstance = NULL;
 SbObject *_SbExc_StopIterationInstance = NULL;
@@ -234,8 +235,8 @@ _Sb_TypeInit_Exceptions()
     SbExc_UnboundLocalError = SbExc_NewException("UnboundLocalError", SbExc_NameError);
 
     SbExc_StopIteration = SbExc_NewException("StopIteration", SbExc_Exception);
-
     SbExc_SystemExit = SbExc_NewException("SystemExit", SbExc_BaseException);
+    SbExc_KeyboardInterrupt = SbExc_NewException("KeyboardInterrupt", SbExc_BaseException);
 
     _SbExc_MemoryErrorInstance = SbObject_Call((SbObject *)SbExc_MemoryError, NULL, NULL);
     _SbExc_StopIterationInstance = SbObject_Call((SbObject *)SbExc_StopIteration, NULL, NULL);

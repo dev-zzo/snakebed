@@ -143,6 +143,7 @@ _Sb_ModuleInit_Builtin()
     SbDict_SetItemString(dict, "TypeError", (SbObject *)SbExc_TypeError);
     SbDict_SetItemString(dict, "ValueError", (SbObject *)SbExc_ValueError);
     SbDict_SetItemString(dict, "StopIteration", (SbObject *)SbExc_StopIteration);
+    SbDict_SetItemString(dict, "KeyboardInterrupt", (SbObject *)SbExc_KeyboardInterrupt);
 
     SbDict_SetItemString(dict, "object", (SbObject *)SbObject_Type);
     SbDict_SetItemString(dict, "type", (SbObject *)SbType_Type);
