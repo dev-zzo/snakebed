@@ -90,6 +90,7 @@ SbObject *
 SB_Import(const char *name)
 {
     SbObject *module;
+    SbObject *path;
 
     module = Sb_GetModule(name);
     if (module) {
@@ -97,7 +98,19 @@ SB_Import(const char *name)
         return module;
     }
 
-    /* NOTE: Temporary until I implement some package support. */
-    SbErr_RaiseWithFormat(SbExc_ImportError, "no module named '%s'", name);
+    path = SbStr_FromFormat("%s.sb", name);
+    if (!path) {
+        return NULL;
+    }
+
+    module = Sb_LoadModule(name, SbStr_AsStringUnsafe(path));
+    Sb_DECREF(path);
+    if (module) {
+        return module;
+    }
+
+    if (SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_IOError)) {
+        SbErr_RaiseWithFormat(SbExc_ImportError, "module '%s' not found", name);
+    }
     return NULL;
 }
