@@ -3,7 +3,7 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>$(SolutionDir)..\build\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)..\build\</OutDir>
   </PropertyGroup>
   <PropertyGroup>
     <IntDir>$(SolutionDir)..\build_tmp\$(Configuration)\$(ProjectName)\</IntDir>
