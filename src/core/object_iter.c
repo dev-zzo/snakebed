@@ -127,15 +127,6 @@ SbArrayIter_New(SbObject **base, SbObject **end)
     return self;
 }
 
-
-SbObject *
-SbIter_Next(SbObject *o)
-{
-    SbIterObject *myself = (SbIterObject *)o;
-
-    return myself->nextproc(myself);
-}
-
 static void
 iter_destroy(SbIterObject *self)
 {
@@ -186,8 +177,9 @@ static SbObject *
 iter_next(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *result;
+    SbIterObject *myself = (SbIterObject *)self;
 
-    result = SbIter_Next(self);
+    result = myself->nextproc(myself);
     if (result) {
         return result;
     }
@@ -220,4 +212,19 @@ _Sb_TypeInit_Iter()
     tp->tp_destroy = (SbDestroyFunc)iter_destroy;
     SbIter_Type = tp;
     return 0;
+}
+
+
+SbObject *
+SbIter_Next(SbObject *o)
+{
+    SbObject *r;
+
+    r = SbObject_CallMethod(o, "next", NULL, NULL);
+    if (!r) {
+        if (SbErr_Occurred() && SbErr_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbErr_StopIteration)) {
+            SbErr_Clear();
+        }
+    }
+    return r;
 }
