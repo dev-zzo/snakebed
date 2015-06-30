@@ -94,6 +94,37 @@ _builtin_hash(SbObject *self, SbObject *args, SbObject *kwargs)
     return SbInt_FromNative(hash);
 }
 
+
+static SbObject *
+_builtin_getattr(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o;
+    SbObject *o_name;
+    SbObject *o_default = NULL;
+
+    if (SbArgs_Unpack(args, 2, 3, &o, &o_name, &o_default) < 0) {
+        return NULL;
+    }
+    if (!SbStr_CheckExact(o_name)) {
+        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
+        return NULL;
+    }
+
+    o = SbObject_GetAttrString(o, SbStr_AsStringUnsafe(o_name));
+    if (o) {
+        return o;
+    }
+    if (SbErr_Occurred()) {
+        return NULL;
+    }
+    if (o_default) {
+        Sb_INCREF(o_default);
+        return o_default;
+    }
+    SbErr_RaiseWithString(SbExc_AttributeError, SbStr_AsStringUnsafe(o_name));
+    return NULL;
+}
+
 static int
 add_func(SbObject *dict, const char *name, SbCFunction func)
 {
@@ -165,6 +196,7 @@ _Sb_ModuleInit_Builtin()
     add_func(dict, "id", _builtin_id);
     add_func(dict, "len", _builtin_len);
     add_func(dict, "hash", _builtin_hash);
+    add_func(dict, "getattr", _builtin_getattr);
 
     Sb_ModuleBuiltin = m;
     return 0;
