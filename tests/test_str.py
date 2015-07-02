@@ -24,6 +24,8 @@ class Test(unittest.TestCase):
         self.assertEqual("".rfind("", 1), -1)
         self.assertEqual("".rfind("abc"), -1)
         self.assertEqual("abc".rfind("xxx", 2800000, 1), -1)
+    def test_format(self):
+        self.assertEqual("meh{0}teh".format("or"), "mehorteh")
 #
 
 if __name__ == "__main__":
