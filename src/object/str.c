@@ -907,6 +907,7 @@ formatter_get_field(SbObject *field_name, SbObject *args, SbObject *kwargs)
         }
     }
 
+    Sb_INCREF(o);
     return o;
 
 empty_attr:
@@ -915,10 +916,23 @@ empty_attr:
 }
 
 static SbObject *
+formatter_convert(SbObject *o, SbObject *conv)
+{
+    Sb_INCREF(o);
+    return o;
+}
+
+static SbObject *
+formatter_format(SbObject *o, SbObject *spec)
+{
+}
+
+static SbObject *
 str_format(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *items;
     SbObject *parts;
+    SbObject *result;
     Sb_ssize_t pos, item_count;
     Sb_ssize_t posarg_counter;
 
@@ -932,7 +946,7 @@ str_format(SbObject *self, SbObject *args, SbObject *kwargs)
         SbObject *item;
         SbObject *o_literal, *o_name, *o_spec, *o_conv;
 
-        item = SbList_GetItemUnsafe(items, pos);
+        item = SbList_GetItemUnsafe(items, pos++);
         o_name = SbTuple_GetItemUnsafe(item, 1);
         o_spec = SbTuple_GetItemUnsafe(item, 2);
         o_conv = SbTuple_GetItemUnsafe(item, 3);
@@ -944,11 +958,32 @@ str_format(SbObject *self, SbObject *args, SbObject *kwargs)
 
         if (o_name != Sb_None) {
             SbObject *o;
+            SbObject *o_converted;
+
             o = formatter_get_field(o_name, args, kwargs);
+            if (!o) {
+                goto error;
+            }
+
+            o_converted = formatter_convert(o, o_conv);
+            Sb_DECREF(o);
+
+            o = formatter_format(o_converted, o_spec);
+            if (!o) {
+                goto error;
+            }
+            SbList_Append(parts, o);
         }
     }
+    Sb_DECREF(items);
 
-    SbErr_RaiseWithString(SbExc_SystemError, "not implemented");
+    result = SbStr_Join(SbStr_FromString(""), parts);
+    Sb_DECREF(parts);
+    return result;
+
+error:
+    Sb_DECREF(items);
+    Sb_DECREF(parts);
     return NULL;
 }
 
