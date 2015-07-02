@@ -60,6 +60,11 @@ SbStr_AsString(SbObject *p);
 int
 SbStr_StartsWithString(SbObject *p1, const char *p2);
 
+/* Join strings in `iterable` using `glue`.
+   Returns: New reference. */
+SbObject *
+SbStr_Join(SbObject *glue, SbObject *iterable);
+
 /* METHODS USED INTERNALLY */
 
 long

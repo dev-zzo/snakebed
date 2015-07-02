@@ -216,6 +216,77 @@ SbStr_StartsWithString(SbObject *p1, const char *p2)
     return Sb_MemCmp(SbStr_AsString(p1), p2, length) == 0;
 }
 
+SbObject *
+SbStr_Join(SbObject *glue, SbObject *iterable)
+{
+    SbObject *it;
+    SbObject *o;
+    SbObject *result;
+    Sb_ssize_t length;
+    Sb_ssize_t glue_length;
+    char *cursor;
+    const char *source;
+
+    it = SbObject_GetIter(iterable);
+    if (!it) {
+        return NULL;
+    }
+
+    length = 0;
+    glue_length = SbStr_GetSizeUnsafe(glue);
+    for (o = SbIter_Next(it); o; o = SbIter_Next(it)) {
+        if (!SbStr_CheckExact(o)) {
+            Sb_DECREF(o);
+            Sb_DECREF(it);
+            SbErr_RaiseWithFormat(SbExc_TypeError, "invalid type: expected str, found %s", Sb_TYPE(o)->tp_name);
+            return NULL;
+        }
+        length += SbStr_GetSizeUnsafe(o) + glue_length;
+        Sb_DECREF(o);
+    }
+    Sb_DECREF(it);
+
+    if (length == 0) {
+        return SbStr_FromString("");
+    }
+
+    /* FIXME: guard against overflows */
+    result = SbStr_FromStringAndSize(NULL, length);
+    if (!result) {
+        return NULL;
+    }
+
+    it = SbObject_GetIter(iterable);
+    if (!it) {
+        Sb_DECREF(result);
+        return NULL;
+    }
+
+    cursor = SbStr_AsStringUnsafe(result);
+
+    o = SbIter_Next(it);
+    goto midloop;
+
+    while (o) {
+        length = SbStr_GetSizeUnsafe(glue);
+        source = SbStr_AsStringUnsafe(glue);
+        while (length > 0) {
+            *cursor++ = *source++;
+        }
+midloop:
+        length = SbStr_GetSizeUnsafe(o);
+        source = SbStr_AsStringUnsafe(o);
+        while (length > 0) {
+            *cursor++ = *source++;
+        }
+        Sb_DECREF(o);
+        o = SbIter_Next(it);
+    }
+    Sb_DECREF(it);
+
+    return result;
+}
+
 
 long
 _SbStr_Hash(SbObject *p)
@@ -376,61 +447,11 @@ static SbObject *
 str_join(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *iterable;
-    SbObject *it;
-    SbObject *o;
-    SbObject *result;
-    Sb_ssize_t total_length;
-    Sb_ssize_t glue_count;
-    char *cursor;
 
     if (SbArgs_Unpack(args, 1, 1, &iterable) < 0) {
         return NULL;
     }
-
-    it = SbObject_GetIter(iterable);
-    if (!it) {
-        return NULL;
-    }
-
-    total_length = 0;
-    glue_count = -1;
-    for (o = SbIter_Next(it); o; o = SbIter_Next(it)) {
-        if (!SbStr_CheckExact(o)) {
-            Sb_DECREF(o);
-            Sb_DECREF(it);
-            SbErr_RaiseWithFormat(SbExc_TypeError, "invalid type: expected str, found %s", Sb_TYPE(o)->tp_name);
-            return NULL;
-        }
-        total_length += SbStr_GetSizeUnsafe(o);
-        glue_count += 1;
-        Sb_DECREF(o);
-    }
-    Sb_DECREF(it);
-
-    result = SbStr_FromStringAndSize(NULL, total_length + glue_count * SbStr_GetSizeUnsafe(self));
-    if (!result) {
-        return NULL;
-    }
-
-    it = SbObject_GetIter(iterable);
-    if (!it) {
-        return NULL;
-    }
-
-    cursor = SbStr_AsStringUnsafe(result);
-    for (o = SbIter_Next(it); o; o = SbIter_Next(it)) {
-        Sb_MemCpy(cursor, SbStr_AsStringUnsafe(o), SbStr_GetSizeUnsafe(o));
-        cursor += SbStr_GetSizeUnsafe(o);
-        Sb_DECREF(o);
-        if (glue_count > 0) {
-            Sb_MemCpy(cursor, SbStr_AsStringUnsafe(self), SbStr_GetSizeUnsafe(self));
-            cursor += SbStr_GetSizeUnsafe(self);
-            glue_count -= 1;
-        }
-    }
-    Sb_DECREF(it);
-
-    return result;
+    return SbStr_Join(self, iterable);
 }
 
 static void
