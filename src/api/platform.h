@@ -7,6 +7,11 @@ extern "C" {
 #include <stdarg.h>
 #include <stdlib.h>
 
+#define PLATFORM(x) (PLATFORM_CURRENT == x)
+#define PLATFORM_CURRENT 0
+#define PLATFORM_WINNT 1
+#define PLATFORM_LINUX 2
+
 #include "platform_win32.h"
 
 /* Error handling kludges */

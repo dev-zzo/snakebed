@@ -11,6 +11,11 @@ extern "C" {
 #include <assert.h>
 #include <intrin.h>
 
+#ifdef PLATFORM_CURRENT
+#undef PLATFORM_CURRENT
+#endif
+#define PLATFORM_CURRENT PLATFORM_WINNT
+
 #ifndef NULL
 #define NULL (void *)0
 #endif

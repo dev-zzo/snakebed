@@ -27,4 +27,8 @@
 #define STRING_INTERPOLATION ON
 #define STR_FORMAT ON
 
+/* Compiled-in modules support */
+
+#define MODULE_SOCKET ON
+
 #endif // __SNAKEBED_SUPOORTS_H
