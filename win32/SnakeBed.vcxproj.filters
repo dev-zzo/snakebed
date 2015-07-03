@@ -121,6 +121,9 @@
     <ClCompile Include="..\src\module\_string.c">
       <Filter>module</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\module\_socket.c">
+      <Filter>module</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\module\builtin.h">
