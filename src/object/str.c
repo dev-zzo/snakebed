@@ -270,13 +270,13 @@ SbStr_Join(SbObject *glue, SbObject *iterable)
     while (o) {
         length = SbStr_GetSizeUnsafe(glue);
         source = SbStr_AsStringUnsafe(glue);
-        while (length > 0) {
+        while (length-- > 0) {
             *cursor++ = *source++;
         }
 midloop:
         length = SbStr_GetSizeUnsafe(o);
         source = SbStr_AsStringUnsafe(o);
-        while (length > 0) {
+        while (length-- > 0) {
             *cursor++ = *source++;
         }
         Sb_DECREF(o);
@@ -480,6 +480,25 @@ fill_rjust(char *dst, Sb_ssize_t width, const char *src, Sb_ssize_t src_width, c
 }
 
 static SbObject *
+str_justify_internal(SbObject *str, Sb_ssize_t width, char filler, void (*proc)(char *, Sb_ssize_t, const char *, Sb_ssize_t, char))
+{
+    SbObject *o_result;
+
+    if (SbStr_GetSizeUnsafe(str) >= width) {
+        Sb_INCREF(str);
+        return str;
+    }
+
+    o_result = SbStr_FromStringAndSize(NULL, width);
+    if (!o_result) {
+        return NULL;
+    }
+
+    proc(SbStr_AsStringUnsafe(o_result), width, SbStr_AsStringUnsafe(str), SbStr_GetSizeUnsafe(str), filler);
+    return o_result;
+}
+
+static SbObject *
 str_justify_generic(SbObject *self, SbObject *args, SbObject *kwargs, void (*proc)(char *, Sb_ssize_t, const char *, Sb_ssize_t, char))
 {
     SbObject *o_width;
@@ -506,18 +525,7 @@ str_justify_generic(SbObject *self, SbObject *args, SbObject *kwargs, void (*pro
         return NULL;
     }
 
-    if (SbStr_GetSizeUnsafe(self) >= width) {
-        Sb_INCREF(self);
-        return self;
-    }
-
-    o_result = SbStr_FromStringAndSize(NULL, width);
-    if (!o_result) {
-        return NULL;
-    }
-
-    proc(SbStr_AsStringUnsafe(o_result), width, SbStr_AsStringUnsafe(self), SbStr_GetSizeUnsafe(self), fillchar);
-    return o_result;
+    return str_justify_internal(self, width, fillchar, proc);
 }
 
 static SbObject *
@@ -536,6 +544,24 @@ static SbObject *
 str_rjust(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     return str_justify_generic(self, args, kwargs, fill_rjust);
+}
+
+SbObject *
+SbStr_JustifyLeft(SbObject *str, Sb_ssize_t width, char filler)
+{
+    return str_justify_internal(str, width, filler, fill_ljust);
+}
+
+SbObject *
+SbStr_JustifyCenter(SbObject *str, Sb_ssize_t width, char filler)
+{
+    return str_justify_internal(str, width, filler, fill_cjust);
+}
+
+SbObject *
+SbStr_JustifyRight(SbObject *str, Sb_ssize_t width, char filler)
+{
+    return str_justify_internal(str, width, filler, fill_rjust);
 }
 
 static int
@@ -702,6 +728,49 @@ str_startswith(SbObject *self, SbObject *args, SbObject *kwargs)
     }
 }
 
+#if SUPPORTS(STR_FORMAT)
+
+static SbObject *
+str_format(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o_spec;
+    SbString_FormatSpecifier spec;
+    SbObject *o_result;
+
+    if (SbArgs_Unpack(args, 1, 1, &o_spec) < 0) {
+        return NULL;
+    }
+    if (o_spec == Sb_None) {
+        Sb_INCREF(self);
+        return self;
+    }
+    if (SbString_ParseFormatSpec(SbStr_AsString(o_spec), &spec) < 0) {
+        return NULL;
+    }
+
+    if (spec.precision >= 0 && SbStr_GetSizeUnsafe(self) > spec.precision) {
+        self = SbStr_FromStringAndSize(SbStr_AsStringUnsafe(self), spec.precision);
+    }
+    else {
+        Sb_INCREF(self);
+    }
+
+    if (spec.align_flag == '>') {
+        o_result = SbStr_JustifyRight(self, spec.min_width, spec.filler);
+    }
+    else if (spec.align_flag == '^') {
+        o_result = SbStr_JustifyCenter(self, spec.min_width, spec.filler);
+    }
+    else {
+        o_result = SbStr_JustifyLeft(self, spec.min_width, spec.filler);
+    }
+    Sb_DECREF(self);
+
+    return o_result;
+}
+
+#endif /* SUPPORTS(STR_FORMAT) */
+
 #if SUPPORTS(STRING_INTERPOLATION)
 
 /* Ref: https://docs.python.org/2/library/stdtypes.html#string-formatting */
@@ -746,6 +815,7 @@ static const SbCMethodDef str_methods[] = {
 #endif
 #if SUPPORTS(STR_FORMAT)
     { "format", Formatter_VFormat },
+    { "__format__", str_format },
 #endif
     /* Sentinel */
     { NULL, NULL },

@@ -215,5 +215,8 @@
     <ClInclude Include="..\src\api\errors.h">
       <Filter>api</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\module\_string.h">
+      <Filter>module</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

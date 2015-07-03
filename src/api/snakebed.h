@@ -34,6 +34,7 @@ extern "C" {
 
 #include "module/builtin.h"
 #include "module/sys.h"
+#include "module/_string.h"
 
 
 /* Nothing. */

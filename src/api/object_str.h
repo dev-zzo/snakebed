@@ -65,6 +65,16 @@ SbStr_StartsWithString(SbObject *p1, const char *p2);
 SbObject *
 SbStr_Join(SbObject *glue, SbObject *iterable);
 
+/* Create a new string, which is the same as the source but jsutified.
+   Returns: New reference. */
+SbObject *
+SbStr_JustifyLeft(SbObject *p, Sb_ssize_t width, char filler);
+SbObject *
+SbStr_JustifyCenter(SbObject *p, Sb_ssize_t width, char filler);
+SbObject *
+SbStr_JustifyRight(SbObject *p, Sb_ssize_t width, char filler);
+
+
 /* METHODS USED INTERNALLY */
 
 long

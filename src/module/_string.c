@@ -1,5 +1,6 @@
 #include "snakebed.h"
 #include "internal.h"
+#include "_string.h"
 
 SbObject *Sb_ModuleString = NULL;
 
@@ -316,6 +317,58 @@ _Sb_TypeInit_Formatter(SbObject *m)
     }
 
     return (SbObject *)tp;
+}
+
+
+int
+SbString_ParseFormatSpec(const char *spec, SbString_FormatSpecifier* result)
+{
+    result->min_width = 0;
+    result->precision = -1;
+    result->conv_type = '\0';
+
+    if (spec[0] != '\0' && (spec[1] == '<' || spec[1] == '>' || spec[1] == '=' || spec[1] == '^')) {
+        result->filler = spec[0];
+        result->align_flag = spec[1];
+    }
+    else {
+        result->filler = ' ';
+        if (*spec == '<' || *spec == '>' || *spec == '=' || *spec == '^') {
+            result->align_flag = *spec;
+            ++spec;
+        }
+        else {
+            result->align_flag = '<';
+        }
+    }
+    if (*spec == '+' || *spec == '-' || *spec == ' ') {
+        result->sign_flag = *spec;
+        ++spec;
+    }
+    if (*spec == '#') {
+        result->use_alt_form = *spec;
+        ++spec;
+    }
+    if (*spec == '0') {
+        result->filler = '0';
+        result->align_flag = '=';
+        ++spec;
+    }
+    if (Sb_AtoUL(spec, &spec, 10, &result->min_width) < 0) {
+        result->min_width = 0;
+    }
+    result->use_precision = 0;
+    if (*spec == '.') {
+        ++spec;
+        if (Sb_AtoUL(spec, &spec, 10, &result->precision) >= 0) {
+            result->use_precision = 1;
+        }
+    }
+    if (*spec != '\0') {
+        result->conv_type = *spec;
+    }
+
+    return 0;
 }
 
 #endif /* SUPPORTS(STR_FORMAT) */

@@ -83,6 +83,7 @@
     <ClInclude Include="..\src\internal.h" />
     <ClInclude Include="..\src\module\builtin.h" />
     <ClInclude Include="..\src\module\sys.h" />
+    <ClInclude Include="..\src\module\_string.h" />
     <ClInclude Include="..\src\opcode.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
