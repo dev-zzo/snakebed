@@ -186,6 +186,32 @@ SbObject_DefaultStr(SbObject *self, SbObject *args, SbObject *kwargs)
     return SbStr_FromFormat("<%s instance at %p>", Sb_TYPE(self)->tp_name, self);
 }
 
+#if SUPPORTS(STR_FORMAT)
+
+static SbObject *
+object_format(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *str;
+    SbObject *formatted;
+    SbObject *spec;
+
+    if (SbArgs_Unpack(args, 1, 1, &spec) < 0) {
+        return NULL;
+    }
+
+    str = SbObject_Str(self);
+    if (!str) {
+        return NULL;
+    }
+
+    formatted = SbBuiltin_Format(str, spec);
+    Sb_DECREF(str);
+
+    return formatted;
+}
+
+#endif /* SUPPORTS(STR_FORMAT) */
+
 /* Type initializer */
 
 static const SbCMethodDef object_methods[] = {
@@ -196,7 +222,9 @@ static const SbCMethodDef object_methods[] = {
     { "__getattr__", SbObject_DefaultGetAttr },
     { "__setattr__", SbObject_DefaultSetAttr },
     { "__delattr__", SbObject_DefaultDelAttr },
-
+#if SUPPORTS(STR_FORMAT)
+    { "__format__", object_format },
+#endif
     /* Sentinel */
     { NULL, NULL },
 };

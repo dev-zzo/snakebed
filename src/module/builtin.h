@@ -8,6 +8,9 @@ extern "C" {
     
 extern SbObject *Sb_ModuleBuiltin;
 
+SbObject *
+SbBuiltin_Format(SbObject *self, SbObject *spec);
+
 #ifdef __cplusplus
 }
 #endif

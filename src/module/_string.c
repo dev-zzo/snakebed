@@ -236,7 +236,7 @@ formatter_convert(SbObject *o, SbObject *conv)
 static SbObject *
 formatter_format_value(SbObject *o, SbObject *spec)
 {
-    return SbObject_CallMethodObjArgs(o, "__format__", 1, spec);
+    return SbBuiltin_Format(o, spec);
 }
 
 SbObject *
@@ -301,9 +301,6 @@ error:
     return NULL;
 }
 
-#endif /* SUPPORTS(STR_FORMAT) */
-
-
 static SbObject *
 _Sb_TypeInit_Formatter(SbObject *m)
 {
@@ -313,14 +310,16 @@ _Sb_TypeInit_Formatter(SbObject *m)
         { NULL, NULL },
     };
 
-
-    tp = _SbType_FromCDefs("Formatter", NULL, formatter_methods, sizeof(SbObject));
+    tp = _SbType_FromCDefs("Formatter", SbObject_Type, formatter_methods, sizeof(SbObject));
     if (!tp) {
         return NULL;
     }
 
     return (SbObject *)tp;
 }
+
+#endif /* SUPPORTS(STR_FORMAT) */
+
 
 int
 _Sb_ModuleInit_String()
@@ -339,12 +338,14 @@ _Sb_ModuleInit_String()
         return -1;
     }
 
+#if SUPPORTS(STR_FORMAT)
     tp = _Sb_TypeInit_Formatter(m);
     if (!tp) {
         Sb_DECREF(m);
         return -1;
     }
     SbDict_SetItemString(dict, "Formatter", tp);
+#endif /* SUPPORTS(STR_FORMAT) */
 
     Sb_ModuleString = m;
     return 0;

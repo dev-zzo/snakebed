@@ -125,6 +125,24 @@ _builtin_getattr(SbObject *self, SbObject *args, SbObject *kwargs)
     return NULL;
 }
 
+SbObject *
+SbBuiltin_Format(SbObject *self, SbObject *spec)
+{
+    return SbObject_CallMethodObjArgs(self, "__format__", 1, spec);
+}
+
+static SbObject *
+_builtin_format(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *spec;
+
+    if (SbArgs_Unpack(args, 1, 1, &spec) < 0) {
+        return NULL;
+    }
+
+    return SbObject_CallMethodObjArgs(self, "__format__", 1, spec);
+}
+
 static int
 add_func(SbObject *dict, const char *name, SbCFunction func)
 {
@@ -197,6 +215,9 @@ _Sb_ModuleInit_Builtin()
     add_func(dict, "len", _builtin_len);
     add_func(dict, "hash", _builtin_hash);
     add_func(dict, "getattr", _builtin_getattr);
+#if SUPPORTS(STR_FORMAT)
+    add_func(dict, "format", _builtin_format);
+#endif
 
     Sb_ModuleBuiltin = m;
     return 0;
