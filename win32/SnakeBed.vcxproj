@@ -18,6 +18,7 @@
     <ClCompile Include="..\src\interp.c" />
     <ClCompile Include="..\src\marshal.c" />
     <ClCompile Include="..\src\module\builtin.c" />
+    <ClCompile Include="..\src\module\_string.c" />
     <ClCompile Include="..\src\module\sys.c" />
     <ClCompile Include="..\src\object\bool.c" />
     <ClCompile Include="..\src\object\builtins.c" />

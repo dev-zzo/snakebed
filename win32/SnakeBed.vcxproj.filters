@@ -118,6 +118,9 @@
     <ClCompile Include="..\src\protocol\pr_iterator.c">
       <Filter>protocol</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\module\_string.c">
+      <Filter>module</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\module\builtin.h">
