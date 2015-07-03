@@ -133,5 +133,3 @@ class TestCase(object):
                 # print(name)
                 self._run_single(name, result)
         return result
-
-print('Imported my unittest')
