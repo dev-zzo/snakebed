@@ -26,6 +26,10 @@ class Test(unittest.TestCase):
         self.assertEqual("abc".rfind("xxx", 2800000, 1), -1)
     def test_format(self):
         self.assertEqual("meh{0}teh".format("or"), "mehorteh")
+        self.assertEqual("{0:<16}".format("abc"), "abc             ")
+        self.assertEqual("{0:>16}".format("abc"), "             abc")
+        self.assertEqual("{0:^16}".format("abc"), "      abc       ")
+        self.assertEqual("{0:>7.4}".format("abcdefg"), "   abcd")
 #
 
 if __name__ == "__main__":
