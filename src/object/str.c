@@ -232,8 +232,7 @@ SbStr_Join(SbObject *glue, SbObject *iterable)
         return NULL;
     }
 
-    length = 0;
-    glue_length = SbStr_GetSizeUnsafe(glue);
+    length = -SbStr_GetSizeUnsafe(glue);
     for (o = SbIter_Next(it); o; o = SbIter_Next(it)) {
         if (!SbStr_CheckExact(o)) {
             Sb_DECREF(o);
@@ -241,7 +240,7 @@ SbStr_Join(SbObject *glue, SbObject *iterable)
             SbErr_RaiseWithFormat(SbExc_TypeError, "invalid type: expected str, found %s", Sb_TYPE(o)->tp_name);
             return NULL;
         }
-        length += SbStr_GetSizeUnsafe(o) + glue_length;
+        length += SbStr_GetSizeUnsafe(o) + SbStr_GetSizeUnsafe(glue);
         Sb_DECREF(o);
     }
     Sb_DECREF(it);
