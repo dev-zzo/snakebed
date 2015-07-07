@@ -622,6 +622,10 @@ _Sb_ModuleInit_Socket()
     socket_error = SbExc_NewException("socket.error", SbExc_Exception);
     SbDict_SetItemString(dict, "error", (SbObject *)socket_error);
 
+    SbDict_SetItemString(dict, "AF_INET", SbInt_FromNative(AF_INET));
+    SbDict_SetItemString(dict, "SOCK_STREAM", SbInt_FromNative(SOCK_STREAM));
+    SbDict_SetItemString(dict, "SOCK_DGRAM", SbInt_FromNative(SOCK_DGRAM));
+
     Sb_ModuleSocket = m;
     return 0;
 }
