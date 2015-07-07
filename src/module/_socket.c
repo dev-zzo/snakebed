@@ -585,6 +585,39 @@ socketobj_sendto(socket_object *self, SbObject *args, SbObject *kwargs)
     return SbInt_FromNative(call_result);
 }
 
+static SbObject *
+socketobj_getsockname(socket_object *self, SbObject *args, SbObject *kwargs)
+{
+    struct sockaddr sa;
+    int sa_size = sizeof(sa);
+    int call_result;
+
+    call_result = getsockname(self->s, &sa, &sa_size);
+    if (call_result < 0) {
+        socket_raise_error("getsockname");
+        return NULL;
+    }
+
+    return sa2tuple(&sa, self->family);
+}
+
+static SbObject *
+socketobj_getpeername(socket_object *self, SbObject *args, SbObject *kwargs)
+{
+    struct sockaddr sa;
+    int sa_size = sizeof(sa);
+    int call_result;
+
+    call_result = getpeername(self->s, &sa, &sa_size);
+    if (call_result < 0) {
+        socket_raise_error("getpeername");
+        return NULL;
+    }
+
+    return sa2tuple(&sa, self->family);
+}
+
+
 static int
 socket_platform_init()
 {
@@ -605,6 +638,7 @@ _Sb_TypeInit_Socket(SbObject *m)
         { "__init__", (SbCFunction)socketobj_init, },
         { "__getattr__", (SbCFunction)socketobj_getattr },
         { "__del__", (SbCFunction)socketobj_del, },
+
         { "connect", (SbCFunction)socketobj_connect },
         { "close", (SbCFunction)socketobj_close },
         { "shutdown", (SbCFunction)socketobj_shutdown },
@@ -615,6 +649,10 @@ _Sb_TypeInit_Socket(SbObject *m)
         { "bind", (SbCFunction)socketobj_bind },
         { "listen", (SbCFunction)socketobj_listen },
         { "accept", (SbCFunction)socketobj_accept },
+
+        { "getsockname", (SbCFunction)socketobj_getsockname },
+        { "getpeername", (SbCFunction)socketobj_getpeername },
+
         /* Sentinel */
         { NULL, NULL },
     };
