@@ -230,6 +230,35 @@ socketobj_init(socket_object *self, SbObject *args, SbObject *kwargs)
     Sb_RETURN_NONE;
 }
 
+
+static SbObject *
+socketobj_getattr(socket_object *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *attr_name;
+    const char *attr_str;
+    SbObject *value;
+
+    if (SbArgs_Unpack(args, 1, 1, &attr_name) < 0) {
+        return NULL;
+    }
+    if (!SbStr_CheckExact(attr_name)) {
+        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
+        return NULL;
+    }
+    attr_str = SbStr_AsStringUnsafe(attr_name);
+    value = NULL;
+    if (!Sb_StrCmp(attr_str, "family")) {
+        return SbInt_FromNative(self->family);
+    }
+    if (!Sb_StrCmp(attr_str, "type")) {
+        return SbInt_FromNative(self->type);
+    }
+    if (!Sb_StrCmp(attr_str, "proto")) {
+        return SbInt_FromNative(self->proto);
+    }
+    return SbObject_DefaultGetAttr((SbObject *)self, args, kwargs);
+}
+
 static SbObject *
 socketobj_del(socket_object *self, SbObject *args, SbObject *kwargs)
 {
@@ -565,6 +594,7 @@ _Sb_TypeInit_Socket(SbObject *m)
     SbTypeObject *tp;
     static const SbCMethodDef methods[] = {
         { "__init__", (SbCFunction)socketobj_init, },
+        { "__getattr__", (SbCFunction)socketobj_getattr },
         { "__del__", (SbCFunction)socketobj_del, },
         { "connect", (SbCFunction)socketobj_connect },
         { "close", (SbCFunction)socketobj_close },
