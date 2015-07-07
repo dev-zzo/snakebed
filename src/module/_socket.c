@@ -192,22 +192,31 @@ socketobj_init(socket_object *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
     if (o_family) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected int as family");
-        return NULL;
+        if (!SbInt_CheckExact(o_family)) {
+            SbErr_RaiseWithString(SbExc_TypeError, "expected int as family");
+            return NULL;
+        }
+        family = SbInt_AsNativeUnsafe(o_family);
     }
     else {
         family = AF_INET;
     }
     if (o_type) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected int as type");
-        return NULL;
+        if (!SbInt_CheckExact(o_type)) {
+            SbErr_RaiseWithString(SbExc_TypeError, "expected int as type");
+            return NULL;
+        }
+        type = SbInt_AsNativeUnsafe(o_type);
     }
     else {
         type = SOCK_STREAM;
     }
     if (o_proto) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected int as proto");
-        return NULL;
+        if (!SbInt_CheckExact(o_proto)) {
+            SbErr_RaiseWithString(SbExc_TypeError, "expected int as proto");
+            return NULL;
+        }
+        proto = SbInt_AsNativeUnsafe(o_proto);
     }
     else {
         proto = 0;
