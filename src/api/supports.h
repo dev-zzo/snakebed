@@ -29,6 +29,7 @@
 
 /* Compiled-in modules support */
 
+/* Around 4k on x86 */
 #define MODULE_SOCKET ON
 
 #endif // __SNAKEBED_SUPOORTS_H

@@ -58,6 +58,8 @@ extern int
 _Sb_ModuleInit_Builtin();
 extern int
 _Sb_ModuleInit_Sys();
+int
+_Sb_ModuleInit_Socket();
 
 typedef int (*typeinitfunc)();
 
@@ -100,6 +102,9 @@ static typeinitfunc stage3_inits[] = {
     /* Modules */
     _Sb_ModuleInit_Sys,
     _Sb_ModuleInit_Builtin,
+#if SUPPORTS(MODULE_SOCKET)
+    _Sb_ModuleInit_Socket,
+#endif
     /* Sentinel */
     NULL
 };
