@@ -120,7 +120,8 @@ SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObjec
         }
     }
 
-    if (passed_posarg_count > expected_arg_count) {
+    if (passed_posarg_count >= expected_arg_count) {
+        /* If the function wants *args, have to provide it in any case. */
         if (code->flags & SbCode_VARARGS) {
             SbObject *vargs;
             Sb_ssize_t arg_count;
@@ -144,28 +145,33 @@ SbFrame_ApplyArgs(SbFrameObject *myself, SbObject *args, SbObject *kwds, SbObjec
                 goto fail0;
             }
         }
-        else {
+        else if (passed_posarg_count > expected_arg_count) {
             /* TypeError: too many args passed. */
             SbErr_RaiseWithFormat(SbExc_TypeError, "callable takes %d args (%d passed)", expected_arg_count, passed_posarg_count);
             goto fail0;
         }
     }
 
-    if (kwds && SbDict_GetSize(kwds)) {
-        if (code->flags & SbCode_VARKWDS) {
-            const char *arg_name;
+    /* If the function wants **kwds, have to provide it in any case. */
+    if (code->flags & SbCode_VARKWDS) {
+        const char *arg_name;
 
-            arg_name = (const char *)SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, 
-                expected_arg_count + !!(code->flags & SbCode_VARARGS)));
-            if (SbDict_SetItemString(locals, arg_name, kwds) < 0) {
+        arg_name = (const char *)SbStr_AsStringUnsafe(SbTuple_GetItemUnsafe(code->varnames, 
+            expected_arg_count + !!(code->flags & SbCode_VARARGS)));
+        if (!kwds) {
+            kwds = SbDict_New();
+            if (!kwds) {
                 goto fail0;
             }
         }
-        else {
-            /* TypeError: unexpected keyword args passed. */
-            SbErr_RaiseWithFormat(SbExc_TypeError, "%d unexpected kwarg(s) passed", SbDict_GetSize(kwds));
+        if (SbDict_SetItemString(locals, arg_name, kwds) < 0) {
             goto fail0;
         }
+    }
+    else if (kwds && SbDict_GetSize(kwds)) {
+        /* TypeError: unexpected keyword args passed. */
+        SbErr_RaiseWithFormat(SbExc_TypeError, "%d unexpected kwarg(s) passed", SbDict_GetSize(kwds));
+        goto fail0;
     }
 
     return 0;
