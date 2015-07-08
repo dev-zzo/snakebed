@@ -236,7 +236,7 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
         return attr;
     }
 
-    SbErr_RaiseWithString(SbExc_AttributeError, attr_name);
+    /* NOTE: This API does NOT raise exceptions if an attribute is not found. */
     return NULL;
 }
 
@@ -336,6 +336,7 @@ SbObject_CallMethod(SbObject *o, const char *method, SbObject *args, SbObject *k
 
     m = SbObject_GetAttrString(o, method);
     if (!m) {
+        SbErr_RaiseWithString(SbExc_AttributeError, method);
         return NULL;
     }
 

@@ -121,7 +121,7 @@ _builtin_getattr(SbObject *self, SbObject *args, SbObject *kwargs)
         Sb_INCREF(o_default);
         return o_default;
     }
-    SbErr_RaiseWithString(SbExc_AttributeError, SbStr_AsStringUnsafe(o_name));
+    SbErr_RaiseWithObject(SbExc_AttributeError, o_name);
     return NULL;
 }
 
