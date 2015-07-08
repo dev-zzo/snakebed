@@ -223,7 +223,6 @@ SbStr_Join(SbObject *glue, SbObject *iterable)
     SbObject *o;
     SbObject *result;
     Sb_ssize_t length;
-    Sb_ssize_t glue_length;
     char *cursor;
     const char *source;
 
@@ -284,6 +283,37 @@ midloop:
     Sb_DECREF(it);
 
     return result;
+}
+
+SbObject *
+SbStr_Concat(SbObject *lhs, SbObject *rhs)
+{
+    SbObject *o_new;
+    Sb_ssize_t lhs_size, rhs_size;
+    char *new_buffer;
+
+    /* OPT: Do not reallocate if one of strings is empty. */
+    lhs_size = SbStr_GetSizeUnsafe(lhs);
+    if (lhs_size == 0) {
+        Sb_INCREF(rhs);
+        return rhs;
+    }
+    rhs_size = SbStr_GetSizeUnsafe(rhs);
+    if (rhs_size == 0) {
+        Sb_INCREF(lhs);
+        return lhs;
+    }
+
+    o_new = SbStr_FromStringAndSize(NULL, lhs_size + rhs_size);
+    if (!o_new) {
+        return NULL;
+    }
+
+    new_buffer = SbStr_AsStringUnsafe(o_new);
+    Sb_MemCpy(new_buffer, SbStr_AsStringUnsafe(lhs), lhs_size);
+    Sb_MemCpy(new_buffer + lhs_size, SbStr_AsStringUnsafe(rhs), rhs_size);
+
+    return o_new;
 }
 
 
@@ -521,7 +551,6 @@ str_justify_generic(SbObject *self, SbObject *args, SbObject *kwargs, void (*pro
     SbObject *o_fillchar = NULL;
     char fillchar = ' ';
     Sb_ssize_t width;
-    SbObject *o_result;
 
     if (SbArgs_Unpack(args, 1, 2, &o_width, &o_fillchar) < 0) {
         return NULL;
@@ -744,6 +773,21 @@ str_startswith(SbObject *self, SbObject *args, SbObject *kwargs)
     }
 }
 
+static SbObject *
+str_concat(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o_rhs;
+
+    if (SbArgs_Unpack(args, 1, 1, &o_rhs) < 0) {
+        return NULL;
+    }
+    if (!SbStr_CheckExact(o_rhs)) {
+        Sb_INCREF(Sb_NotImplemented);
+        return Sb_NotImplemented;
+    }
+    return SbStr_Concat(self, o_rhs);
+}
+
 #if SUPPORTS(STR_FORMAT)
 
 static SbObject *
@@ -813,6 +857,7 @@ static const SbCMethodDef str_methods[] = {
     { "__eq__", str_eq },
     { "__ne__", str_ne },
     { "__getitem__", str_getitem },
+    { "__add__", str_concat },
 
     { "join", str_join },
 
