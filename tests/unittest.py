@@ -75,8 +75,9 @@ class TestCase(object):
         try:
             callable(*args, **kwds)
             fail("no exception raised")
-        except BaseException as e:
-            if e.__class__ is exc:
+        except:
+            exinfo = sys.exc_info()
+            if exinfo[0] is exc:
                 return
             fail("incorrect exception type")
 
