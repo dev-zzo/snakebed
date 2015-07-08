@@ -23,6 +23,4 @@ class ProtocolIndependentTests(unittest.TestCase):
 
 if __name__ == "__main__":
     r = ProtocolIndependentTests().run()
-    for i in r.results:
-        print(i['name'])
-        print(i['result'])
+    print(str(r))

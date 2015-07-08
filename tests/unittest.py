@@ -16,31 +16,37 @@ class _SkipTest(UnitTestException):
 class TestResult(object):
     """Contains the results of test case(s) being run."""
     def __init__(self):
-        self.results = []
+        self.skipped = []
+        self.passed = []
+        self.failed = []
+        self.errored = []
         self._current_test = None
+    def __str__(self):
+        text = []
+        if len(self.passed) > 0:
+            text.append("Passed:\r\n" + ", ".join(self.passed))
+        if len(self.failed) > 0:
+            text.append("Failed:\r\n" + ", ".join([x[0] for x in self.failed]))
+        if len(self.errored) > 0:
+            text.append("Encountered errors:\r\n" + ", ".join([x[0] for x in self.errored]))
+        if len(self.skipped) > 0:
+            text.append("Skipped:\r\n" + ", ".join([x[0] for x in self.skipped]))
+        return "\r\n".join(text)
 
     def startTest(self, test_name):
-        self._current_test = {
-                'name': test_name,
-                'result': 'unknown',
-                'error': None,
-            }
-        self.results.append(self._current_test)
+        if self._current_test is not None:
+            pass
+        self._current_test = test_name
     def stopTest(self):
-        ct = self._current_test
         self._current_test = None
     def addError(self, exinfo):
-        ct = self._current_test
-        ct['result'] = 'error'
-        ct['error'] = exinfo
+        self.errored.append((self._current_test, exinfo))
     def addFailure(self, exinfo):
-        ct = self._current_test
-        ct['result'] = 'failed'
-        ct['error'] = exinfo
+        self.failed.append((self._current_test, exinfo))
     def addSuccess(self):
-        self._current_test['result'] = 'passed'
+        self.passed.append(self._current_test)
     def addSkip(self, reason=None):
-        self._current_test['result'] = 'skipped'
+        self.skipped.append((self._current_test, reason))
 
 class TestCase(object):
     """A collection of unit tests that verify something works."""

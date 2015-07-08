@@ -1,6 +1,8 @@
 import unittest
 
 class Test(unittest.TestCase):
+    def test_ctor(self):
+        self.assertEqual(str('aaa'), 'aaa')
     def test_join(self):
         self.assertEqual('XXX'.join(['a','b','c']), 'aXXXbXXXc')
     def test_justify(self):
@@ -34,6 +36,4 @@ class Test(unittest.TestCase):
 
 if __name__ == "__main__":
     r = Test().run()
-    for i in r.results:
-        print(i['name'])
-        print(i['result'])
+    print(str(r))
