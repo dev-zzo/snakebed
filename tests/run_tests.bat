@@ -7,6 +7,6 @@ echo Running tests.
 for %%T in (*.sb) do (
     rem Kludge kludge...
     <nul (set/p z=Running %%T... )
-    ..\build\sbapp.exe %%T
+    ..\build\sbapp_d.exe %%T
     echo()
     )
