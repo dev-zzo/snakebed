@@ -353,6 +353,23 @@ _SbStr_EqString(SbObject *p1, const char *p2)
 /* Python accessible methods */
 
 static SbObject *
+str_new(SbObject *dummy, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o;
+
+    if (SbArgs_Unpack(args, 2, 2, &dummy, &o) < 0) {
+        return NULL;
+    }
+
+    if (SbStr_CheckExact(o)) {
+        Sb_INCREF(o);
+        return o;
+    }
+
+    return SbObject_Str(o);
+}
+
+static SbObject *
 str_hash(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     return SbInt_FromNative(_SbStr_Hash(self));
@@ -789,6 +806,7 @@ Formatter_VFormat(SbObject *self, SbObject *args, SbObject *kwargs);
 /* Type initializer */
 
 static const SbCMethodDef str_methods[] = {
+    { "__new__", str_new },
     { "__hash__", str_hash },
     { "__str__", str_str },
     { "__len__", str_len },
