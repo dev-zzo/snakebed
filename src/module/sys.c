@@ -26,16 +26,16 @@ static SbObject *
 exc_info(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *exc;
+    SbObject *none = Sb_None;
 
-    exc = SbErr_Occurred();
+    exc = SbInterp_TopFrame->current_exc;
     if (exc) {
-        return SbTuple_Pack(3, Sb_TYPE(exc), SbExc_GetValue(exc), Sb_None);
-    }
-    else {
-        SbObject *none = Sb_None;
+        SbObject *value;
 
-        return SbTuple_Pack(3, none, none, none);
+        value = SbExc_GetValue(exc);
+        return SbTuple_Pack(3, Sb_TYPE(exc), value ? value : none, none);
     }
+    return SbTuple_Pack(3, none, none, none);
 }
 
 static SbObject *
