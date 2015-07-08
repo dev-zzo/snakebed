@@ -19,3 +19,4 @@ build_tmp
 # Temporary scripts
 tools/dummy.*
 *.sb
+*.pyc
