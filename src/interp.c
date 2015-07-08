@@ -649,6 +649,12 @@ BinaryXxx_common:
                     continue;
                 }
 
+            case ListAppend:
+                op2 = sp[opcode_arg];
+                op1 = STACK_POP();
+                i_result = SbList_Append(op2, op1);
+                goto Xxx_drop1_check_iresult;
+
 
             case RaiseVarArgs:
                 /* X Y Z -> */
