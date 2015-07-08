@@ -197,6 +197,10 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
     if (getattribute) {
         attr = SbObject_CallObjArgs(getattribute, 1, SbStr_FromString(attr_name));
         Sb_DECREF(getattribute);
+        /* Silence AttributeError, if any */
+        if (!attr && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
+            SbErr_Clear();
+        }
         return attr;
     }
 
@@ -233,6 +237,10 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
     if (getattr) {
         attr = SbObject_CallObjArgs(getattr, 1, SbStr_FromString(attr_name));
         Sb_DECREF(getattr);
+        /* Silence AttributeError, if any */
+        if (!attr && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
+            SbErr_Clear();
+        }
         return attr;
     }
 
