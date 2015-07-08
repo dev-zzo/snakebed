@@ -65,6 +65,14 @@ class TestCase(object):
     def assertNotEqual(self, first, second, msg=None):
         if first == second:
             fail("objects are equal")
+    def assertRaises(self, exc, callable, *args, **kwds):
+        try:
+            callable(*args, **kwds)
+            fail("no exception raised")
+        except BaseException as e:
+            if e.__class__ is exc:
+                return
+            fail("incorrect exception type")
 
     def setUp(self):
         """Hook method for setting up the test fixture before exercising it."""
