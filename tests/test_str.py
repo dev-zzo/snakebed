@@ -37,3 +37,4 @@ class Test(unittest.TestCase):
 if __name__ == "__main__":
     r = Test().run()
     print(str(r))
+    print()
