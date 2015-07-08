@@ -23,9 +23,19 @@ class Tests(unittest.TestCase):
             return x == 42 and y == 777 and z == 31
         kwds = { 'x': 42, 'y': 777, 'z': 31 }
         self.assertTrue(f(**kwds))
+    def test_args_kwds_unpack(self):
+        def f(x, y, z):
+            return x == 42 and y == 777 and z == 31
+        args = (42, 777)
+        kwds = { 'z': 31 }
+        self.assertTrue(f(*args, **kwds))
     def test_vargs(self):
         def f(x, y, *args):
             return x == 42 and y == 777 and type(args) is tuple and args[0] == 73 and args[1] == 11
+        self.assertTrue(f(42, 777, 73, 11))
+    def test_vargs_vkwds(self):
+        def f(*args, **kwds):
+            return args[0] == 42 and args[1] == 777 and args[2] == 73 and args[3] == 11
         self.assertTrue(f(42, 777, 73, 11))
     def test_argcount_typeerror(self):
         def f(x, y):
