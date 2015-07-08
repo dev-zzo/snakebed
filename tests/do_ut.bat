@@ -10,3 +10,6 @@ python ../tools/sbcompile.py test_socket.py
 
 python ../tools/sbcompile.py test_func.py
 ..\build\SbApp_d.exe test_func.sb
+
+python ../tools/sbcompile.py test_exceptions.py
+..\build\SbApp_d.exe test_exceptions.sb
