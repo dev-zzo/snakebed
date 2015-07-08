@@ -66,6 +66,7 @@ static SbObject *
 exception_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *attr_name;
+    SbObject *result;
 
     if (SbArgs_Unpack(args, 1, 1, &attr_name) < 0) {
         return NULL;
@@ -74,7 +75,11 @@ exception_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
         SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
         return NULL;
     }
-    return exception_getattr_internal(self, attr_name);
+    result = exception_getattr_internal(self, attr_name);
+    if (result) {
+        return result;
+    }
+    return SbObject_DefaultGetAttr((SbObject *)self, args, kwargs);
 }
 
 static SbObject *
@@ -146,8 +151,7 @@ static SbObject *
 enverror_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *attr_name;
-    const char *attr_str;
-    SbObject *value;
+    SbObject *result;
 
     if (SbArgs_Unpack(args, 1, 1, &attr_name) < 0) {
         return NULL;
@@ -157,14 +161,11 @@ enverror_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
-    attr_str = SbStr_AsStringUnsafe(attr_name);
-    if (!Sb_StrCmp(attr_str, "args")) {
-        value = self->args;
-        Sb_INCREF(value);
-        return value;
+    result = enverror_getattr_internal(self, attr_name);
+    if (result) {
+        return result;
     }
-
-    return NULL;
+    return SbObject_DefaultGetAttr((SbObject *)self, args, kwargs);
 }
 
 static SbObject *
