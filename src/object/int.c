@@ -338,6 +338,120 @@ int_inv(SbObject *self, SbObject *args, SbObject *kwargs)
     return SbInt_FromNative(~SbInt_AsNativeUnsafe(self));
 }
 
+#if SUPPORTS(STR_FORMAT)
+
+static SbObject *
+int_format(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    const char *spec_string;
+    SbString_FormatSpecifier spec;
+    SbObject *tmp;
+    SbObject *o_result;
+
+    if (SbArgs_Parse("z:spec", args, kwargs, &spec_string) < 0) {
+        return NULL;
+    }
+    if (SbString_ParseFormatSpec(spec_string ? spec_string : "", &spec) < 0) {
+        return NULL;
+    }
+
+    if (spec.conv_type == 'c') {
+        tmp = SbStr_FromStringAndSize(NULL, 1);
+        SbStr_AsStringUnsafe(tmp)[0] = (char)SbInt_AsNativeUnsafe(self);
+    }
+    else {
+        SbInt_Native_t value;
+        int radix = 10;
+        char sign = '+';
+        Sb_ssize_t sign_size;
+        Sb_ssize_t fill_size;
+        const char *digits;
+        Sb_ssize_t digits_size;
+        char *buffer;
+
+        value = SbInt_AsNativeUnsafe(self);
+        if (value < 0) {
+            value = -value;
+            sign = '-';
+        }
+
+        if (spec.sign_flag == '+') {
+            sign_size = 1;
+        }
+        else if (spec.sign_flag == ' ') {
+            sign_size = 1;
+            if (sign == '+') {
+                sign = ' ';
+            }
+        }
+        else {
+            sign_size = sign == '-' ? 1 : 0;
+        }
+
+        switch (spec.conv_type) {
+        case 'x':
+        case 'X':
+            radix = 16;
+            break;
+        case 'b':
+            radix = 2;
+            break;
+        case 'o':
+            radix = 8;
+            break;
+        case 'd':
+        case 'n':
+        case '\0':
+            break;
+        default:
+            break;
+        }
+        digits = Sb_ULtoA(value, radix);
+        digits_size = Sb_StrLen(digits);
+
+        fill_size = spec.min_width - (sign_size + digits_size);
+        if (fill_size < 0) {
+            fill_size = 0;
+        }
+
+        if (spec.align_flag == '=') {
+            /* [sign][fill]digits */
+            o_result = SbStr_FromStringAndSize(NULL, sign_size + digits_size + fill_size);
+            buffer = SbStr_AsStringUnsafe(o_result);
+            if (sign_size) {
+                *buffer++ = sign;
+            }
+            while (fill_size > 0) {
+                *buffer++ = spec.filler;
+                fill_size--;
+            }
+            Sb_MemCpy(buffer, digits, digits_size);
+            return o_result;
+        }
+
+        tmp = SbStr_FromStringAndSize(NULL, sign_size + digits_size);
+        buffer = SbStr_AsStringUnsafe(tmp);
+        if (sign_size) {
+            *buffer++ = sign;
+        }
+        Sb_MemCpy(buffer, digits, digits_size);
+    }
+
+    if (spec.align_flag == '>') {
+        o_result = SbStr_JustifyRight(tmp, spec.min_width, spec.filler);
+    }
+    else if (spec.align_flag == '^') {
+        o_result = SbStr_JustifyCenter(tmp, spec.min_width, spec.filler);
+    }
+    else if (spec.align_flag == '<') {
+        o_result = SbStr_JustifyLeft(tmp, spec.min_width, spec.filler);
+    }
+    Sb_DECREF(tmp);
+    return o_result;
+}
+
+#endif /* SUPPORTS(STR_FORMAT) */
+
 /* Builtins initializer */
 
 static const SbCMethodDef int_methods[] = {
@@ -369,6 +483,10 @@ static const SbCMethodDef int_methods[] = {
     { "__pos__", int_pos },
     { "__abs__", int_abs },
     { "__invert__", int_inv },
+
+#if SUPPORTS(STR_FORMAT)
+    { "__format__", int_format },
+#endif
 
     /* Sentinel */
     { NULL, NULL },

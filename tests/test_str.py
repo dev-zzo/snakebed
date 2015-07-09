@@ -26,12 +26,19 @@ class Test(unittest.TestCase):
         self.assertEqual("".rfind("", 1), -1)
         self.assertEqual("".rfind("abc"), -1)
         self.assertEqual("abc".rfind("xxx", 2800000, 1), -1)
-    def test_format(self):
+    def test_format_str(self):
         self.assertEqual("meh{0}teh".format("or"), "mehorteh")
         self.assertEqual("{0:<16}".format("abc"), "abc             ")
         self.assertEqual("{0:>16}".format("abc"), "             abc")
         self.assertEqual("{0:^16}".format("abc"), "      abc       ")
         self.assertEqual("{0:>7.4}".format("abcdefg"), "   abcd")
+    def test_format_int(self):
+        self.assertEqual("left{0}right".format(-1024), "left-1024right")
+        self.assertEqual("{0:<16}".format(-1024), "-1024           ")
+        self.assertEqual("{0:>16}".format(-1024), "           -1024")
+        self.assertEqual("{0:^16}".format(-1024), "     -1024      ")
+        self.assertEqual("{0:A=+16}".format(-1024), "-AAAAAAAAAAA1024")
+        self.assertEqual("{0:A=+16}".format(1024), "+AAAAAAAAAAA1024")
 #
 
 if __name__ == "__main__":
