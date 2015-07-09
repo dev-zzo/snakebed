@@ -23,14 +23,11 @@ Type checked and converted:
 * c: str of length 1, converted to char
 
    Returns: 0 if OK, -1 otherwise. */
-*/
-
 int
 SbArgs_Parse(const char *spec, SbObject *args, SbObject *kwds, ...);
 
 /* Ensure the function was not passed any args.
    Returns: 0 if OK, -1 otherwise. */
-*/
 int
 SbArgs_NoArgs(SbObject *args, SbObject *kwds);
 
