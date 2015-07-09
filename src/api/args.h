@@ -20,6 +20,7 @@ Type checked but not converted (borrowed ref):
 Type checked and converted:
 * i: int, converted to SbInt_Native_t
 * s: str, converted to const char *
+* z: str, converted to const char * or None, converted to NULL
 * c: str of length 1, converted to char
 
    Returns: 0 if OK, -1 otherwise. */

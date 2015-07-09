@@ -93,6 +93,12 @@ store_ptr:
                 *va_arg(va, SbInt_Native_t *) = SbInt_AsNativeUnsafe(arg);
                 break;
 
+            case 'z':
+                if (arg == Sb_None) {
+                    *va_arg(va, const char **) = NULL;
+                    break;
+                }
+                /* Fall through */
             case 's':
                 if (!SbStr_CheckExact(arg)) {
                     expected_arg_type = "str";
