@@ -70,27 +70,14 @@ SbInt_FromString(const char *str, const char **pend, unsigned base)
 }
 
 int
-_SbInt_Convert(SbObject *o, SbObject *base, SbInt_Native_t *value)
+_SbInt_Convert(SbObject *o, SbInt_Native_t base, SbInt_Native_t *value)
 {
     if (SbInt_CheckExact(o)) {
         *value = SbInt_AsNativeUnsafe(o);
         return 0;
     }
     if (SbStr_CheckExact(o)) {
-        const char *str;
-        SbInt_Native_t base_conv = 0;
-
-        str = (const char *)SbStr_AsStringUnsafe(o);
-        if (base) {
-            /* TODO: Try converting to int first? */
-            if (!SbInt_CheckExact(base)) {
-                SbErr_RaiseWithString(SbExc_ValueError, "incorrect `base` type");
-                return -1;
-            }
-            base_conv = SbInt_AsNativeUnsafe(base);
-        }
-
-        if (_SbInt_Parse(str, NULL, base_conv, value) < 0) {
+        if (_SbInt_Parse(SbStr_AsStringUnsafe(o), NULL, (unsigned)base, value) < 0) {
             return -1;
         }
         return 0;
@@ -138,14 +125,14 @@ static SbObject *
 int_init(SbIntObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *x = NULL;
-    SbObject *base = NULL;
+    int radix = 0;
 
-    if (SbArgs_Unpack(args, 0, 2, &x, &base) < 0) {
+    if (SbArgs_Parse("|O:x,i:radix", args, kwargs, &x, &radix) < 0) {
         return NULL;
     }
 
     if (x) {
-        if (_SbInt_Convert(x, base, &self->value) < 0) {
+        if (_SbInt_Convert(x, radix, &self->value) < 0) {
             return NULL;
         }
     }

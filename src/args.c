@@ -1,81 +1,156 @@
 #include "snakebed.h"
 
 int
-SbArgs_ParseVa(SbObject *args, SbObject *kwds, Sb_ssize_t count_min, Sb_ssize_t count_max, const char *names[], va_list va)
+SbArgs_ParseVa(const char *spec, SbObject *args, SbObject *kwds, va_list va)
 {
-    Sb_ssize_t passed_posarg_count;
+    char name_buffer[128];
+    char *name_buffer_limit = &name_buffer[sizeof(name_buffer) / sizeof(name_buffer[0]) - 1];
     Sb_ssize_t arg_pos;
+    Sb_ssize_t posarg_count;
+    SbObject *arg;
+    const char *expected_arg_type;
+    int doing_optionals = 0;
 
-    passed_posarg_count = args ? SbTuple_GetSizeUnsafe(args) : 0;
-    for (arg_pos = 0; arg_pos < count_max; ++arg_pos) {
-        SbObject *arg_value;
-        SbObject **arg_ptr;
+    posarg_count = args ? SbTuple_GetSizeUnsafe(args) : 0;
+    arg_pos = 0;
+    while (*spec) {
+        char conv;
+        char *name_ptr;
 
-        arg_value = NULL;
-        if (arg_pos < passed_posarg_count) {
-            arg_value = SbTuple_GetItemUnsafe(args, arg_pos);
-            /* assert(arg_value); */
-            Sb_INCREF(arg_value);
+        /* Check for the delimiters */
+        if (*spec == '|') {
+            doing_optionals = 1;
+            ++spec;
+        }
+        if (*spec == ',') {
+            ++spec;
+        }
+
+        /* Keep conv specifier */
+        conv = *spec++;
+        /* Skip colon */
+        spec++;
+        /* Copy the name */
+        name_ptr = name_buffer;
+        while (*spec && *spec != ',' && *spec != '|') {
+            *name_ptr = *spec;
+            spec++;
+            if (name_ptr < name_buffer_limit) {
+                name_ptr++;
+            }
+        }
+        *name_ptr = '\0';
+
+        /* Get the object */
+        arg = NULL;
+        if (arg_pos < posarg_count) {
+            arg = SbTuple_GetItemUnsafe(args, arg_pos);
+        }
+        else if (kwds) {
+            arg = SbDict_GetItemString(kwds, name_buffer);
+        }
+
+        if (arg) {
+            switch (conv) {
+            case 'S':
+                if (!SbStr_CheckExact(arg)) {
+                    expected_arg_type = "str";
+                    goto invalid_arg_type;
+                }
+                goto store_ptr;
+
+            case 'T':
+                if (!SbTuple_CheckExact(arg)) {
+                    expected_arg_type = "tuple";
+                    goto invalid_arg_type;
+                }
+                goto store_ptr;
+
+            case 'L':
+                if (!SbList_CheckExact(arg)) {
+                    expected_arg_type = "list";
+                    goto invalid_arg_type;
+                }
+                goto store_ptr;
+
+            case 'D':
+                if (!SbDict_CheckExact(arg)) {
+                    expected_arg_type = "dict";
+                    goto invalid_arg_type;
+                }
+                goto store_ptr;
+
+            case 'O':
+store_ptr:
+                *va_arg(va, SbObject **) = arg;
+                break;
+
+            case 'i':
+                if (!SbInt_CheckExact(arg)) {
+                    expected_arg_type = "int";
+                    goto invalid_arg_type;
+                }
+                *va_arg(va, SbInt_Native_t *) = SbInt_AsNativeUnsafe(arg);
+                break;
+
+            case 's':
+                if (!SbStr_CheckExact(arg)) {
+                    expected_arg_type = "str";
+                    goto invalid_arg_type;
+                }
+                *va_arg(va, const char **) = (const char *)SbStr_AsStringUnsafe(arg);
+                break;
+
+            case 'c':
+                if (!SbStr_CheckExact(arg)) {
+                    expected_arg_type = "str";
+                    goto invalid_arg_type;
+                }
+                if (SbStr_GetSizeUnsafe(arg) != 1) {
+                    SbErr_RaiseWithFormat(SbExc_ValueError, "expected arg '%s' to be of length 1, got %d",
+                        name_buffer, SbStr_GetSizeUnsafe(arg));
+                    return -1;
+                }
+                *va_arg(va, char *) = SbStr_AsStringUnsafe(arg)[0];
+                break;
+
+            default:
+                SbErr_RaiseWithFormat(SbExc_ValueError, "unexpected conversion: %c", conv);
+                return -1;
+            }
         }
         else {
-            if (kwds) {
-                const char  *arg_name;
-
-                arg_name = names[arg_pos];
-                arg_value = SbDict_GetItemString(kwds, arg_name);
-                if (arg_value) {
-                    Sb_INCREF(arg_value);
-                    SbDict_DelItemString(kwds, arg_name);
-                }
+            if (!doing_optionals) {
+                SbErr_RaiseWithFormat(SbExc_TypeError, "argument '%s' is required", name_buffer);
+                return -1;
             }
         }
 
-        if (!arg_value && arg_pos < count_min) {
-            if (count_min == count_max) {
-                SbErr_RaiseWithFormat(SbExc_TypeError, "function takes exactly %d args (%d passed)",
-                    count_min,
-                    passed_posarg_count);
-            }
-            else {
-                SbErr_RaiseWithFormat(SbExc_TypeError, "function takes between %d and %d args (%d passed)",
-                    count_min,
-                    count_max,
-                    passed_posarg_count);
-            }
-            goto fail0;
-        }
-
-        arg_ptr = va_arg(va, SbObject **);
-        *arg_ptr = arg_value;
+        ++arg_pos;
     }
 
     return 0;
 
-fail0:
+invalid_arg_type:
+    SbErr_RaiseWithFormat(SbExc_TypeError, "expected arg '%s' to be %s, got %s",
+        name_buffer, expected_arg_type, Sb_TYPE(arg)->tp_name);
     return -1;
 }
 
 int
-SbArgs_Parse(SbObject *args, SbObject *kwds, Sb_ssize_t count_min, Sb_ssize_t count_max, const char *names[], ...)
+SbArgs_Parse(const char *spec, SbObject *args, SbObject *kwds, ...)
 {
     int result;
     va_list va;
 
-    va_start(va, names);
-    result = SbArgs_ParseVa(args, kwds, count_min, count_max, names, va);
+    va_start(va, kwds);
+    result = SbArgs_ParseVa(spec, args, kwds, va);
     va_end(va);
     return result;
 }
 
 int
-SbArgs_Unpack(SbObject *args, Sb_ssize_t count_min, Sb_ssize_t count_max, ...)
+SbArgs_NoArgs(SbObject *args, SbObject *kwds)
 {
-    int result;
-    va_list va;
-
-    va_start(va, count_max);
-    result = SbArgs_ParseVa(args, NULL, count_min, count_max, NULL, va);
-    va_end(va);
-    return result;
+    return 0;
 }
-

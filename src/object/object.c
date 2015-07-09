@@ -105,11 +105,7 @@ SbObject_DefaultGetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *result;
     const char *attr_name;
 
-    if (SbArgs_Unpack(args, 1, 1, &o_name) < 0) {
-        return NULL;
-    }
-    if (!SbStr_CheckExact(o_name)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
+    if (SbArgs_Parse("S:name", args, kwargs, &o_name) < 0) {
         return NULL;
     }
 
@@ -135,20 +131,16 @@ SbObject_DefaultGetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
 SbObject *
 SbObject_DefaultSetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *attr_name;
+    const char *attr_name;
     SbObject *value;
 
-    if (SbArgs_Unpack(args, 2, 2, &attr_name, &value) < 0) {
-        return NULL;
-    }
-    if (!SbStr_CheckExact(attr_name)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
+    if (SbArgs_Parse("s:name,O:value", args, kwargs, &attr_name, &value) < 0) {
         return NULL;
     }
 
     /* If the object has a dict, modify it. */
     if (Sb_TYPE(self)->tp_flags & SbType_FLAGS_HAS_DICT) {
-        if (SbDict_SetItemString(SbObject_DICT(self), SbStr_AsString(attr_name), value) < 0) {
+        if (SbDict_SetItemString(SbObject_DICT(self), attr_name, value) < 0) {
             return NULL;
         }
         Sb_RETURN_NONE;
@@ -159,19 +151,15 @@ SbObject_DefaultSetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
 SbObject *
 SbObject_DefaultDelAttr(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *attr_name;
+    const char *attr_name;
 
-    if (SbArgs_Unpack(args, 1, 1, &attr_name) < 0) {
-        return NULL;
-    }
-    if (!SbStr_CheckExact(attr_name)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
+    if (SbArgs_Parse("s:name", args, kwargs, &attr_name) < 0) {
         return NULL;
     }
 
     /* If the object has a dict, modify it. */
     if (Sb_TYPE(self)->tp_flags & SbType_FLAGS_HAS_DICT) {
-        if (SbDict_DelItemString(SbObject_DICT(self), SbStr_AsString(attr_name)) < 0) {
+        if (SbDict_DelItemString(SbObject_DICT(self), attr_name) < 0) {
             return NULL;
         }
         Sb_RETURN_NONE;
@@ -195,7 +183,7 @@ object_format(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *formatted;
     SbObject *spec;
 
-    if (SbArgs_Unpack(args, 1, 1, &spec) < 0) {
+    if (SbArgs_Parse("O:spec", args, kwargs, &spec) < 0) {
         return NULL;
     }
 

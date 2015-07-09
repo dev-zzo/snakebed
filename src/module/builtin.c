@@ -51,7 +51,7 @@ _builtin_id(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *o;
 
-    if (SbArgs_Unpack(args, 1, 1, &o) < 0) {
+    if (SbArgs_Parse("O:o", args, kwargs, &o) < 0) {
         return NULL;
     }
 
@@ -64,7 +64,7 @@ _builtin_len(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *o;
     Sb_ssize_t len;
 
-    if (SbArgs_Unpack(args, 1, 1, &o) < 0) {
+    if (SbArgs_Parse("O:o", args, kwargs, &o) < 0) {
         return NULL;
     }
 
@@ -82,7 +82,7 @@ _builtin_hash(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *o;
     SbInt_Native_t hash;
 
-    if (SbArgs_Unpack(args, 1, 1, &o) < 0) {
+    if (SbArgs_Parse("O:o", args, kwargs, &o) < 0) {
         return NULL;
     }
 
@@ -102,11 +102,7 @@ _builtin_getattr(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *o_name;
     SbObject *o_default = NULL;
 
-    if (SbArgs_Unpack(args, 2, 3, &o, &o_name, &o_default) < 0) {
-        return NULL;
-    }
-    if (!SbStr_CheckExact(o_name)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
+    if (SbArgs_Parse("O:o,S:name|O:default", args, kwargs, &o, &o_name, &o_default) < 0) {
         return NULL;
     }
 
@@ -134,13 +130,13 @@ SbBuiltin_Format(SbObject *self, SbObject *spec)
 static SbObject *
 _builtin_format(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *spec;
+    SbObject *o_spec;
 
-    if (SbArgs_Unpack(args, 1, 1, &spec) < 0) {
+    if (SbArgs_Parse("S:spec", args, kwargs, &o_spec) < 0) {
         return NULL;
     }
 
-    return SbObject_CallMethodObjArgs(self, "__format__", 1, spec);
+    return SbObject_CallMethodObjArgs(self, "__format__", 1, o_spec);
 }
 
 static int

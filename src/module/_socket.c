@@ -183,43 +183,12 @@ socketobj_new(int s, int family, int type, int proto)
 static SbObject *
 socketobj_init(socket_object *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *o_family = NULL;
-    SbObject *o_type = NULL;
-    SbObject *o_proto = NULL;
-    int family, type, proto;
+    int family = AF_INET;
+    int type = SOCK_STREAM;
+    int proto = 0;
 
-    if (SbArgs_Unpack(args, 0, 3, &o_family, &o_type, &o_proto) < 0) {
+    if (SbArgs_Parse("|i:family,i:type,i:proto", args, kwargs, &family, &type, &proto) < 0) {
         return NULL;
-    }
-    if (o_family) {
-        if (!SbInt_CheckExact(o_family)) {
-            SbErr_RaiseWithString(SbExc_TypeError, "expected int as family");
-            return NULL;
-        }
-        family = SbInt_AsNativeUnsafe(o_family);
-    }
-    else {
-        family = AF_INET;
-    }
-    if (o_type) {
-        if (!SbInt_CheckExact(o_type)) {
-            SbErr_RaiseWithString(SbExc_TypeError, "expected int as type");
-            return NULL;
-        }
-        type = SbInt_AsNativeUnsafe(o_type);
-    }
-    else {
-        type = SOCK_STREAM;
-    }
-    if (o_proto) {
-        if (!SbInt_CheckExact(o_proto)) {
-            SbErr_RaiseWithString(SbExc_TypeError, "expected int as proto");
-            return NULL;
-        }
-        proto = SbInt_AsNativeUnsafe(o_proto);
-    }
-    else {
-        proto = 0;
     }
 
     self->family = family;
@@ -243,18 +212,13 @@ socketobj_init(socket_object *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 socketobj_getattr(socket_object *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *attr_name;
     const char *attr_str;
     SbObject *value;
 
-    if (SbArgs_Unpack(args, 1, 1, &attr_name) < 0) {
+    if (SbArgs_Parse("s:name", args, kwargs, &attr_str) < 0) {
         return NULL;
     }
-    if (!SbStr_CheckExact(attr_name)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
-        return NULL;
-    }
-    attr_str = SbStr_AsStringUnsafe(attr_name);
+
     value = NULL;
     if (!Sb_StrCmp(attr_str, "family")) {
         return SbInt_FromNative(self->family);
@@ -312,11 +276,7 @@ socketobj_bind(socket_object *self, SbObject *args, SbObject *kwargs)
     struct sockaddr sa;
     int call_result;
 
-    if (SbArgs_Unpack(args, 1, 1, &o_address) < 0) {
-        return NULL;
-    }
-    if (!SbTuple_CheckExact(o_address)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected tuple as address");
+    if (SbArgs_Parse("T:addr", args, kwargs, &o_address) < 0) {
         return NULL;
     }
 
@@ -341,11 +301,7 @@ socketobj_connect(socket_object *self, SbObject *args, SbObject *kwargs)
     struct sockaddr sa;
     int call_result;
 
-    if (SbArgs_Unpack(args, 1, 1, &o_address) < 0) {
-        return NULL;
-    }
-    if (!SbTuple_CheckExact(o_address)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected tuple as address");
+    if (SbArgs_Parse("T:addr", args, kwargs, &o_address) < 0) {
         return NULL;
     }
 
@@ -380,18 +336,12 @@ socketobj_close(socket_object *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 socketobj_shutdown(socket_object *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *o_how;
     int how;
     int call_result;
 
-    if (SbArgs_Unpack(args, 1, 1, &o_how) < 0) {
+    if (SbArgs_Parse("i:how", args, kwargs, &how) < 0) {
         return NULL;
     }
-    if (!SbInt_CheckExact(o_how)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected int as how");
-        return NULL;
-    }
-    how = SbInt_AsNativeUnsafe(o_how);
 
     call_result = shutdown(self->s, how);
     if (call_result != 0) {
@@ -405,18 +355,12 @@ socketobj_shutdown(socket_object *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 socketobj_listen(socket_object *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *o_backlog;
     int backlog = 0;
     int call_result;
 
-    if (SbArgs_Unpack(args, 1, 1, &o_backlog) < 0) {
+    if (SbArgs_Parse("i:backlog", args, kwargs, &backlog) < 0) {
         return NULL;
     }
-    if (!SbInt_CheckExact(o_backlog)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected int as backlog");
-        return NULL;
-    }
-    backlog = SbInt_AsNativeUnsafe(o_backlog);
 
     call_result = listen(self->s, backlog);
     if (call_result < 0) {
@@ -430,27 +374,13 @@ socketobj_listen(socket_object *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 socketobj_recv(socket_object *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *o_bufsize;
-    SbObject *o_flags = NULL;
     SbObject *o_buffer;
     int bufsize;
     int flags = 0;
     int call_result;
 
-    if (SbArgs_Unpack(args, 1, 2, &o_bufsize, &o_flags) < 0) {
+    if (SbArgs_Parse("i:bufsize|i:flags", args, kwargs, &bufsize, &flags) < 0) {
         return NULL;
-    }
-    if (!SbInt_CheckExact(o_bufsize)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected int as bufsize");
-        return NULL;
-    }
-    bufsize = SbInt_AsNativeUnsafe(o_bufsize);
-    if (o_flags) {
-        if (!SbInt_CheckExact(o_flags)) {
-            SbErr_RaiseWithString(SbExc_TypeError, "expected int as flags");
-            return NULL;
-        }
-        flags = SbInt_AsNativeUnsafe(o_flags);
     }
 
     o_buffer = SbStr_FromStringAndSize(NULL, bufsize);
@@ -470,8 +400,6 @@ socketobj_recv(socket_object *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 socketobj_recvfrom(socket_object *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *o_bufsize;
-    SbObject *o_flags = NULL;
     SbObject *o_buffer;
     SbObject *o_address;
     int bufsize;
@@ -480,20 +408,8 @@ socketobj_recvfrom(socket_object *self, SbObject *args, SbObject *kwargs)
     int sa_size = sizeof(sa);
     int call_result;
 
-    if (SbArgs_Unpack(args, 1, 2, &o_bufsize, &o_flags) < 0) {
+    if (SbArgs_Parse("i:bufsize|i:flags", args, kwargs, &bufsize, &flags) < 0) {
         return NULL;
-    }
-    if (!SbInt_CheckExact(o_bufsize)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected int as bufsize");
-        return NULL;
-    }
-    bufsize = SbInt_AsNativeUnsafe(o_bufsize);
-    if (o_flags) {
-        if (!SbInt_CheckExact(o_flags)) {
-            SbErr_RaiseWithString(SbExc_TypeError, "expected int as flags");
-            return NULL;
-        }
-        flags = SbInt_AsNativeUnsafe(o_flags);
     }
 
     o_buffer = SbStr_FromStringAndSize(NULL, bufsize);
@@ -520,23 +436,11 @@ static SbObject *
 socketobj_send(socket_object *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *o_buffer;
-    SbObject *o_flags = NULL;
     int flags = 0;
     int call_result;
 
-    if (SbArgs_Unpack(args, 1, 2, &o_buffer, &o_flags) < 0) {
+    if (SbArgs_Parse("S:buffer|i:flags", args, kwargs, &o_buffer, &flags) < 0) {
         return NULL;
-    }
-    if (!SbStr_CheckExact(o_buffer)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected str as buffer");
-        return NULL;
-    }
-    if (o_flags) {
-        if (!SbInt_CheckExact(o_flags)) {
-            SbErr_RaiseWithString(SbExc_TypeError, "expected int as flags");
-            return NULL;
-        }
-        flags = SbInt_AsNativeUnsafe(o_flags);
     }
 
     call_result = send(self->s, SbStr_AsStringUnsafe(o_buffer), SbStr_GetSizeUnsafe(o_buffer), flags);
@@ -553,25 +457,14 @@ socketobj_sendto(socket_object *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *o_buffer;
     SbObject *o_address;
-    SbObject *o_flags = NULL;
     int flags = 0;
     struct sockaddr sa;
     int call_result;
 
-    if (SbArgs_Unpack(args, 2, 3, &o_buffer, &o_address, &o_flags) < 0) {
+    if (SbArgs_Parse("S:buffer,T:address|i:flags", args, kwargs, &o_buffer, &o_address, &flags) < 0) {
         return NULL;
     }
-    if (!SbStr_CheckExact(o_buffer)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected str as buffer");
-        return NULL;
-    }
-    if (o_flags) {
-        if (!SbInt_CheckExact(o_flags)) {
-            SbErr_RaiseWithString(SbExc_TypeError, "expected int as flags");
-            return NULL;
-        }
-        flags = SbInt_AsNativeUnsafe(o_flags);
-    }
+
     if (tuple2sa(o_address, &sa, self->family) < 0) {
         return NULL;
     }

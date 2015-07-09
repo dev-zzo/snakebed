@@ -173,7 +173,7 @@ tuple_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *index;
     SbObject *result;
 
-    if (SbArgs_Unpack(args, 1, 1, &index) < 0) {
+    if (SbArgs_Parse("O:index", args, kwargs, &index) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {

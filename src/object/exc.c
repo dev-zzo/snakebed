@@ -68,11 +68,7 @@ exception_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
     SbObject *attr_name;
     SbObject *result;
 
-    if (SbArgs_Unpack(args, 1, 1, &attr_name) < 0) {
-        return NULL;
-    }
-    if (!SbStr_CheckExact(attr_name)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
+    if (SbArgs_Parse("S:name", args, kwargs, &attr_name) < 0) {
         return NULL;
     }
     result = exception_getattr_internal(self, attr_name);
@@ -153,14 +149,9 @@ enverror_getattr(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
     SbObject *attr_name;
     SbObject *result;
 
-    if (SbArgs_Unpack(args, 1, 1, &attr_name) < 0) {
+    if (SbArgs_Parse("S:name", args, kwargs, &attr_name) < 0) {
         return NULL;
     }
-    if (!SbStr_CheckExact(attr_name)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "attribute name must be a string");
-        return NULL;
-    }
-
     result = enverror_getattr_internal(self, attr_name);
     if (result) {
         return result;

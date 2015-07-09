@@ -157,28 +157,17 @@ SbFile_Close(SbObject *self)
 static SbObject *
 file_read(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *o_maxcount = NULL;
     SbObject *o_result;
     void *buffer;
-    Sb_ssize_t maxcount;
+    Sb_ssize_t maxcount = 16384;
     Sb_ssize_t transferred;
 
-    if (SbArgs_Unpack(args, 0, 1, &o_maxcount) < 0) {
+    if (SbArgs_Parse("|i:maxcount", args, kwargs, &maxcount) < 0) {
         return NULL;
     }
 
-    if (o_maxcount) {
-        /* TODO: fix this! */
-        maxcount = SbInt_AsNative(o_maxcount);
-    }
-    else {
-        /* Some sensible default?
-           The spec says "all the file till the end", but... */
-        maxcount = 16384;
-    }
-
     if (maxcount <= 0) {
-        SbErr_RaiseWithString(SbExc_ValueError, "`maxcount` must be a positive number");
+        SbErr_RaiseWithString(SbExc_ValueError, "'maxcount' must be a positive number");
     }
 
     buffer = Sb_Malloc(maxcount);
@@ -203,11 +192,7 @@ file_write(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *o_data = NULL;
     Sb_ssize_t transferred;
 
-    if (SbArgs_Unpack(args, 1, 1, &o_data) < 0) {
-        return NULL;
-    }
-    if (!SbStr_CheckExact(o_data)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected a str");
+    if (SbArgs_Parse("S:data", args, kwargs, &o_data) < 0) {
         return NULL;
     }
 
@@ -223,20 +208,14 @@ file_write(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 file_seek(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *o_offset = NULL;
-    SbObject *o_whence = NULL;
-    Sb_ssize_t offset;
+    Sb_ssize_t offset = 0;
     int whence = 0;
 
-    if (SbArgs_Unpack(args, 1, 2, &o_offset, &o_whence) < 0) {
+    if (SbArgs_Parse("i:offset|i:whence", args, kwargs, &offset, &whence) < 0) {
         return NULL;
     }
 
     /* TODO: fix this! */
-    offset = SbInt_AsNative(o_offset);
-    if (o_whence) {
-        whence = SbInt_AsNative(o_whence);
-    }
 
     return NULL;
 }

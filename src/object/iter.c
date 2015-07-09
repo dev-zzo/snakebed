@@ -142,7 +142,7 @@ iter_new(SbObject *cls, SbObject *args, SbObject *kwargs)
     SbTypeObject *o_type;
     SbObject *o = NULL, *sentinel = NULL;
 
-    if (SbArgs_Unpack(args, 2, 3, &cls, &o, &sentinel) < 0) {
+    if (SbArgs_Parse("O:cls,O:o|O:sentinel", args, kwargs, &cls, &o, &sentinel) < 0) {
         return NULL;
     }
 

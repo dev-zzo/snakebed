@@ -155,7 +155,7 @@ type_new(SbObject *cls, SbObject *args, SbObject *kwargs)
 {
     SbObject *name = NULL, *base = NULL, *dict = NULL;
 
-    if (SbArgs_Unpack(args, 4, 4, &cls, &name, &base, &dict) < 0) {
+    if (SbArgs_Parse("O:cls|S:name,T:base,D:dict", args, kwargs, &cls, &name, &base, &dict) < 0) {
         return NULL;
     }
     return _SbType_New(name, base, dict);

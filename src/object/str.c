@@ -387,7 +387,7 @@ str_new(SbObject *dummy, SbObject *args, SbObject *kwargs)
 {
     SbObject *o;
 
-    if (SbArgs_Unpack(args, 2, 2, &dummy, &o) < 0) {
+    if (SbArgs_Parse("O:cls|O:o", args, kwargs, &dummy, &o) < 0) {
         return NULL;
     }
 
@@ -449,7 +449,7 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *result;
     SbInt_Native_t pos;
 
-    if (SbArgs_Unpack(args, 1, 1, &index) < 0) {
+    if (SbArgs_Parse("O:index", args, kwargs, &index) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {
@@ -494,7 +494,7 @@ str_join(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *iterable;
 
-    if (SbArgs_Unpack(args, 1, 1, &iterable) < 0) {
+    if (SbArgs_Parse("O:iterable", args, kwargs, &iterable) < 0) {
         return NULL;
     }
     return SbStr_Join(self, iterable);
@@ -547,26 +547,10 @@ str_justify_internal(SbObject *str, Sb_ssize_t width, char filler, void (*proc)(
 static SbObject *
 str_justify_generic(SbObject *self, SbObject *args, SbObject *kwargs, void (*proc)(char *, Sb_ssize_t, const char *, Sb_ssize_t, char))
 {
-    SbObject *o_width;
-    SbObject *o_fillchar = NULL;
     char fillchar = ' ';
     Sb_ssize_t width;
 
-    if (SbArgs_Unpack(args, 1, 2, &o_width, &o_fillchar) < 0) {
-        return NULL;
-    }
-    if (o_fillchar) {
-        if (!SbStr_CheckExact(o_fillchar) || SbStr_GetSizeUnsafe(o_fillchar) != 1) {
-            SbErr_RaiseWithString(SbExc_TypeError, "expected str of length 1 as fillchar");
-            return NULL;
-        }
-        fillchar = SbStr_AsStringUnsafe(o_fillchar)[0];
-    }
-    if (SbInt_Check(o_width)) {
-        width = SbInt_AsNative(o_width);
-    }
-    else {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected int as width");
+    if (SbArgs_Parse("i:width|c:fillchar", args, kwargs, &width, &fillchar) < 0) {
         return NULL;
     }
 
@@ -648,36 +632,16 @@ static Sb_ssize_t
 str_find_internal(SbObject *self, SbObject *args, SbObject *kwargs, str_searcher_t finder)
 {
     SbObject *o_pattern;
-    SbObject *o_start = NULL;
-    SbObject *o_end = NULL;
     Sb_ssize_t start;
     Sb_ssize_t end;
     Sb_ssize_t str_len;
     Sb_ssize_t pos;
 
-    if (SbArgs_Unpack(args, 1, 3, &o_pattern, &o_start, &o_end) < 0) {
-        return -2;
-    }
-    if (!SbStr_CheckExact(o_pattern)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected str as pattern");
-        return -2;
-    }
-
     start = 0;
     end = SbStr_GetSizeUnsafe(self);
-    if (o_start) {
-        if (!SbInt_Check(o_start)) {
-            SbErr_RaiseWithString(SbExc_TypeError, "expected int as start");
-            return -2;
-        }
-        start = SbInt_AsNative(o_start);
-    }
-    if (o_end) {
-        if (!SbInt_Check(o_end)) {
-            SbErr_RaiseWithString(SbExc_TypeError, "expected int as end");
-            return -2;
-        }
-        end = SbInt_AsNative(o_end);
+
+    if (SbArgs_Parse("S:pattern|i:start,i:end", args, kwargs, &o_pattern, &start, &end) < 0) {
+        return -2;
     }
 
     str_len = SbStr_GetSizeUnsafe(self);
@@ -751,18 +715,12 @@ str_rindex(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 str_startswith(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *o_prefix;
     const char *prefix;
 
     /* NOTE: tuple prefix not implemented; start/end indices not implemented. */
-    if (SbArgs_Unpack(args, 1, 1, &o_prefix) < 0) {
+    if (SbArgs_Parse("s:prefix", args, kwargs, &prefix) < 0) {
         return NULL;
     }
-    if (!SbStr_CheckExact(o_prefix)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected str as prefix");
-        return NULL;
-    }
-    prefix = SbStr_AsStringUnsafe(o_prefix);
     switch (SbStr_StartsWithString(self, prefix)) {
     case 0:
         Sb_RETURN_FALSE;
@@ -778,7 +736,7 @@ str_concat(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *o_rhs;
 
-    if (SbArgs_Unpack(args, 1, 1, &o_rhs) < 0) {
+    if (SbArgs_Parse("O:rhs", args, kwargs, &o_rhs) < 0) {
         return NULL;
     }
     if (!SbStr_CheckExact(o_rhs)) {
@@ -797,7 +755,7 @@ str_format(SbObject *self, SbObject *args, SbObject *kwargs)
     SbString_FormatSpecifier spec;
     SbObject *o_result;
 
-    if (SbArgs_Unpack(args, 1, 1, &o_spec) < 0) {
+    if (SbArgs_Parse("O:spec", args, kwargs, &o_spec) < 0) {
         return NULL;
     }
     if (o_spec == Sb_None) {

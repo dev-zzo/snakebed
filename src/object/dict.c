@@ -505,10 +505,9 @@ dict_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *key;
     SbObject *result;
 
-    if (SbArgs_Unpack(args, 1, 1, &key) < 0) {
+    if (SbArgs_Parse("O:key", args, kwargs, &key) < 0) {
         return NULL;
     }
-
     result = SbDict_GetItem(self, key);
     if (result) {
         Sb_INCREF(result);
@@ -523,10 +522,9 @@ dict_setitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *value;
     int result;
 
-    if (SbArgs_Unpack(args, 2, 2, &key ,&value) < 0) {
+    if (SbArgs_Parse("O:key,O:value", args, kwargs, &key, &value) < 0) {
         return NULL;
     }
-
     result = SbDict_SetItem(self, key, value);
     if (result < 0) {
         return NULL;
@@ -540,7 +538,7 @@ dict_delitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *key;
     int result;
 
-    if (SbArgs_Unpack(args, 1, 1, &key) < 0) {
+    if (SbArgs_Parse("O:key", args, kwargs, &key) < 0) {
         return NULL;
     }
     result = SbDict_DelItem(self, key);

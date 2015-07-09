@@ -4,20 +4,35 @@
 extern "C" {
 #endif
 
-/* Parse positinal and keyword arguments, assigning the pointers as appropriate.
-   Note: The function modifies `kwds`.
-   Note: All the returned references are borrowed.
-   Returns: 0 if OK, -1 on error.
-*/
-int
-SbArgs_Parse(SbObject *args, SbObject *kwds, Sb_ssize_t count_min, Sb_ssize_t count_max, const char *names[], ...);
+/* Parse the arguments specifier and populate (and possibly convert) the args.
 
-/* Unpack positional arguments, assigning pointers as appropriate.
-   Note: All the returned references are borrowed.
-   Returns: 0 if OK, -1 on error.
+Conversion specifiers are as follows.
+
+Not type checked:
+* O: Raw SbObject pointer (borrowed ref)
+
+Type checked but not converted (borrowed ref):
+* T: tuple object
+* L: list object
+* D: dict object
+* S: str object
+
+Type checked and converted:
+* i: int, converted to SbInt_Native_t
+* s: str, converted to const char *
+* c: str of length 1, converted to char
+
+   Returns: 0 if OK, -1 otherwise. */
+*/
+
+int
+SbArgs_Parse(const char *spec, SbObject *args, SbObject *kwds, ...);
+
+/* Ensure the function was not passed any args.
+   Returns: 0 if OK, -1 otherwise. */
 */
 int
-SbArgs_Unpack(SbObject *args, Sb_ssize_t count_min, Sb_ssize_t count_max, ...);
+SbArgs_NoArgs(SbObject *args, SbObject *kwds);
 
 #ifdef __cplusplus
 }

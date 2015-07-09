@@ -223,7 +223,7 @@ list_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *index;
     SbObject *result;
 
-    if (SbArgs_Unpack(args, 1, 1, &index) < 0) {
+    if (SbArgs_Parse("O:index", args, kwargs, &index) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {
@@ -265,7 +265,7 @@ list_setitem(SbObject *self, SbObject *args, SbObject *kwargs)
     SbObject *index;
     SbObject *value;
 
-    if (SbArgs_Unpack(args, 2, 2, &index, &value) < 0) {
+    if (SbArgs_Parse("O:index,O:value", args, kwargs, &index, &value) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {
@@ -318,7 +318,7 @@ list_delitem(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *index;
 
-    if (SbArgs_Unpack(args, 1, 1, &index) < 0) {
+    if (SbArgs_Parse("O:index", args, kwargs, &index) < 0) {
         return NULL;
     }
     if (SbSlice_Check(index)) {
@@ -368,7 +368,7 @@ list_append(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *o;
 
-    if (SbArgs_Unpack(args, 1, 1, &o) < 0) {
+    if (SbArgs_Parse("O:o", args, kwargs, &o) < 0) {
         return NULL;
     }
 
