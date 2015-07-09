@@ -330,6 +330,7 @@ SbString_ParseFormatSpec(const char *spec, SbString_FormatSpecifier* result)
     if (spec[0] != '\0' && (spec[1] == '<' || spec[1] == '>' || spec[1] == '=' || spec[1] == '^')) {
         result->filler = spec[0];
         result->align_flag = spec[1];
+        spec += 2;
     }
     else {
         result->filler = ' ';
@@ -341,10 +342,12 @@ SbString_ParseFormatSpec(const char *spec, SbString_FormatSpecifier* result)
             result->align_flag = '<';
         }
     }
+    result->sign_flag = '-';
     if (*spec == '+' || *spec == '-' || *spec == ' ') {
         result->sign_flag = *spec;
         ++spec;
     }
+    result->use_alt_form = 0;
     if (*spec == '#') {
         result->use_alt_form = *spec;
         ++spec;
