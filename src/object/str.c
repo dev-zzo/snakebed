@@ -751,18 +751,14 @@ str_concat(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 str_format(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *o_spec;
+    const char *spec_string;
     SbString_FormatSpecifier spec;
     SbObject *o_result;
 
-    if (SbArgs_Parse("O:spec", args, kwargs, &o_spec) < 0) {
+    if (SbArgs_Parse("z:spec", args, kwargs, &spec_string) < 0) {
         return NULL;
     }
-    if (o_spec == Sb_None) {
-        Sb_INCREF(self);
-        return self;
-    }
-    if (SbString_ParseFormatSpec(SbStr_AsString(o_spec), &spec) < 0) {
+    if (SbString_ParseFormatSpec(spec_string ? spec_string : "", &spec) < 0) {
         return NULL;
     }
 
