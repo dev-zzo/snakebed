@@ -655,6 +655,24 @@ BinaryXxx_common:
                 i_result = SbList_Append(op2, op1);
                 goto Xxx_drop1_check_iresult;
 
+            case UnpackSequence:
+                op1 = STACK_POP();
+                i_result = 0;
+                sp -= opcode_arg;
+                for (pos = 0; pos < opcode_arg; ++pos) {
+                    tmp = SbSequence_GetItem(op1, pos);
+                    sp[pos] = tmp;
+                    if (!tmp) {
+                        /* Drop references already on the stack */
+                        while (pos-- > 0) {
+                            Sb_DECREF(sp[pos]);
+                        }
+                        sp += opcode_arg;
+                        i_result = -1;
+                        break;
+                    }
+                }
+                goto Xxx_drop1_check_iresult;
 
             case RaiseVarArgs:
                 /* X Y Z -> */

@@ -89,7 +89,7 @@ typedef enum _SbOpcode {
 
 /**/StoreName               = 90, /* Index in name list */
 /**/DeleteName              = 91, /* Index in name list */
-    UnpackSequence          = 92, /* Number of sequence items */
+/**/UnpackSequence          = 92, /* Number of sequence items */
 /**/ForIter                 = 93,
 /**/ListAppend              = 94,
 /**/StoreAttr               = 95, /* Index in name list */
