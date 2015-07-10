@@ -67,7 +67,7 @@ tuple2sa_ipv4(SbObject *tuple, struct sockaddr *sa)
 
     /* NOTE: none of this code verifies range of the integers provided... */
     sa_ipv4->sin_family = AF_INET;
-    sa_ipv4->sin_port = (unsigned short)SbInt_AsNativeUnsafe(o_port);
+    sa_ipv4->sin_port = htons((unsigned short)SbInt_AsNativeUnsafe(o_port));
 
     cursor = SbStr_AsStringUnsafe(o_addr);
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
@@ -130,7 +130,7 @@ sa2tuple_ipv4(struct sockaddr *sa)
     if (!o_addr) {
         return NULL;
     }
-    o_port = SbInt_FromNative(sa_ipv4->sin_port);
+    o_port = SbInt_FromNative(ntohs(sa_ipv4->sin_port));
     if (!o_port) {
         return NULL;
     }
