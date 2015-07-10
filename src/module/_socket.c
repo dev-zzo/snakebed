@@ -14,9 +14,7 @@ typedef SOCKET OSSocket_t;
 
 #define IS_SOCKET_VALID(x) ((x) != INVALID_SOCKET)
 
-#endif
-
-#if PLATFORM(LINUX)
+#elif PLATFORM(PLATFORM_LINUX)
 
 typedef int OSSocket_t;
 
@@ -34,7 +32,7 @@ socket_raise_error(const char *func)
 {
 #if PLATFORM(PLATFORM_WINNT)
     SbErr_RaiseWithFormat(socket_error, "%s: [errno %d]", func, WSAGetLastError());
-#elif PLATFORM(LINUX)
+#elif PLATFORM(PLATFORM_LINUX)
     SbErr_RaiseWithFormat(socket_error, "%s: [errno %d]", func, errno);
 #else
     /* FAIL */
@@ -73,22 +71,22 @@ tuple2sa_ipv4(SbObject *tuple, struct sockaddr *sa)
 
     cursor = SbStr_AsStringUnsafe(o_addr);
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
-    if (*cursor != '.') {
+    if (*cursor++ != '.') {
         goto incorrect_addr;
     }
     sa_ipv4->sin_addr.S_un.S_un_b.s_b1 = (unsigned char)tmp;
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
-    if (*cursor != '.') {
+    if (*cursor++ != '.') {
         goto incorrect_addr;
     }
     sa_ipv4->sin_addr.S_un.S_un_b.s_b2 = (unsigned char)tmp;
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
-    if (*cursor != '.') {
+    if (*cursor++ != '.') {
         goto incorrect_addr;
     }
     sa_ipv4->sin_addr.S_un.S_un_b.s_b3 = (unsigned char)tmp;
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
-    if (*cursor != '\0') {
+    if (*cursor++ != '\0') {
         goto incorrect_addr;
     }
     sa_ipv4->sin_addr.S_un.S_un_b.s_b4 = (unsigned char)tmp;
@@ -595,6 +593,15 @@ _Sb_ModuleInit_Socket()
     SbDict_SetItemString(dict, "AF_INET", SbInt_FromNative(AF_INET));
     SbDict_SetItemString(dict, "SOCK_STREAM", SbInt_FromNative(SOCK_STREAM));
     SbDict_SetItemString(dict, "SOCK_DGRAM", SbInt_FromNative(SOCK_DGRAM));
+#if PLATFORM(PLATFORM_WINNT)
+    SbDict_SetItemString(dict, "SHUT_RD", SbInt_FromNative(SD_RECEIVE));
+    SbDict_SetItemString(dict, "SHUT_WR", SbInt_FromNative(SD_SEND));
+    SbDict_SetItemString(dict, "SHUT_RDWR", SbInt_FromNative(SD_BOTH));
+#elif PLATFORM(PLATFORM_LINUX)
+    SbDict_SetItemString(dict, "SHUT_RD", SbInt_FromNative(SHUT_RD));
+    SbDict_SetItemString(dict, "SHUT_WR", SbInt_FromNative(SHUT_WR));
+    SbDict_SetItemString(dict, "SHUT_RDWR", SbInt_FromNative(SHUT_RDWR));
+#endif
 
     Sb_ModuleSocket = m;
     return 0;
