@@ -54,6 +54,12 @@ SbStr_GetSize(SbObject *p);
 const Sb_byte_t *
 SbStr_AsString(SbObject *p);
 
+/* Truncate a string; new length must be less than current.
+   NOTE: ONLY to be used on freshly created strings.
+   Returns: 0 if OK, -1 otherwise. */
+int
+SbStr_Truncate(SbObject *p, Sb_ssize_t new_length);
+
 /* Check whether or not p2 starts with p2.
    Returns: 1 if yes, 0 if no, -1 on error.
 */

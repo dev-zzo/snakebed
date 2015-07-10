@@ -316,6 +316,20 @@ SbStr_Concat(SbObject *lhs, SbObject *rhs)
     return o_new;
 }
 
+int
+SbStr_Truncate(SbObject *p, Sb_ssize_t new_length)
+{
+    SbStrObject *myself = (SbStrObject *)p;
+
+    if (new_length > SbStr_GetSizeUnsafe(myself)) {
+        return -1;
+    }
+
+    myself->ob_itemcount = new_length;
+    SbStr_AsStringUnsafe(myself)[new_length] = '\0';
+    return 0;
+}
+
 
 long
 _SbStr_Hash(SbObject *p)
