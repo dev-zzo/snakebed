@@ -389,8 +389,10 @@ socketobj_recv(socket_object *self, SbObject *args, SbObject *kwargs)
     call_result = recv(self->s, SbStr_AsStringUnsafe(o_buffer), bufsize, flags);
     if (call_result < 0) {
         socket_raise_error("recv");
+        Sb_DECREF(o_buffer);
         return NULL;
     }
+    SbStr_Truncate(o_buffer, call_result);
 
     return o_buffer;
 }
@@ -421,6 +423,7 @@ socketobj_recvfrom(socket_object *self, SbObject *args, SbObject *kwargs)
         Sb_DECREF(o_buffer);
         return NULL;
     }
+    SbStr_Truncate(o_buffer, call_result);
     o_address = sa2tuple(&sa, self->family);
     if (!o_address) {
         Sb_DECREF(o_buffer);
