@@ -5,6 +5,13 @@
 
 /* Ref: https://docs.python.org/2/library/socket.html */
 
+/* NOTE:
+   This implementation DEPARTS from the standard Python library in the following:
+
+ * The basic error class name is `SocketError`, not `error`.
+ * socket.settimeout() accepts None or int, instead of float.
+ */
+
 #if PLATFORM(PLATFORM_WINNT)
 #include <Winsock2.h>
 #include <Windows.h>
@@ -25,18 +32,26 @@ typedef int OSSocket_t;
 SbObject *Sb_ModuleSocket = NULL;
 SbTypeObject *Sb_SocketType = NULL;
 
-static SbTypeObject *socket_error;
+static SbTypeObject *SbExc_SocketError;
 
-static void
-socket_raise_error(const char *func)
+static SbObject *
+socket_raise_error(void)
 {
+    int error_id;
+    SbObject *o_errno;
+    SbObject *o_text;
+    
 #if PLATFORM(PLATFORM_WINNT)
-    SbErr_RaiseWithFormat(socket_error, "%s: [errno %d]", func, WSAGetLastError());
+    error_id = WSAGetLastError();
 #elif PLATFORM(PLATFORM_LINUX)
-    SbErr_RaiseWithFormat(socket_error, "%s: [errno %d]", func, errno);
-#else
-    /* FAIL */
+    error_id = errno;
 #endif
+    o_errno = SbInt_FromNative(error_id);
+    o_text = SbStr_FromString("<strerror not available>");
+    SbErr_RaiseWithObject(SbExc_SocketError, SbTuple_Pack(2, o_errno, o_text));
+    Sb_DECREF(o_errno);
+    Sb_DECREF(o_text);
+    return NULL;
 }
 
 /* Address conversions */
@@ -71,22 +86,22 @@ tuple2sa_ipv4(SbObject *tuple, struct sockaddr *sa)
 
     cursor = SbStr_AsStringUnsafe(o_addr);
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
-    if (*cursor++ != '.') {
+    if (*cursor++ != '.' || tmp > 255) {
         goto incorrect_addr;
     }
     sa_ipv4->sin_addr.S_un.S_un_b.s_b1 = (unsigned char)tmp;
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
-    if (*cursor++ != '.') {
+    if (*cursor++ != '.' || tmp > 255) {
         goto incorrect_addr;
     }
     sa_ipv4->sin_addr.S_un.S_un_b.s_b2 = (unsigned char)tmp;
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
-    if (*cursor++ != '.') {
+    if (*cursor++ != '.' || tmp > 255) {
         goto incorrect_addr;
     }
     sa_ipv4->sin_addr.S_un.S_un_b.s_b3 = (unsigned char)tmp;
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
-    if (*cursor++ != '\0') {
+    if (*cursor++ != '\0' || tmp > 255) {
         goto incorrect_addr;
     }
     sa_ipv4->sin_addr.S_un.S_un_b.s_b4 = (unsigned char)tmp;
@@ -158,6 +173,7 @@ typedef struct _socket_object {
     int family;
     int type;
     int proto;
+    int timeout;
 } socket_object;
 
 static SbObject *
@@ -193,15 +209,9 @@ socketobj_init(socket_object *self, SbObject *args, SbObject *kwargs)
     self->type = type;
     self->proto = proto;
     self->s = socket(family, type, proto);
-
-#if PLATFORM(PLATFORM_WINNT)
     if (!IS_SOCKET_VALID(self->s)) {
-        socket_raise_error("socket");
-        return NULL;
+        return socket_raise_error();
     }
-#else
-    /* TODO */
-#endif
 
     Sb_RETURN_NONE;
 }
@@ -250,8 +260,7 @@ socketobj_accept(socket_object *self, SbObject *args, SbObject *kwargs)
 
     new_socket = accept(self->s, &sa, &sa_size);
     if (!IS_SOCKET_VALID(new_socket)) {
-        socket_raise_error("accept");
-        return NULL;
+        return socket_raise_error();
     }
     o_socket = socketobj_new(new_socket, self->family, self->type, self->proto);
     if (!o_socket) {
@@ -285,8 +294,7 @@ socketobj_bind(socket_object *self, SbObject *args, SbObject *kwargs)
     call_result = bind(self->s, &sa, sizeof(sa));
 
     if (call_result != 0) {
-        socket_raise_error("bind");
-        return NULL;
+        return socket_raise_error();
     }
 
     Sb_RETURN_NONE;
@@ -310,8 +318,7 @@ socketobj_connect(socket_object *self, SbObject *args, SbObject *kwargs)
     call_result = connect(self->s, &sa, sizeof(sa));
 
     if (call_result != 0) {
-        socket_raise_error("connect");
-        return NULL;
+        return socket_raise_error();
     }
 
     Sb_RETURN_NONE;
@@ -324,8 +331,7 @@ socketobj_close(socket_object *self, SbObject *args, SbObject *kwargs)
 
     call_result = closesocket(self->s);
     if (call_result != 0) {
-        socket_raise_error("close");
-        return NULL;
+        return socket_raise_error();
     }
 
     Sb_RETURN_NONE;
@@ -343,8 +349,7 @@ socketobj_shutdown(socket_object *self, SbObject *args, SbObject *kwargs)
 
     call_result = shutdown(self->s, how);
     if (call_result != 0) {
-        socket_raise_error("shutdown");
-        return NULL;
+        return socket_raise_error();
     }
 
     Sb_RETURN_NONE;
@@ -362,8 +367,7 @@ socketobj_listen(socket_object *self, SbObject *args, SbObject *kwargs)
 
     call_result = listen(self->s, backlog);
     if (call_result < 0) {
-        socket_raise_error("listen");
-        return NULL;
+        return socket_raise_error();
     }
 
     Sb_RETURN_NONE;
@@ -388,9 +392,8 @@ socketobj_recv(socket_object *self, SbObject *args, SbObject *kwargs)
 
     call_result = recv(self->s, SbStr_AsStringUnsafe(o_buffer), bufsize, flags);
     if (call_result < 0) {
-        socket_raise_error("recv");
         Sb_DECREF(o_buffer);
-        return NULL;
+        return socket_raise_error();
     }
     SbStr_Truncate(o_buffer, call_result);
 
@@ -419,9 +422,8 @@ socketobj_recvfrom(socket_object *self, SbObject *args, SbObject *kwargs)
 
     call_result = recvfrom(self->s, SbStr_AsStringUnsafe(o_buffer), bufsize, flags, &sa, &sa_size);
     if (call_result < 0) {
-        socket_raise_error("recvfrom");
         Sb_DECREF(o_buffer);
-        return NULL;
+        return socket_raise_error();
     }
     SbStr_Truncate(o_buffer, call_result);
     o_address = sa2tuple(&sa, self->family);
@@ -446,8 +448,7 @@ socketobj_send(socket_object *self, SbObject *args, SbObject *kwargs)
 
     call_result = send(self->s, SbStr_AsStringUnsafe(o_buffer), SbStr_GetSizeUnsafe(o_buffer), flags);
     if (call_result < 0) {
-        socket_raise_error("send");
-        return NULL;
+        return socket_raise_error();
     }
 
     return SbInt_FromNative(call_result);
@@ -472,8 +473,7 @@ socketobj_sendto(socket_object *self, SbObject *args, SbObject *kwargs)
 
     call_result = sendto(self->s, SbStr_AsStringUnsafe(o_buffer), SbStr_GetSizeUnsafe(o_buffer), flags, &sa, sizeof(sa));
     if (call_result < 0) {
-        socket_raise_error("sendto");
-        return NULL;
+        return socket_raise_error();
     }
 
     return SbInt_FromNative(call_result);
@@ -488,8 +488,7 @@ socketobj_getsockname(socket_object *self, SbObject *args, SbObject *kwargs)
 
     call_result = getsockname(self->s, &sa, &sa_size);
     if (call_result < 0) {
-        socket_raise_error("getsockname");
-        return NULL;
+        return socket_raise_error();
     }
 
     return sa2tuple(&sa, self->family);
@@ -504,12 +503,51 @@ socketobj_getpeername(socket_object *self, SbObject *args, SbObject *kwargs)
 
     call_result = getpeername(self->s, &sa, &sa_size);
     if (call_result < 0) {
-        socket_raise_error("getpeername");
-        return NULL;
+        return socket_raise_error();
     }
 
     return sa2tuple(&sa, self->family);
 }
+
+static int
+socketobj_apply_timeout(socket_object *self, int timeout)
+{
+    self->timeout = timeout;
+    return 0;
+}
+
+static SbObject *
+socketobj_settimeout(socket_object *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o_timeout;
+    int timeout;
+
+    if (SbArgs_Parse("O:timeout", args, kwargs, &o_timeout) < 0) {
+        return NULL;
+    }
+
+    if (o_timeout == Sb_None) {
+        /* no timeout, blocking mode */
+        timeout = -1;
+    }
+    else if (SbInt_Check(o_timeout)) {
+        timeout = SbInt_AsNativeUnsafe(o_timeout);
+        if (timeout < 0) {
+            /* raise */
+            SbErr_RaiseWithString(SbExc_ValueError, "timeout cannot be negative");
+            return NULL;
+        }
+    }
+    else {
+        SbErr_RaiseWithFormat(SbExc_TypeError, "expected arg '%s' to be %s, got %s",
+            "timeout", "int or None", Sb_TYPE(o_timeout)->tp_name);
+        return NULL;
+    }
+
+    socketobj_apply_timeout(self, timeout);
+    Sb_RETURN_NONE;
+}
+
 
 
 static int
@@ -546,6 +584,8 @@ _Sb_TypeInit_Socket(SbObject *m)
 
         { "getsockname", (SbCFunction)socketobj_getsockname },
         { "getpeername", (SbCFunction)socketobj_getpeername },
+
+        { "settimeout", (SbCFunction)socketobj_settimeout },
 
         /* Sentinel */
         { NULL, NULL },
@@ -590,8 +630,8 @@ _Sb_ModuleInit_Socket()
     Sb_SocketType = tp;
     SbDict_SetItemString(dict, "socket", (SbObject *)tp);
 
-    socket_error = SbExc_NewException("socket.error", SbExc_Exception);
-    SbDict_SetItemString(dict, "error", (SbObject *)socket_error);
+    SbExc_SocketError = SbExc_NewException("socket.SocketError", SbExc_IOError);
+    SbDict_SetItemString(dict, "SocketError", (SbObject *)SbExc_SocketError);
 
     SbDict_SetItemString(dict, "AF_INET", SbInt_FromNative(AF_INET));
     SbDict_SetItemString(dict, "SOCK_STREAM", SbInt_FromNative(SOCK_STREAM));
