@@ -57,34 +57,27 @@ socket_raise_error(void)
 /* Address conversions */
 
 static int
-addr2sa_ipv4(SbObject *tuple, struct sockaddr *sa)
+addr2sa_ipv4(SbObject *addr, struct sockaddr *sa)
 {
-    SbObject *o_addr;
-    SbObject *o_port;
     struct sockaddr_in *sa_ipv4 = (struct sockaddr_in *)sa;
+    const char *ipaddr;
     const char *cursor;
+    SbInt_Native_t port;
     unsigned long tmp;
 
-    if (SbTuple_GetSizeUnsafe(tuple) != 2) {
-        SbErr_RaiseWithFormat(SbExc_TypeError, "expected %d items in address tuple, found %d", 2, SbTuple_GetSizeUnsafe(tuple));
+    /* Reduces code bloat at expense of more cryptic error messages... */
+    if (SbArgs_Parse("s:address,i:port", addr, NULL, &ipaddr, &port) < 0) {
         return -1;
     }
-    o_addr = SbTuple_GetItemUnsafe(tuple, 0);
-    if (!SbStr_CheckExact(o_addr)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected str as IPv4 address");
-        return -1;
-    }
-    o_port = SbTuple_GetItemUnsafe(tuple, 1);
-    if (!SbInt_CheckExact(o_port)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "expected int as IPv4 port");
+    if ((unsigned long)port > 65535) {
+        SbErr_RaiseWithFormat(SbExc_ValueError, "invalid port number provided: %d", port);
         return -1;
     }
 
-    /* NOTE: none of this code verifies range of the integers provided... */
     sa_ipv4->sin_family = AF_INET;
-    sa_ipv4->sin_port = htons((unsigned short)SbInt_AsNativeUnsafe(o_port));
+    sa_ipv4->sin_port = htons((unsigned short)port);
 
-    cursor = SbStr_AsStringUnsafe(o_addr);
+    cursor = ipaddr;
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
     if (*cursor++ != '.' || tmp > 255) {
         goto incorrect_addr;
@@ -109,21 +102,20 @@ addr2sa_ipv4(SbObject *tuple, struct sockaddr *sa)
     return 0;
 
 incorrect_addr:
-    SbErr_RaiseWithFormat(SbExc_ValueError, "incorrect format of IPv4 address provided: '%s'", SbStr_AsStringUnsafe(o_addr));
+    SbErr_RaiseWithFormat(SbExc_ValueError, "invalid IPv4 address provided: '%s'", ipaddr);
     return -1;
 }
 
 static int
-addr2sa(SbObject *tuple, struct sockaddr *sa, int family)
+addr2sa(SbObject *addr, struct sockaddr *sa, int family)
 {
-    if (!SbTuple_CheckExact(tuple)) {
-        SbErr_RaiseWithString(SbExc_TypeError, "address is not a tuple");
-        return -1;
-    }
-
     switch (family) {
     case AF_INET:
-        return addr2sa_ipv4(tuple, sa);
+        if (!SbTuple_CheckExact(addr)) {
+            SbErr_RaiseWithString(SbExc_TypeError, "address is not a tuple");
+            return -1;
+        }
+        return addr2sa_ipv4(addr, sa);
     default:
         SbErr_RaiseWithFormat(SbExc_ValueError, "unknown address family: %d", family);
         return -1;
