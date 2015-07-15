@@ -244,6 +244,7 @@ socketobj_del(socket_object *self, SbObject *args, SbObject *kwargs)
     Sb_RETURN_NONE;
 }
 
+/* Code that can't block or be timed */
 
 static SbObject *
 socketobj_accept(socket_object *self, SbObject *args, SbObject *kwargs)
@@ -297,30 +298,6 @@ socketobj_bind(socket_object *self, SbObject *args, SbObject *kwargs)
 }
 
 static SbObject *
-socketobj_connect(socket_object *self, SbObject *args, SbObject *kwargs)
-{
-    SbObject *o_address;
-    struct sockaddr sa;
-    int call_result;
-
-    if (SbArgs_Parse("T:addr", args, kwargs, &o_address) < 0) {
-        return NULL;
-    }
-
-    if (addr2sa(o_address, &sa, self->family) < 0) {
-        return NULL;
-    }
-
-    call_result = connect(self->s, &sa, sizeof(sa));
-
-    if (call_result != 0) {
-        return socket_raise_error();
-    }
-
-    Sb_RETURN_NONE;
-}
-
-static SbObject *
 socketobj_close(socket_object *self, SbObject *args, SbObject *kwargs)
 {
     int call_result;
@@ -363,6 +340,62 @@ socketobj_listen(socket_object *self, SbObject *args, SbObject *kwargs)
 
     call_result = listen(self->s, backlog);
     if (call_result < 0) {
+        return socket_raise_error();
+    }
+
+    Sb_RETURN_NONE;
+}
+
+static SbObject *
+socketobj_getsockname(socket_object *self, SbObject *args, SbObject *kwargs)
+{
+    struct sockaddr sa;
+    int sa_size = sizeof(sa);
+    int call_result;
+
+    call_result = getsockname(self->s, &sa, &sa_size);
+    if (call_result < 0) {
+        return socket_raise_error();
+    }
+
+    return sa2addr(&sa, self->family);
+}
+
+static SbObject *
+socketobj_getpeername(socket_object *self, SbObject *args, SbObject *kwargs)
+{
+    struct sockaddr sa;
+    int sa_size = sizeof(sa);
+    int call_result;
+
+    call_result = getpeername(self->s, &sa, &sa_size);
+    if (call_result < 0) {
+        return socket_raise_error();
+    }
+
+    return sa2addr(&sa, self->family);
+}
+
+/* Blocking/timed I/O and related code */
+
+static SbObject *
+socketobj_connect(socket_object *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o_address;
+    struct sockaddr sa;
+    int call_result;
+
+    if (SbArgs_Parse("T:addr", args, kwargs, &o_address) < 0) {
+        return NULL;
+    }
+
+    if (addr2sa(o_address, &sa, self->family) < 0) {
+        return NULL;
+    }
+
+    call_result = connect(self->s, &sa, sizeof(sa));
+
+    if (call_result != 0) {
         return socket_raise_error();
     }
 
@@ -475,36 +508,6 @@ socketobj_sendto(socket_object *self, SbObject *args, SbObject *kwargs)
     return SbInt_FromNative(call_result);
 }
 
-static SbObject *
-socketobj_getsockname(socket_object *self, SbObject *args, SbObject *kwargs)
-{
-    struct sockaddr sa;
-    int sa_size = sizeof(sa);
-    int call_result;
-
-    call_result = getsockname(self->s, &sa, &sa_size);
-    if (call_result < 0) {
-        return socket_raise_error();
-    }
-
-    return sa2addr(&sa, self->family);
-}
-
-static SbObject *
-socketobj_getpeername(socket_object *self, SbObject *args, SbObject *kwargs)
-{
-    struct sockaddr sa;
-    int sa_size = sizeof(sa);
-    int call_result;
-
-    call_result = getpeername(self->s, &sa, &sa_size);
-    if (call_result < 0) {
-        return socket_raise_error();
-    }
-
-    return sa2addr(&sa, self->family);
-}
-
 static int
 socketobj_apply_timeout(socket_object *self, int timeout)
 {
@@ -567,16 +570,17 @@ _Sb_TypeInit_Socket(SbObject *m)
         { "__getattr__", (SbCFunction)socketobj_getattr },
         { "__del__", (SbCFunction)socketobj_del, },
 
-        { "connect", (SbCFunction)socketobj_connect },
+        { "bind", (SbCFunction)socketobj_bind },
+        { "listen", (SbCFunction)socketobj_listen },
+        { "accept", (SbCFunction)socketobj_accept },
         { "close", (SbCFunction)socketobj_close },
         { "shutdown", (SbCFunction)socketobj_shutdown },
+
+        { "connect", (SbCFunction)socketobj_connect },
         { "recv", (SbCFunction)socketobj_recv },
         { "recvfrom", (SbCFunction)socketobj_recvfrom },
         { "send", (SbCFunction)socketobj_send },
         { "sendto", (SbCFunction)socketobj_sendto },
-        { "bind", (SbCFunction)socketobj_bind },
-        { "listen", (SbCFunction)socketobj_listen },
-        { "accept", (SbCFunction)socketobj_accept },
 
         { "getsockname", (SbCFunction)socketobj_getsockname },
         { "getpeername", (SbCFunction)socketobj_getpeername },
