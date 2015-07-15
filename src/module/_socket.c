@@ -57,7 +57,7 @@ socket_raise_error(void)
 /* Address conversions */
 
 static int
-tuple2sa_ipv4(SbObject *tuple, struct sockaddr *sa)
+addr2sa_ipv4(SbObject *tuple, struct sockaddr *sa)
 {
     SbObject *o_addr;
     SbObject *o_port;
@@ -114,7 +114,7 @@ incorrect_addr:
 }
 
 static int
-tuple2sa(SbObject *tuple, struct sockaddr *sa, int family)
+addr2sa(SbObject *tuple, struct sockaddr *sa, int family)
 {
     if (!SbTuple_CheckExact(tuple)) {
         SbErr_RaiseWithString(SbExc_TypeError, "address is not a tuple");
@@ -123,7 +123,7 @@ tuple2sa(SbObject *tuple, struct sockaddr *sa, int family)
 
     switch (family) {
     case AF_INET:
-        return tuple2sa_ipv4(tuple, sa);
+        return addr2sa_ipv4(tuple, sa);
     default:
         SbErr_RaiseWithFormat(SbExc_ValueError, "unknown address family: %d", family);
         return -1;
@@ -131,7 +131,7 @@ tuple2sa(SbObject *tuple, struct sockaddr *sa, int family)
 }
 
 static SbObject *
-sa2tuple_ipv4(struct sockaddr *sa)
+sa2addr_ipv4(struct sockaddr *sa)
 {
     SbObject *o_addr;
     SbObject *o_port;
@@ -154,11 +154,11 @@ sa2tuple_ipv4(struct sockaddr *sa)
 }
 
 static SbObject *
-sa2tuple(struct sockaddr *sa, int family)
+sa2addr(struct sockaddr *sa, int family)
 {
     switch (family) {
     case AF_INET:
-        return sa2tuple_ipv4(sa);
+        return sa2addr_ipv4(sa);
     default:
         SbErr_RaiseWithFormat(SbExc_ValueError, "unknown address family: %d", family);
         return NULL;
@@ -267,7 +267,7 @@ socketobj_accept(socket_object *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
-    o_address = sa2tuple(&sa, self->family);
+    o_address = sa2addr(&sa, self->family);
     if (!o_address) {
         Sb_DECREF(o_socket);
         return NULL;
@@ -287,7 +287,7 @@ socketobj_bind(socket_object *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
-    if (tuple2sa(o_address, &sa, self->family) < 0) {
+    if (addr2sa(o_address, &sa, self->family) < 0) {
         return NULL;
     }
 
@@ -311,7 +311,7 @@ socketobj_connect(socket_object *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
-    if (tuple2sa(o_address, &sa, self->family) < 0) {
+    if (addr2sa(o_address, &sa, self->family) < 0) {
         return NULL;
     }
 
@@ -426,7 +426,7 @@ socketobj_recvfrom(socket_object *self, SbObject *args, SbObject *kwargs)
         return socket_raise_error();
     }
     SbStr_Truncate(o_buffer, call_result);
-    o_address = sa2tuple(&sa, self->family);
+    o_address = sa2addr(&sa, self->family);
     if (!o_address) {
         Sb_DECREF(o_buffer);
         return NULL;
@@ -467,7 +467,7 @@ socketobj_sendto(socket_object *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
-    if (tuple2sa(o_address, &sa, self->family) < 0) {
+    if (addr2sa(o_address, &sa, self->family) < 0) {
         return NULL;
     }
 
@@ -491,7 +491,7 @@ socketobj_getsockname(socket_object *self, SbObject *args, SbObject *kwargs)
         return socket_raise_error();
     }
 
-    return sa2tuple(&sa, self->family);
+    return sa2addr(&sa, self->family);
 }
 
 static SbObject *
@@ -506,7 +506,7 @@ socketobj_getpeername(socket_object *self, SbObject *args, SbObject *kwargs)
         return socket_raise_error();
     }
 
-    return sa2tuple(&sa, self->family);
+    return sa2addr(&sa, self->family);
 }
 
 static int
