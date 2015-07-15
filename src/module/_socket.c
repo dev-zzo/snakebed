@@ -173,7 +173,7 @@ typedef struct _socket_object {
     int family;
     int type;
     int proto;
-    int timeout;
+    int timeout; /* -1: blocking; 0: non-blocking; others: timeout */
 } socket_object;
 
 static SbObject *
