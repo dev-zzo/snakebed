@@ -78,21 +78,25 @@ addr2sa_ipv4(SbObject *addr, struct sockaddr *sa)
     sa_ipv4->sin_port = htons((unsigned short)port);
 
     cursor = ipaddr;
+    tmp = 256;
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
     if (*cursor++ != '.' || tmp > 255) {
         goto incorrect_addr;
     }
     sa_ipv4->sin_addr.S_un.S_un_b.s_b1 = (unsigned char)tmp;
+    tmp = 256;
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
     if (*cursor++ != '.' || tmp > 255) {
         goto incorrect_addr;
     }
     sa_ipv4->sin_addr.S_un.S_un_b.s_b2 = (unsigned char)tmp;
+    tmp = 256;
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
     if (*cursor++ != '.' || tmp > 255) {
         goto incorrect_addr;
     }
     sa_ipv4->sin_addr.S_un.S_un_b.s_b3 = (unsigned char)tmp;
+    tmp = 256;
     Sb_AtoUL(cursor, &cursor, 10, &tmp);
     if (*cursor++ != '\0' || tmp > 255) {
         goto incorrect_addr;
