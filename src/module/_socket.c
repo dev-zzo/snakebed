@@ -247,33 +247,6 @@ socketobj_del(socket_object *self, SbObject *args, SbObject *kwargs)
 /* Code that can't block or be timed */
 
 static SbObject *
-socketobj_accept(socket_object *self, SbObject *args, SbObject *kwargs)
-{
-    struct sockaddr sa;
-    int sa_size = sizeof(sa);
-    OSSocket_t new_socket;
-    SbObject *o_socket;
-    SbObject *o_address;
-
-    new_socket = accept(self->s, &sa, &sa_size);
-    if (!IS_SOCKET_VALID(new_socket)) {
-        return socket_raise_error();
-    }
-    o_socket = socketobj_new(new_socket, self->family, self->type, self->proto);
-    if (!o_socket) {
-        return NULL;
-    }
-
-    o_address = sa2addr(&sa, self->family);
-    if (!o_address) {
-        Sb_DECREF(o_socket);
-        return NULL;
-    }
-
-    return SbTuple_Pack(2, o_socket, o_address);
-}
-
-static SbObject *
 socketobj_bind(socket_object *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *o_address;
@@ -377,6 +350,33 @@ socketobj_getpeername(socket_object *self, SbObject *args, SbObject *kwargs)
 }
 
 /* Blocking/timed I/O and related code */
+
+static SbObject *
+socketobj_accept(socket_object *self, SbObject *args, SbObject *kwargs)
+{
+    struct sockaddr sa;
+    int sa_size = sizeof(sa);
+    OSSocket_t new_socket;
+    SbObject *o_socket;
+    SbObject *o_address;
+
+    new_socket = accept(self->s, &sa, &sa_size);
+    if (!IS_SOCKET_VALID(new_socket)) {
+        return socket_raise_error();
+    }
+    o_socket = socketobj_new(new_socket, self->family, self->type, self->proto);
+    if (!o_socket) {
+        return NULL;
+    }
+
+    o_address = sa2addr(&sa, self->family);
+    if (!o_address) {
+        Sb_DECREF(o_socket);
+        return NULL;
+    }
+
+    return SbTuple_Pack(2, o_socket, o_address);
+}
 
 static SbObject *
 socketobj_connect(socket_object *self, SbObject *args, SbObject *kwargs)
