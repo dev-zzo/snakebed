@@ -17,13 +17,13 @@
 #include <Windows.h>
 #pragma comment(lib, "Ws2_32.lib")
 
-typedef SOCKET OSSocket_t;
+typedef SOCKET SbRT_Socket_t;
 
 #define IS_SOCKET_VALID(x) ((x) != INVALID_SOCKET)
 
 #elif PLATFORM(PLATFORM_LINUX)
 
-typedef int OSSocket_t;
+typedef int SbRT_Socket_t;
 
 #define IS_SOCKET_VALID(x) ((x) >= 0)
 
@@ -33,6 +33,7 @@ SbObject *Sb_ModuleSocket = NULL;
 SbTypeObject *Sb_SocketType = NULL;
 
 static SbTypeObject *SbExc_SocketError;
+static SbTypeObject *SbExc_SocketTimeoutError;
 
 static SbObject *
 socket_raise_error(void)
@@ -165,12 +166,21 @@ sa2addr(struct sockaddr *sa, int family)
 
 typedef struct _socket_object {
     SbObject_HEAD;
-    OSSocket_t s;
+    SbRT_Socket_t s;
     int family;
     int type;
     int proto;
     int timeout; /* -1: blocking; 0: non-blocking; others: timeout */
 } socket_object;
+
+static void
+socketobj_init_internal(socket_object *self, int family, int type, int proto)
+{
+    self->family = family;
+    self->type = type;
+    self->proto = proto;
+    self->timeout = -1;
+}
 
 static SbObject *
 socketobj_new(int s, int family, int type, int proto)
@@ -182,9 +192,7 @@ socketobj_new(int s, int family, int type, int proto)
         socket_object *self = (socket_object *)o;
 
         self->s = s;
-        self->family = family;
-        self->type = type;
-        self->proto = proto;
+        socketobj_init_internal(self, family, type, proto);
     }
 
     return o;
@@ -201,13 +209,11 @@ socketobj_init(socket_object *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
-    self->family = family;
-    self->type = type;
-    self->proto = proto;
     self->s = socket(family, type, proto);
     if (!IS_SOCKET_VALID(self->s)) {
         return socket_raise_error();
     }
+    socketobj_init_internal(self, family, type, proto);
 
     Sb_RETURN_NONE;
 }
@@ -351,16 +357,60 @@ socketobj_getpeername(socket_object *self, SbObject *args, SbObject *kwargs)
 
 /* Blocking/timed I/O and related code */
 
+/* Perform a select() call on the given socket.
+   Returns: -1 on error, 0 if ready, 1 if timed out. */
+static int
+do_select(SbRT_Socket_t s, int is_writing, int timeout)
+{
+    fd_set fds;
+    struct timeval tv;
+    int select_rv;
+
+    /* Non-timeout values are disregarded */
+    if (timeout <= 0) {
+        return 0;
+    }
+
+    tv.tv_sec = timeout;
+    tv.tv_usec = 0; 
+    FD_ZERO(&fds);
+    FD_SET(s, &fds);
+    if (is_writing) {
+        select_rv = select(s + 1, NULL, &fds, NULL, &tv);
+    }
+    else {
+        select_rv = select(s + 1, &fds, NULL, NULL, &tv);
+    }
+    if (select_rv == 0) {
+        return 1;
+    }
+    if (select_rv < 0) {
+        return -1;
+    }
+    return 0;
+}
+
 static SbObject *
 socketobj_accept(socket_object *self, SbObject *args, SbObject *kwargs)
 {
     struct sockaddr sa;
     int sa_size = sizeof(sa);
-    OSSocket_t new_socket;
+    SbRT_Socket_t new_socket;
     SbObject *o_socket;
     SbObject *o_address;
 
+    if (self->timeout > 0) {
+        int select_rv;
+
+        select_rv = do_select(self->s, 0, self->timeout);
+        if (select_rv > 0) {
+            SbErr_RaiseWithString(SbExc_SocketTimeoutError, "timed out");
+            return NULL;
+        }
+    }
+
     new_socket = accept(self->s, &sa, &sa_size);
+
     if (!IS_SOCKET_VALID(new_socket)) {
         return socket_raise_error();
     }
@@ -376,6 +426,76 @@ socketobj_accept(socket_object *self, SbObject *args, SbObject *kwargs)
     }
 
     return SbTuple_Pack(2, o_socket, o_address);
+}
+
+static SbObject *
+socketobj_recvfrom_internal(socket_object *self, Sb_ssize_t maxsize, int flags, struct sockaddr *sa, int *sa_len)
+{
+    SbObject *o_buffer;
+    int call_result;
+
+    o_buffer = SbStr_FromStringAndSize(NULL, maxsize);
+    if (!o_buffer) {
+        return NULL;
+    }
+
+    if (self->timeout > 0) {
+        int select_rv;
+
+        select_rv = do_select(self->s, 0, self->timeout);
+        if (select_rv > 0) {
+            SbErr_RaiseWithString(SbExc_SocketTimeoutError, "timed out");
+            Sb_DECREF(o_buffer);
+            return NULL;
+        }
+    }
+
+    call_result = recvfrom(self->s, SbStr_AsStringUnsafe(o_buffer), maxsize, flags, sa, sa_len);
+    if (call_result < 0) {
+        Sb_DECREF(o_buffer);
+        return socket_raise_error();
+    }
+    SbStr_Truncate(o_buffer, call_result);
+    return o_buffer;
+}
+
+static SbObject *
+socketobj_recv(socket_object *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o_buffer;
+    int maxsize;
+    int flags = 0;
+
+    if (SbArgs_Parse("i:bufsize|i:flags", args, kwargs, &maxsize, &flags) < 0) {
+        return NULL;
+    }
+
+    o_buffer = socketobj_recvfrom_internal(self, maxsize, flags, NULL, NULL);
+    return o_buffer;
+}
+
+static SbObject *
+socketobj_recvfrom(socket_object *self, SbObject *args, SbObject *kwargs)
+{
+    SbObject *o_buffer;
+    SbObject *o_address;
+    int maxsize;
+    int flags = 0;
+    struct sockaddr sa;
+    int sa_len = sizeof(sa);
+
+    if (SbArgs_Parse("i:bufsize|i:flags", args, kwargs, &maxsize, &flags) < 0) {
+        return NULL;
+    }
+
+    o_buffer = socketobj_recvfrom_internal(self, maxsize, flags, &sa, &sa_len);
+    o_address = sa2addr(&sa, self->family);
+    if (!o_address) {
+        Sb_DECREF(o_buffer);
+        return NULL;
+    }
+
+    return SbTuple_Pack(2, o_buffer, o_address);
 }
 
 static SbObject *
@@ -395,6 +515,16 @@ socketobj_connect(socket_object *self, SbObject *args, SbObject *kwargs)
 
     call_result = connect(self->s, &sa, sizeof(sa));
 
+    if (call_result < 0 && self->timeout > 0) {
+        int select_rv;
+
+        select_rv = do_select(self->s, 1, self->timeout);
+        if (select_rv > 0) {
+            SbErr_RaiseWithString(SbExc_SocketTimeoutError, "timed out");
+            return NULL;
+        }
+    }
+
     if (call_result != 0) {
         return socket_raise_error();
     }
@@ -403,65 +533,26 @@ socketobj_connect(socket_object *self, SbObject *args, SbObject *kwargs)
 }
 
 static SbObject *
-socketobj_recv(socket_object *self, SbObject *args, SbObject *kwargs)
+socketobj_sendto_internal(socket_object *self, SbObject *buffer, int flags, struct sockaddr *sa, int sa_len)
 {
-    SbObject *o_buffer;
-    int bufsize;
-    int flags = 0;
     int call_result;
 
-    if (SbArgs_Parse("i:bufsize|i:flags", args, kwargs, &bufsize, &flags) < 0) {
-        return NULL;
+    if (self->timeout > 0) {
+        int select_rv;
+
+        select_rv = do_select(self->s, 1, self->timeout);
+        if (select_rv > 0) {
+            SbErr_RaiseWithString(SbExc_SocketTimeoutError, "timed out");
+            return NULL;
+        }
     }
 
-    o_buffer = SbStr_FromStringAndSize(NULL, bufsize);
-    if (!o_buffer) {
-        return NULL;
-    }
-
-    call_result = recv(self->s, SbStr_AsStringUnsafe(o_buffer), bufsize, flags);
+    call_result = sendto(self->s, SbStr_AsStringUnsafe(buffer), SbStr_GetSizeUnsafe(buffer), flags, sa, sa_len);
     if (call_result < 0) {
-        Sb_DECREF(o_buffer);
         return socket_raise_error();
     }
-    SbStr_Truncate(o_buffer, call_result);
 
-    return o_buffer;
-}
-
-static SbObject *
-socketobj_recvfrom(socket_object *self, SbObject *args, SbObject *kwargs)
-{
-    SbObject *o_buffer;
-    SbObject *o_address;
-    int bufsize;
-    int flags = 0;
-    struct sockaddr sa;
-    int sa_size = sizeof(sa);
-    int call_result;
-
-    if (SbArgs_Parse("i:bufsize|i:flags", args, kwargs, &bufsize, &flags) < 0) {
-        return NULL;
-    }
-
-    o_buffer = SbStr_FromStringAndSize(NULL, bufsize);
-    if (!o_buffer) {
-        return NULL;
-    }
-
-    call_result = recvfrom(self->s, SbStr_AsStringUnsafe(o_buffer), bufsize, flags, &sa, &sa_size);
-    if (call_result < 0) {
-        Sb_DECREF(o_buffer);
-        return socket_raise_error();
-    }
-    SbStr_Truncate(o_buffer, call_result);
-    o_address = sa2addr(&sa, self->family);
-    if (!o_address) {
-        Sb_DECREF(o_buffer);
-        return NULL;
-    }
-
-    return SbTuple_Pack(2, o_buffer, o_address);
+    return SbInt_FromNative(call_result);
 }
 
 static SbObject *
@@ -469,18 +560,12 @@ socketobj_send(socket_object *self, SbObject *args, SbObject *kwargs)
 {
     SbObject *o_buffer;
     int flags = 0;
-    int call_result;
 
     if (SbArgs_Parse("S:buffer|i:flags", args, kwargs, &o_buffer, &flags) < 0) {
         return NULL;
     }
 
-    call_result = send(self->s, SbStr_AsStringUnsafe(o_buffer), SbStr_GetSizeUnsafe(o_buffer), flags);
-    if (call_result < 0) {
-        return socket_raise_error();
-    }
-
-    return SbInt_FromNative(call_result);
+    return socketobj_sendto_internal(self, o_buffer, flags, NULL, 0);
 }
 
 static SbObject *
@@ -490,7 +575,6 @@ socketobj_sendto(socket_object *self, SbObject *args, SbObject *kwargs)
     SbObject *o_address;
     int flags = 0;
     struct sockaddr sa;
-    int call_result;
 
     if (SbArgs_Parse("S:buffer,T:address|i:flags", args, kwargs, &o_buffer, &o_address, &flags) < 0) {
         return NULL;
@@ -500,19 +584,18 @@ socketobj_sendto(socket_object *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
-    call_result = sendto(self->s, SbStr_AsStringUnsafe(o_buffer), SbStr_GetSizeUnsafe(o_buffer), flags, &sa, sizeof(sa));
-    if (call_result < 0) {
-        return socket_raise_error();
-    }
-
-    return SbInt_FromNative(call_result);
+    return socketobj_sendto_internal(self, o_buffer, flags, &sa, sizeof(sa));
 }
 
-static int
+static void
 socketobj_apply_timeout(socket_object *self, int timeout)
 {
+    u_long blocking;
+
     self->timeout = timeout;
-    return 0;
+
+    blocking = timeout >= 0;
+    ioctlsocket(self->s, FIONBIO, &blocking);
 }
 
 static SbObject *
@@ -632,6 +715,8 @@ _Sb_ModuleInit_Socket()
 
     SbExc_SocketError = SbExc_NewException("socket.SocketError", SbExc_IOError);
     SbDict_SetItemString(dict, "SocketError", (SbObject *)SbExc_SocketError);
+    SbExc_SocketTimeoutError = SbExc_NewException("socket.SocketTimeoutError", SbExc_SocketError);
+    SbDict_SetItemString(dict, "SocketTimeoutError", (SbObject *)SbExc_SocketTimeoutError);
 
     SbDict_SetItemString(dict, "AF_INET", SbInt_FromNative(AF_INET));
     SbDict_SetItemString(dict, "SOCK_STREAM", SbInt_FromNative(SOCK_STREAM));
