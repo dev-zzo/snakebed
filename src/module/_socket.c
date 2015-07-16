@@ -6,10 +6,14 @@
 /* Ref: https://docs.python.org/2/library/socket.html */
 
 /* NOTE:
-   This implementation DEPARTS from the standard Python library in the following:
+   This implementation DEPARTS from the Python Standard Library in the following:
 
  * The basic error class name is `SocketError`, not `error`.
+   Justification: Classes use CamelCase in Python. No reason to depart from that.
+
  * socket.settimeout() accepts None or int, instead of float.
+   Justification: float is not implemented; no need for sub-second precision.
+
  */
 
 #if PLATFORM(PLATFORM_WINNT)
