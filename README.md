@@ -7,6 +7,10 @@ with only essential modules compiled in.
 Although every effort is being made to make code as fast as possible, 
 speed is *not* the primary implementation objective.
 
+Another aim that should be mentioned is that no reliance is supposed to by made on 
+your compiler's C runtime library; we should carry everything we need and interact
+with OS services directly.
+
 # How it works
 
 The main deliverable is an executable similar to non-interactive `python`, 
@@ -25,6 +29,14 @@ albeit modified to conserve space as much as is reasonable.
 # Implementation notes
 
 TBD, honestly. There is a lot to note.
+
+The whole code base can be divided into the following chunks which are almost independent in implementation:
+
+* Runtime: code that provides OS abstraction.
+* Object system: code implementing "built-in" Python objects like `str` or `dict`.
+* Modules: code implementing e.g. `sys`.
+* Interpreter: code that actually interprets CPython bytecode.
+* Support code: various API like `SbArgs_Parse()` that can't be pushed into either category.
 
 ## Bytecode
 
