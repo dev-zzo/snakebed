@@ -27,8 +27,14 @@ SbRT_StrCpy(char *dst, const char *src)
 int
 SbRT_StrCmp(const char *s1, const char *s2)
 {
-    /* TODO: implement me. */
-    return strcmp(s1, s2);
+    int d;
+
+    for (;; ++s1, ++s2) {
+        d = s1[0] - s2[0];
+        if (d || !s1[0]) {
+            return d;
+        }
+    }
 }
 
 void
@@ -45,8 +51,17 @@ SbRT_MemCpy(void *dst, const void *src, Sb_size_t count)
 int
 SbRT_MemCmp(const void *p1, const void *p2, Sb_size_t count)
 {
-    /* TODO: implement me. */
-    return memcmp(p1, p2, count);
+    const char *s1 = (const char *)p1;
+    const char *s2 = (const char *)p2;
+    int d = 0;
+
+    while (count--) {
+        d = s1[0] - s2[0];
+        if (d) {
+            break;
+        }
+    }
+    return d;
 }
 
 const void *
