@@ -111,12 +111,12 @@ SbObject_DefaultGetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
 
     attr_name = SbStr_AsStringUnsafe(o_name);
     /* Some hardcoded values... */
-    if (!Sb_StrCmp(attr_name, "__class__")) {
+    if (!SbRT_StrCmp(attr_name, "__class__")) {
         result = (SbObject *)Sb_TYPE(self);
         Sb_INCREF(result);
         return result;
     }
-    if (!Sb_StrCmp(attr_name, "__dict__")) {
+    if (!SbRT_StrCmp(attr_name, "__dict__")) {
         if (Sb_TYPE(self)->tp_flags & SbType_FLAGS_HAS_DICT) {
             result = (SbObject *)SbObject_DICT(self);
             Sb_INCREF(result);

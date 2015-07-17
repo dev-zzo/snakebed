@@ -154,7 +154,7 @@ SbDict_GetItemString(SbObject *p, const char *key)
     }
 #endif
 
-    hash = _SbStr_HashString(key, Sb_StrLen(key));
+    hash = _SbStr_HashString(key, SbRT_StrLen(key));
     return dict_getitem_common(myself, hash, (void *)key, dict_getitemstring_cmp);
 }
 
@@ -202,7 +202,7 @@ SbDict_SetItemString(SbObject *p, const char *key, SbObject *value)
 
     Sb_INCREF(value);
 
-    hash = _SbStr_HashString(key, Sb_StrLen(key));
+    hash = _SbStr_HashString(key, SbRT_StrLen(key));
     bucket = dict_bucket_ptr(myself, hash);
     entry = *bucket;
     while (entry) {
@@ -307,7 +307,7 @@ SbDict_DelItemString(SbObject *p, const char *key)
     }
 #endif
 
-    hash = _SbStr_HashString(key, Sb_StrLen(key));
+    hash = _SbStr_HashString(key, SbRT_StrLen(key));
     bucket = dict_bucket_ptr(myself, hash);
     entry = *bucket;
     /* This exploits the fact that e_next is located at offset zero in entry. */

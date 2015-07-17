@@ -18,7 +18,7 @@ SbType_GenericAlloc(SbTypeObject *type, Sb_ssize_t nitems)
         return SbErr_NoMemory();
     }
 
-    Sb_BZero(op, size);
+    SbRT_BZero(op, size);
     /* Object fields get initialised afterwards */
 
     return op;
@@ -253,7 +253,7 @@ _SbType_BuiltinInit()
         return -1;
     }
 
-    Sb_BZero(tp, size);
+    SbRT_BZero(tp, size);
     SbObject_INIT(tp, tp);
 
     tp->tp_name = "type";

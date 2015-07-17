@@ -1,7 +1,7 @@
 #include "runtime.h"
 
 void
-Sb_BZero(void *ptr, Sb_size_t size)
+SbRT_BZero(void *ptr, Sb_size_t size)
 {
     char *p = (char *)ptr;
     while (size--) {
@@ -10,7 +10,7 @@ Sb_BZero(void *ptr, Sb_size_t size)
 }
 
 Sb_size_t
-Sb_StrLen(const char *s)
+SbRT_StrLen(const char *s)
 {
     const char *p;
 
@@ -19,20 +19,20 @@ Sb_StrLen(const char *s)
 }
 
 void
-Sb_StrCpy(char *dst, const char *src)
+SbRT_StrCpy(char *dst, const char *src)
 {
     while (*dst++ = *src++);
 }
 
 int
-Sb_StrCmp(const char *s1, const char *s2)
+SbRT_StrCmp(const char *s1, const char *s2)
 {
     /* TODO: implement me. */
     return strcmp(s1, s2);
 }
 
 void
-Sb_MemCpy(void *dst, const void *src, Sb_size_t count)
+SbRT_MemCpy(void *dst, const void *src, Sb_size_t count)
 {
     char *d = (char *)dst;
     const char *s = (const char *)src;
@@ -43,14 +43,14 @@ Sb_MemCpy(void *dst, const void *src, Sb_size_t count)
 }
 
 int
-Sb_MemCmp(const void *p1, const void *p2, Sb_size_t count)
+SbRT_MemCmp(const void *p1, const void *p2, Sb_size_t count)
 {
     /* TODO: implement me. */
     return memcmp(p1, p2, count);
 }
 
 const void *
-Sb_MemChr(const void *p, int value, Sb_size_t count)
+SbRT_MemChr(const void *p, int value, Sb_size_t count)
 {
     const char *s = (const char *)p;
     while (count--) {
@@ -63,7 +63,7 @@ Sb_MemChr(const void *p, int value, Sb_size_t count)
 }
 
 const void *
-Sb_MemRChr(const void *p, int value, Sb_size_t count)
+SbRT_MemRChr(const void *p, int value, Sb_size_t count)
 {
     const char *s = (const char *)p + count;
     while (count--) {
@@ -76,7 +76,7 @@ Sb_MemRChr(const void *p, int value, Sb_size_t count)
 }
 
 void
-Sb_MemSet(void *ptr, int ch, Sb_size_t count)
+SbRT_MemSet(void *ptr, int ch, Sb_size_t count)
 {
     char *p = (char *)ptr;
     while (count--) {
@@ -96,7 +96,7 @@ typedef unsigned long Sb_BloomMask_t;
     ((mask) &  STRINGLIB_BLOOM_KEY(ch))
 
 Sb_ssize_t
-Sb_MemMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_len)
+SbRT_MemMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_len)
 {
     Sb_BloomMask_t mask;
     Sb_ssize_t skip;
@@ -111,7 +111,7 @@ Sb_MemMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_l
     if (pat_len == 1) {
         const char *p;
 
-        p = (const char *)Sb_MemChr(str, pat[0], str_len);
+        p = (const char *)SbRT_MemChr(str, pat[0], str_len);
         if (p) {
             return p - str;
         }
@@ -120,7 +120,7 @@ Sb_MemMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_l
 
     /* Special case: same length strings */
     if (pat_len == str_len) {
-        return Sb_MemCmp(str, pat, pat_len) ? -1 : 0;
+        return SbRT_MemCmp(str, pat, pat_len) ? -1 : 0;
     }
 
     /* create compressed boyer-moore delta 1 table */
@@ -172,7 +172,7 @@ miss:
 }
 
 Sb_ssize_t
-Sb_MemRMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_len)
+SbRT_MemRMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_len)
 {
     Sb_BloomMask_t mask;
     Sb_ssize_t skip;
@@ -186,7 +186,7 @@ Sb_MemRMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_
     if (pat_len == 1) {
         const char *p;
 
-        p = (const char *)Sb_MemRChr(str, pat[0], str_len);
+        p = (const char *)SbRT_MemRChr(str, pat[0], str_len);
         if (p) {
             return p - str;
         }
@@ -195,7 +195,7 @@ Sb_MemRMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_
 
     /* Special case: same length strings */
     if (pat_len == str_len) {
-        return Sb_MemCmp(str, pat, pat_len) ? -1 : 0;
+        return SbRT_MemCmp(str, pat, pat_len) ? -1 : 0;
     }
 
     /* create compressed boyer-moore delta 1 table */

@@ -234,13 +234,13 @@ socketobj_getattr(socket_object *self, SbObject *args, SbObject *kwargs)
     }
 
     value = NULL;
-    if (!Sb_StrCmp(attr_str, "family")) {
+    if (!SbRT_StrCmp(attr_str, "family")) {
         return SbInt_FromNative(self->family);
     }
-    if (!Sb_StrCmp(attr_str, "type")) {
+    if (!SbRT_StrCmp(attr_str, "type")) {
         return SbInt_FromNative(self->type);
     }
-    if (!Sb_StrCmp(attr_str, "proto")) {
+    if (!SbRT_StrCmp(attr_str, "proto")) {
         return SbInt_FromNative(self->proto);
     }
     return SbObject_DefaultGetAttr((SbObject *)self, args, kwargs);

@@ -407,7 +407,7 @@ int_format(SbObject *self, SbObject *args, SbObject *kwargs)
             break;
         }
         digits = Sb_ULtoA(value, radix);
-        digits_size = Sb_StrLen(digits);
+        digits_size = SbRT_StrLen(digits);
 
         fill_size = spec.min_width - (sign_size + digits_size);
         if (fill_size < 0) {
@@ -425,7 +425,7 @@ int_format(SbObject *self, SbObject *args, SbObject *kwargs)
                 *buffer++ = spec.filler;
                 fill_size--;
             }
-            Sb_MemCpy(buffer, digits, digits_size);
+            SbRT_MemCpy(buffer, digits, digits_size);
             return o_result;
         }
 
@@ -434,7 +434,7 @@ int_format(SbObject *self, SbObject *args, SbObject *kwargs)
         if (sign_size) {
             *buffer++ = sign;
         }
-        Sb_MemCpy(buffer, digits, digits_size);
+        SbRT_MemCpy(buffer, digits, digits_size);
     }
 
     if (spec.align_flag == '>') {

@@ -13,7 +13,7 @@ SbStr_FromString(const char *v)
 {
     Sb_ssize_t len;
 
-    len = Sb_StrLen(v);
+    len = SbRT_StrLen(v);
     return SbStr_FromStringAndSize(v, len);
 }
 
@@ -26,7 +26,7 @@ SbStr_FromStringAndSize(const void *v, Sb_ssize_t len)
     if (op) {
         op->stored_hash = -1;
         if (v) {
-            Sb_MemCpy(op->items, v, len);
+            SbRT_MemCpy(op->items, v, len);
             op->items[len] = '\0';
         }
     }
@@ -83,7 +83,7 @@ str_format_internal_va(char *buffer, const char *format, va_list va)
                         cursor[1] = 'x';
                     }
                     cursor += 2;
-                    len = Sb_StrLen(s);
+                    len = SbRT_StrLen(s);
                     if (buffer) {
                         while (len < 8) {
                             *cursor++ = '0';
@@ -209,11 +209,11 @@ SbStr_StartsWithString(SbObject *p1, const char *p2)
     if (!SbStr_CheckExact(p1)) {
         return -1;
     }
-    length = Sb_StrLen(p2);
+    length = SbRT_StrLen(p2);
     if (length > SbStr_GetSizeUnsafe(p1)) {
         return 0;
     }
-    return Sb_MemCmp(SbStr_AsString(p1), p2, length) == 0;
+    return SbRT_MemCmp(SbStr_AsString(p1), p2, length) == 0;
 }
 
 SbObject *
@@ -310,8 +310,8 @@ SbStr_Concat(SbObject *lhs, SbObject *rhs)
     }
 
     new_buffer = SbStr_AsStringUnsafe(o_new);
-    Sb_MemCpy(new_buffer, SbStr_AsStringUnsafe(lhs), lhs_size);
-    Sb_MemCpy(new_buffer + lhs_size, SbStr_AsStringUnsafe(rhs), rhs_size);
+    SbRT_MemCpy(new_buffer, SbStr_AsStringUnsafe(lhs), lhs_size);
+    SbRT_MemCpy(new_buffer + lhs_size, SbStr_AsStringUnsafe(rhs), rhs_size);
 
     return o_new;
 }
@@ -375,7 +375,7 @@ _SbStr_Eq(SbObject *p1, SbObject *p2)
     if (length != SbStr_GetSizeUnsafe(p1)) {
         return 0;
     }
-    return Sb_MemCmp(SbStr_AsString(p1), SbStr_AsString(p2), length) == 0;
+    return SbRT_MemCmp(SbStr_AsString(p1), SbStr_AsString(p2), length) == 0;
 }
 
 int
@@ -386,11 +386,11 @@ _SbStr_EqString(SbObject *p1, const char *p2)
     if (!SbStr_CheckExact(p1)) {
         return -1;
     }
-    length = Sb_StrLen(p2);
+    length = SbRT_StrLen(p2);
     if (length != SbStr_GetSizeUnsafe(p1)) {
         return 0;
     }
-    return Sb_MemCmp(SbStr_AsString(p1), p2, length) == 0;
+    return SbRT_MemCmp(SbStr_AsString(p1), p2, length) == 0;
 }
 
 
@@ -517,8 +517,8 @@ str_join(SbObject *self, SbObject *args, SbObject *kwargs)
 static void
 fill_ljust(char *dst, Sb_ssize_t width, const char *src, Sb_ssize_t src_width, char filler)
 {
-    Sb_MemCpy(dst, src, src_width);
-    Sb_MemSet(dst + src_width, filler, width - src_width);
+    SbRT_MemCpy(dst, src, src_width);
+    SbRT_MemSet(dst + src_width, filler, width - src_width);
 }
 
 static void
@@ -527,16 +527,16 @@ fill_cjust(char *dst, Sb_ssize_t width, const char *src, Sb_ssize_t src_width, c
     Sb_ssize_t a;
 
     a = (width - src_width) / 2;
-    Sb_MemSet(dst, filler, a);
-    Sb_MemCpy(dst + a, src, src_width);
-    Sb_MemSet(dst + a + src_width, filler, width - src_width - a);
+    SbRT_MemSet(dst, filler, a);
+    SbRT_MemCpy(dst + a, src, src_width);
+    SbRT_MemSet(dst + a + src_width, filler, width - src_width - a);
 }
 
 static void
 fill_rjust(char *dst, Sb_ssize_t width, const char *src, Sb_ssize_t src_width, char filler)
 {
-    Sb_MemSet(dst, filler, width - src_width);
-    Sb_MemCpy(dst + width - src_width, src, src_width);
+    SbRT_MemSet(dst, filler, width - src_width);
+    SbRT_MemCpy(dst + width - src_width, src, src_width);
 }
 
 static SbObject *
@@ -689,13 +689,13 @@ str_xfind(SbObject *self, SbObject *args, SbObject *kwargs, str_searcher_t finde
 static SbObject *
 str_find(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return str_xfind(self, args, kwargs, Sb_MemMem);
+    return str_xfind(self, args, kwargs, SbRT_MemMem);
 }
 
 static SbObject *
 str_rfind(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return str_xfind(self, args, kwargs, Sb_MemRMem);
+    return str_xfind(self, args, kwargs, SbRT_MemRMem);
 }
 
 static SbObject *
@@ -716,13 +716,13 @@ str_xindex(SbObject *self, SbObject *args, SbObject *kwargs, str_searcher_t find
 static SbObject *
 str_index(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return str_xindex(self, args, kwargs, Sb_MemMem);
+    return str_xindex(self, args, kwargs, SbRT_MemMem);
 }
 
 static SbObject *
 str_rindex(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return str_xindex(self, args, kwargs, Sb_MemRMem);
+    return str_xindex(self, args, kwargs, SbRT_MemRMem);
 }
 
 
@@ -776,7 +776,7 @@ str_format(SbObject *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
-    if (spec.precision >= 0 && SbStr_GetSizeUnsafe(self) > spec.precision) {
+    if (spec.precision >= 0 && (unsigned long)SbStr_GetSizeUnsafe(self) > spec.precision) {
         self = SbStr_FromStringAndSize(SbStr_AsStringUnsafe(self), spec.precision);
     }
     else {

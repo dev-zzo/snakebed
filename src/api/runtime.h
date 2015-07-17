@@ -1,38 +1,48 @@
-/*
- * SnakeBed Bootstrap Routines
- */
-#ifndef __SNAKEBED_BSTRAP_H
-#define __SNAKEBED_BSTRAP_H
+#ifndef __SNAKEBED_RUNTIME_H
+#define __SNAKEBED_RUNTIME_H
+
+/* SnakeBed runtime support, abstracts OS services and replaces (not so standard) C library */
 
 #include "platform.h"
 
 #define Sb_OffsetOf(type, member) ((Sb_size_t)(&((type *)0)->member))
 
+/* NUL-terminated string manipulation routines */
+
 Sb_size_t
-Sb_StrLen(const char *s);
+SbRT_StrLen(const char *s);
 
 void
-Sb_StrCpy(char *dst, const char *src);
+SbRT_StrCpy(char *dst, const char *src);
 
 int
-Sb_StrCmp(const char *s1, const char *s2);
+SbRT_StrCmp(const char *s1, const char *s2);
+
+/* Buffer manipulation routines */
 
 void
-Sb_MemCpy(void *dst, const void *src, Sb_size_t count);
+SbRT_MemCpy(void *dst, const void *src, Sb_size_t count);
 
 int
-Sb_MemCmp(const void *p1, const void *p2, Sb_size_t count);
-
-const void *
-Sb_MemChr(const void *p, int value, Sb_size_t count);
-const void *
-Sb_MemRChr(const void *p, int value, Sb_size_t count);
+SbRT_MemCmp(const void *p1, const void *p2, Sb_size_t count);
 
 void
-Sb_BZero(void *ptr, Sb_size_t size);
+SbRT_BZero(void *ptr, Sb_size_t size);
 
 void
-Sb_MemSet(void *ptr, int ch, Sb_size_t count);
+SbRT_MemSet(void *ptr, int ch, Sb_size_t count);
+
+const void *
+SbRT_MemChr(const void *p, int value, Sb_size_t count);
+const void *
+SbRT_MemRChr(const void *p, int value, Sb_size_t count);
+
+Sb_ssize_t
+SbRT_MemMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_len);
+Sb_ssize_t
+SbRT_MemRMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_len);
+
+/* Numeric conversion routines */
 
 char *
 Sb_ULtoA(unsigned long x, unsigned radix);
@@ -43,12 +53,9 @@ Sb_AtoL(const char *str, const char **pend, unsigned radix, long *result);
 int
 Sb_AtoUL(const char *str, const char **pend, unsigned radix, unsigned long *result);
 
+/* Character type check routines */
+
 int Sb_IsDigit(char c);
 int Sb_IsWhiteSpace(char c);
 
-Sb_ssize_t
-Sb_MemMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_len);
-Sb_ssize_t
-Sb_MemRMem(const char *str, Sb_ssize_t str_len, const char *pat, Sb_ssize_t pat_len);
-
-#endif // __SNAKEBED_BSTRAP_H
+#endif // __SNAKEBED_RUNTIME_H

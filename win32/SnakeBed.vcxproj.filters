@@ -16,6 +16,9 @@
     <Filter Include="protocol">
       <UniqueIdentifier>{e9598b2e-c322-4e09-8091-6f34f8bd350d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="runtime\win32">
+      <UniqueIdentifier>{7b1772be-6b71-414b-9dd1-7c20e1816603}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\module\builtin.c">
@@ -109,12 +112,6 @@
       <Filter>object</Filter>
     </ClCompile>
     <ClCompile Include="..\src\errors.c" />
-    <ClCompile Include="..\src\runtime\win32\error.c">
-      <Filter>runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\runtime\win32\files.c">
-      <Filter>runtime</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\protocol\pr_iterator.c">
       <Filter>protocol</Filter>
     </ClCompile>
@@ -123,6 +120,12 @@
     </ClCompile>
     <ClCompile Include="..\src\module\_socket.c">
       <Filter>module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\runtime\win32\error.c">
+      <Filter>runtime\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\runtime\win32\files.c">
+      <Filter>runtime\win32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

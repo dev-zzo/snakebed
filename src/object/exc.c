@@ -54,7 +54,7 @@ exception_getattr_internal(SbBaseExceptionObject *self, SbObject *attr_name)
     SbObject *value;
 
     attr_str = SbStr_AsStringUnsafe(attr_name);
-    if (!Sb_StrCmp(attr_str, "args")) {
+    if (!SbRT_StrCmp(attr_str, "args")) {
         value = self->args;
         Sb_INCREF(value);
         return value;
@@ -119,15 +119,15 @@ enverror_getattr_internal(SbBaseExceptionObject *self, SbObject *attr_name)
     args = self->args;
     args_count = SbTuple_GetSizeUnsafe(args);
     attr_str = SbStr_AsStringUnsafe(attr_name);
-    if (!Sb_StrCmp(attr_str, "errno") && args_count > 1) {
+    if (!SbRT_StrCmp(attr_str, "errno") && args_count > 1) {
         value = SbTuple_GetItem(args, 0);
         goto do_return;
     }
-    if (!Sb_StrCmp(attr_str, "strerror") && args_count > 1) {
+    if (!SbRT_StrCmp(attr_str, "strerror") && args_count > 1) {
         value = SbTuple_GetItem(args, 1);
         goto do_return;
     }
-    if (!Sb_StrCmp(attr_str, "filename")) {
+    if (!SbRT_StrCmp(attr_str, "filename")) {
         if (args_count == 3) {
             value = SbTuple_GetItem(args, 2);
         }

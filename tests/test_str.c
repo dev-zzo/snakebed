@@ -8,7 +8,7 @@ static int test_str_format()
     r = SbStr_FromFormat("aaa %% %c %d %i %u %x %p %s",
         'X', -645, 0x80000001, 0x98765432U, 0xabcdef12U, 0xdeadbabe, "testing");
     buffer = SbStr_AsStringUnsafe(r);
-    if (Sb_StrCmp(buffer, "aaa % X -645 -2147483647 2557891634 abcdef12 0xdeadbabe testing")) {
+    if (SbRT_StrCmp(buffer, "aaa % X -645 -2147483647 2557891634 abcdef12 0xdeadbabe testing")) {
         return -1;
     }
     Sb_DECREF(r);

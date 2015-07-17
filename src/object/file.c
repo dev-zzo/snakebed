@@ -94,7 +94,7 @@ SbFile_WriteString(SbObject *self, const char *str)
 {
     Sb_ssize_t length;
 
-    length = Sb_StrLen(str);
+    length = SbRT_StrLen(str);
     return SbFile_Write(self, str, length);
 }
 
