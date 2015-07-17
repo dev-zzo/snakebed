@@ -634,6 +634,15 @@ socketobj_settimeout(socket_object *self, SbObject *args, SbObject *kwargs)
     Sb_RETURN_NONE;
 }
 
+static SbObject *
+socketobj_gettimeout(socket_object *self, SbObject *args, SbObject *kwargs)
+{
+    if (SbArgs_NoArgs(args, kwargs) < 0) {
+        return NULL;
+    }
+
+    return SbInt_FromNative(self->timeout);
+}
 
 
 static int
@@ -673,6 +682,7 @@ _Sb_TypeInit_Socket(SbObject *m)
         { "getpeername", (SbCFunction)socketobj_getpeername },
 
         { "settimeout", (SbCFunction)socketobj_settimeout },
+        { "gettimeout", (SbCFunction)socketobj_gettimeout },
 
         /* Sentinel */
         { NULL, NULL },
