@@ -103,6 +103,8 @@ exception_str(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
 static const SbCMethodDef exception_methods[] = {
     { "__init__", (SbCFunction)exception_init },
     { "__getattr__", (SbCFunction)exception_getattr },
+    { "__setattr__", SbObject_DefaultSetAttr },
+    { "__delattr__", SbObject_DefaultDelAttr },
     { "__str__", (SbCFunction)exception_str },
     /* Sentinel */
     { NULL, NULL },
@@ -199,6 +201,7 @@ _Sb_TypeInit_Exceptions()
     SbTypeObject *tp;
 
     tp = _SbType_FromCDefs("BaseException", NULL, exception_methods, sizeof(SbBaseExceptionObject));
+    tp->tp_flags |= SbType_FLAGS_HAS_DICT;
     tp->tp_destroy = (SbDestroyFunc)exception_destroy;
     SbExc_BaseException = tp;
 
