@@ -68,6 +68,7 @@ SbType_New(const char *name, SbTypeObject *base_type, SbObject *dict)
         tp->tp_base = base_type;
         tp->tp_basicsize = base_type->tp_basicsize;
         tp->tp_itemsize = base_type->tp_itemsize;
+        tp->tp_flags = base_type->tp_flags;
         tp->tp_destroy = base_type->tp_destroy;
         if (SbDict_Merge(tp->tp_dict, base_type->tp_dict, 0) < 0) {
             goto fail1;
