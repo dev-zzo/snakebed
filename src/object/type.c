@@ -238,6 +238,27 @@ type_call(SbTypeObject *self, SbObject *args, SbObject *kwargs)
     return type_instantiate(self, args, kwargs);
 }
 
+static SbObject *
+type_str(SbTypeObject *self, SbObject *args, SbObject *kwargs)
+{
+    return SbStr_FromFormat("<type '%s'>", self->tp_name);
+}
+
+static SbObject *
+type_getattr(SbTypeObject *self, SbObject *args, SbObject *kwargs)
+{
+    const char *attr_name;
+    SbObject *result;
+
+    if (SbArgs_Parse("s:name", args, kwargs, &attr_name) < 0) {
+        return NULL;
+    }
+    if (!SbRT_StrCmp(attr_name, "__name__")) {
+        return SbStr_FromString(self->tp_name);
+    }
+    return SbObject_DefaultGetAttr((SbObject *)self, args, kwargs);
+}
+
 /* Type initializer */
 
 int
@@ -271,9 +292,10 @@ static const SbCMethodDef type_methods[] = {
     { "__new__", (SbCFunction)type_new },
     { "__init__", (SbCFunction)type_init },
     { "__call__", (SbCFunction)type_call },
-    { "__getattr__", SbObject_DefaultGetAttr },
+    { "__getattr__", (SbCFunction)type_getattr },
     { "__setattr__", SbObject_DefaultSetAttr },
     { "__delattr__", SbObject_DefaultDelAttr },
+    { "__str__", (SbCFunction)type_str },
     /* Sentinel */
     { NULL, NULL },
 };
