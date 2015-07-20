@@ -60,6 +60,8 @@ SbRT_MemCmp(const void *p1, const void *p2, Sb_size_t count)
         if (d) {
             break;
         }
+        ++s1;
+        ++s2;
     }
     return d;
 }
