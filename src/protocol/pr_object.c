@@ -342,7 +342,8 @@ SbObject_CallMethod(SbObject *o, const char *method, SbObject *args, SbObject *k
     SbObject *m;
     SbObject *result;
 
-    m = SbObject_GetAttrString(o, method);
+    /* m = SbObject_GetAttrString(o, method); */
+    m = type_method_check(o, method);
     if (!m) {
         SbErr_RaiseWithString(SbExc_AttributeError, method);
         return NULL;
