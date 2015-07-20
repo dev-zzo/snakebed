@@ -244,7 +244,7 @@ SbStr_Join(SbObject *glue, SbObject *iterable)
     }
     Sb_DECREF(it);
 
-    if (length == 0) {
+    if (length <= 0) {
         return SbStr_FromString("");
     }
 
