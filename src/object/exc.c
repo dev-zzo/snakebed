@@ -201,7 +201,6 @@ _Sb_TypeInit_Exceptions()
     SbTypeObject *tp;
 
     tp = _SbType_FromCDefs("BaseException", NULL, exception_methods, sizeof(SbBaseExceptionObject));
-    tp->tp_flags |= SbType_FLAGS_HAS_DICT;
     tp->tp_destroy = (SbDestroyFunc)exception_destroy;
     SbExc_BaseException = tp;
 
