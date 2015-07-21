@@ -187,12 +187,9 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
 {
     SbObject *getattribute;
     SbObject *getattr;
-    SbObject *attr_from_type;
-    SbObject *attr_from_inst = NULL;
     SbObject *attr;
 
-    /* https://docs.python.org/2/reference/datamodel.html#customizing-attribute-access */
-
+    /* https://docs.python.org/2/reference/datamodel.html#more-attribute-access-for-new-style-classes */
     getattribute = type_method_check(p, "__getattribute__");
     if (getattribute) {
         attr = SbObject_CallObjArgs(getattribute, 1, SbStr_FromString(attr_name));
@@ -204,33 +201,30 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
         return attr;
     }
 
+    /* For class object lookups, produce an unbound method object */
+    if (Sb_TYPE(p) == SbType_Type) {
+        attr = SbDict_GetItemString(SbObject_DICT(p), attr_name);
+        if (attr) {
+            if (SbCFunction_Check(attr) || SbPFunction_Check(attr)) {
+                attr = SbMethod_New((SbTypeObject *)p, attr, NULL);
+                return attr;
+            }
+        }
+    }
+
     /* Note: inlined type_method_check to avoid double lookup */
-    attr = NULL;
-    attr_from_type = SbDict_GetItemString(Sb_TYPE(p)->tp_dict, attr_name);
-    if (attr_from_type) {
-        if (SbCFunction_Check(attr_from_type) || SbPFunction_Check(attr_from_type)) {
-            attr_from_type = SbMethod_New(Sb_TYPE(p), attr_from_type, p);
-            return attr_from_type;
-        }
-        /* Check if a descriptor is found */
-        Sb_INCREF(attr_from_type);
-        attr = attr_from_type;
-    }
-
-    /* If the object has a dict, check it. */
-    if (Sb_TYPE(p)->tp_flags & SbType_FLAGS_HAS_DICT) {
-        attr_from_inst = SbDict_GetItemString(SbObject_DICT(p), attr_name);
-        if (attr_from_inst) {
-            Sb_INCREF(attr_from_inst);
-            Sb_XDECREF(attr_from_type);
-            attr = attr_from_inst;
-        }
-    }
-
+    attr = SbDict_GetItemString(Sb_TYPE(p)->tp_dict, attr_name);
     if (attr) {
+        if (SbCFunction_Check(attr) || SbPFunction_Check(attr)) {
+            attr = SbMethod_New(Sb_TYPE(p), attr, p);
+        }
+        else {
+            Sb_INCREF(attr);
+        }
         return attr;
     }
 
+    /* https://docs.python.org/2/reference/datamodel.html#customizing-attribute-access */
     /* Note that if the attribute is found through the normal mechanism, 
        __getattr__() is not called. */
     getattr = type_method_check(p, "__getattr__");

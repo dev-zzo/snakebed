@@ -127,19 +127,29 @@ SbObject_DefaultGetAttr(SbObject *self, SbObject *args, SbObject *kwargs)
     /* Some hardcoded values... */
     if (!SbRT_StrCmp(attr_name, "__class__")) {
         result = (SbObject *)Sb_TYPE(self);
-        Sb_INCREF(result);
-        return result;
+        goto return_result;
     }
     if (!SbRT_StrCmp(attr_name, "__dict__")) {
         if (Sb_TYPE(self)->tp_flags & SbType_FLAGS_HAS_DICT) {
             result = (SbObject *)SbObject_DICT(self);
-            Sb_INCREF(result);
-            return result;
+            goto return_result;
+        }
+    }
+
+    /* If the object has a dict, check it. */
+    if (Sb_TYPE(self)->tp_flags & SbType_FLAGS_HAS_DICT) {
+        result = SbDict_GetItemString(SbObject_DICT(self), attr_name);
+        if (result) {
+            goto return_result;
         }
     }
 
     SbErr_RaiseWithObject(SbExc_AttributeError, o_name);
     return NULL;
+
+return_result:
+    Sb_INCREF(result);
+    return result;
 }
 
 SbObject *
