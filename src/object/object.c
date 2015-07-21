@@ -251,6 +251,7 @@ _SbObject_TypeInit()
         return -1;
     }
     tp->tp_flags = SbType_FLAGS_HAS_DICT;
+    tp->tp_dictoffset = Sb_OffsetOf(SbObject, dict);
     SbObject_Type = tp;
     return 0;
 }
