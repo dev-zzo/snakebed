@@ -46,6 +46,7 @@ module_destroy(SbModuleObject *self)
 /* Type initializer */
 
 static const SbCMethodDef module_methods[] = {
+    { "__getattr__", SbObject_DefaultGetAttr },
     { "__setattr__", SbObject_DefaultSetAttr },
     { "__delattr__", SbObject_DefaultDelAttr },
     /* Sentinel */
