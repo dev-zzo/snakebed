@@ -76,10 +76,38 @@ SbMethod_Call(SbObject *p, SbObject *args, SbObject *kwargs)
     return NULL;
 }
 
+static SbObject *
+method_getattr(SbMethodObject *self, SbObject *args, SbObject *kwargs)
+{
+    const char *attr_name;
+    SbObject *value;
+
+    if (SbArgs_Parse("s:name", args, kwargs, &attr_name) < 0) {
+        return NULL;
+    }
+    if (!SbRT_StrCmp(attr_name, "__name__")) {
+        return SbObject_GetAttrString(self->func, "__name__");
+    }
+    if (!SbRT_StrCmp(attr_name, "__func__")) {
+        value = self->func;
+        goto return_value;
+    }
+    if (!SbRT_StrCmp(attr_name, "__self__")) {
+        value = self->self;
+        goto return_value;
+    }
+    return SbObject_DefaultGetAttr((SbObject *)self, args, kwargs);
+
+return_value:
+    Sb_INCREF(value);
+    return value;
+}
+
 /* Builtins initializer */
 
 static const SbCMethodDef method_methods[] = {
     { "__call__", SbMethod_Call },
+    { "__getattr__", (SbCFunction)method_getattr },
 
     /* Sentinel */
     { NULL, NULL },
