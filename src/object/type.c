@@ -69,6 +69,7 @@ SbType_New(const char *name, SbTypeObject *base_type, SbObject *dict)
         tp->tp_basicsize = base_type->tp_basicsize;
         tp->tp_itemsize = base_type->tp_itemsize;
         tp->tp_flags = base_type->tp_flags;
+        tp->tp_dictoffset = base_type->tp_dictoffset;
         tp->tp_destroy = base_type->tp_destroy;
         if (SbDict_Merge(tp->tp_dict, base_type->tp_dict, 0) < 0) {
             goto fail1;
@@ -127,7 +128,7 @@ _SbType_New(SbObject *name, SbObject *bases, SbObject *dict)
         SbErr_RaiseWithString(SbExc_TypeError, "expected `base` to contain only one type");
         return NULL;
     }
-    base = (SbTypeObject *)(base_count > 0 ? SbTuple_GetItemUnsafe(bases, 0) : NULL);
+    base = base_count > 0 ? (SbTypeObject *)SbTuple_GetItemUnsafe(bases, 0) : SbObject_Type;
     if (!SbDict_CheckExact(dict)) {
         SbErr_RaiseWithString(SbExc_TypeError, "expected `dict` to be a dict");
         return NULL;
@@ -143,10 +144,17 @@ _SbType_New(SbObject *name, SbObject *bases, SbObject *dict)
         return NULL;
     }
 
-    result->tp_basicsize = sizeof(SbObject);
-    result->tp_flags = SbType_FLAGS_HAS_DICT;
-    result->tp_dictoffset = Sb_OffsetOf(SbObject, dict);
-    result->tp_destroy = SbObject_DefaultDestroy;
+    /* Allow all Python-created objects to have instance dicts. */
+    if (!(result->tp_flags & SbType_FLAGS_HAS_DICT)) {
+        Sb_size_t size;
+
+        /* Align size to a pointer's multiple. */
+        size = result->tp_basicsize;
+        size = (size + sizeof(SbObject *) - 1) & ~(sizeof(SbObject *) - 1);
+        result->tp_dictoffset = size;
+        result->tp_basicsize = size + sizeof(SbObject *);
+        result->tp_flags |= SbType_FLAGS_HAS_DICT;
+    }
 
     return (SbObject *)result;
 }
