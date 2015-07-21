@@ -20,8 +20,9 @@ void _SbObject_DecRef(SbObject *op)
     SbTypeObject *tp;
     SbObject *stored_exc;
 
-    new_refcount = --op->ob_refcount;
+    new_refcount = op->ob_refcount - 1;
     if (new_refcount > 0) {
+        op->ob_refcount = new_refcount;
         return;
     }
     if (new_refcount < 0) {
@@ -31,6 +32,19 @@ void _SbObject_DecRef(SbObject *op)
     /* NOTE: To avoid mayhem, we store the current exception before actually destroying the object. */
     SbErr_Fetch(&stored_exc);
     tp = Sb_TYPE(op);
+    /* NOTE: Here, we might check for __del__ when initialising.
+       Work around by checking the type's dict directly. */
+    if (SbDict_GetItemString(SbObject_DICT(tp), "__del__")) {
+        if (!SbObject_CallMethod(op, "__del__", NULL, NULL)) {
+            SbErr_Clear();
+            /* TODO: print warning maybe? */
+        }
+        if (op->ob_refcount > 0) {
+            SbErr_Restore(stored_exc);
+            return;
+        }
+    }
+    op->ob_refcount = 0;
     tp->tp_destroy(op);
     op = NULL;
     SbErr_Restore(stored_exc);
