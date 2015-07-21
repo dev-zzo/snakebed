@@ -48,6 +48,34 @@ SbMethod_Call(SbObject *p, SbObject *args, SbObject *kwargs)
     func = m->func;
     if (SbCFunction_Check(func)) {
         if (!m->self || m->self == Sb_None) {
+            if (args) {
+                Sb_ssize_t args_count;
+
+                args_count = SbTuple_GetSize(args);
+                if (args_count > 0) {
+                    SbObject *new_args;
+                    SbObject *result;
+                    SbObject *self;
+                    Sb_ssize_t pos;
+
+                    /* Assume arg 1 is `self` and shift it */
+                    new_args = SbTuple_New(args_count - 1);
+                    if (!new_args) {
+                        return NULL;
+                    }
+                    for (pos = 1; pos < args_count; ++pos) {
+                        SbObject *o;
+
+                        o = SbTuple_GetItemUnsafe(args, pos);
+                        SbTuple_SetItemUnsafe(new_args, pos - 1, o);
+                    }
+
+                    self = SbTuple_GetItemUnsafe(args, 0);
+                    result = SbCFunction_Call(func, self, new_args, kwargs);
+                    Sb_DECREF(new_args);
+                    return result;
+                }
+            }
             return SbCFunction_Call(func, NULL, args, kwargs);
         }
         else {
@@ -59,10 +87,10 @@ SbMethod_Call(SbObject *p, SbObject *args, SbObject *kwargs)
             return SbPFunction_Call(func, args, kwargs);
         }
         else {
-            /* Inject self */
             SbObject *new_args;
             SbObject *result;
 
+            /* Inject `self` */
             new_args = _SbTuple_Prepend(m->self, args);
             if (!new_args) {
                 return NULL;
@@ -73,6 +101,7 @@ SbMethod_Call(SbObject *p, SbObject *args, SbObject *kwargs)
             return result;
         }
     }
+    SbErr_RaiseWithFormat(SbExc_SystemError, "method: got '%s' instead of function", Sb_TYPE(func)->tp_name);
     return NULL;
 }
 
