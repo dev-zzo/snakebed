@@ -8,6 +8,7 @@ class UnitTestException(Exception):
 class AssertionError(UnitTestException):
     """Raised when an assertion fails."""
     def __init__(self, msg=None):
+        UnitTestException.__init__(self, msg)
         self.msg = msg
 class _SkipTest(UnitTestException):
     """Raise this exception in a test to skip it."""
@@ -26,9 +27,11 @@ class TestResult(object):
         if len(self.passed) > 0:
             text.append("Passed:\r\n" + ", ".join(self.passed))
         if len(self.failed) > 0:
-            text.append("Failed:\r\n" + ", ".join([x[0] for x in self.failed]))
+            fails = [x[0] + ': ' + str(x[1][1]) + "\r\n" for x in self.failed]
+            text.append("Failed:\r\n" + "".join(fails))
         if len(self.errored) > 0:
-            text.append("Encountered errors:\r\n" + ", ".join([x[0] for x in self.errored]))
+            errors = [x[0] + ': ' + x[1][0].__name__ + ': ' + str(x[1][1]) + "\r\n" for x in self.errored]
+            text.append("Encountered errors:\r\n" + "".join(errors))
         if len(self.skipped) > 0:
             text.append("Skipped:\r\n" + ", ".join([x[0] for x in self.skipped]))
         return "\r\n".join(text)
@@ -57,29 +60,29 @@ class TestCase(object):
 
     def fail(self, msg=None):
         """Explicitly fail the test."""
-        print(msg)
-        raise AssertionError(msg)
-    def assertTrue(self, expr, msg=None):
+        # print(msg)
+        raise AssertionError, msg
+    def assertTrue(self, expr):
         if not expr:
-            fail("expression is not true")
-    def assertFalse(self, expr, msg=None):
+            self.fail("expression is not true")
+    def assertFalse(self, expr):
         if expr:
-            fail("expression is not false")
-    def assertEqual(self, first, second, msg=None):
+            self.fail("expression is not false")
+    def assertEqual(self, first, second):
         if not first == second:
-            fail("objects are not equal")
-    def assertNotEqual(self, first, second, msg=None):
+            self.fail("objects are not equal")
+    def assertNotEqual(self, first, second):
         if first == second:
-            fail("objects are equal")
+            self.fail("objects are equal")
     def assertRaises(self, exc, callable, *args, **kwds):
         try:
             callable(*args, **kwds)
-            fail("no exception raised")
+            self.fail("no exception raised")
         except:
             exinfo = sys.exc_info()
             if exinfo[0] is exc:
                 return
-            fail("incorrect exception type")
+            self.fail("incorrect exception type")
 
     def setUp(self):
         """Hook method for setting up the test fixture before exercising it."""
@@ -115,10 +118,6 @@ class TestCase(object):
                     raise
                 except AssertionError:
                     result.addFailure(sys.exc_info())
-#                except _ExpectedFailure:
-#                    result.addSuccess()
-#                except _UnexpectedSuccess:
-#                    result.addFailure(sys.exc_info())
                 except _SkipTest:
                     result.addSkip()
                 except:
