@@ -27,6 +27,7 @@ extern "C" {
 #include "object_file.h"
 #include "object_slice.h"
 #include "object_iter.h"
+#include "object_tback.h"
 #include "proto.h"
 
 #include "interp.h"
