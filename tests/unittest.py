@@ -27,11 +27,11 @@ class TestResult(object):
         if len(self.passed) > 0:
             text.append("Passed:\r\n" + ", ".join(self.passed))
         if len(self.failed) > 0:
-            fails = [x[0] + ': ' + str(x[1][1]) + "\r\n" for x in self.failed]
-            text.append("Failed:\r\n" + "".join(fails))
+            fails = [x[0] + ': ' + str(x[1][1][0]) for x in self.failed]
+            text.append("Failed:\r\n" + "\r\n".join(fails))
         if len(self.errored) > 0:
-            errors = [x[0] + ': ' + x[1][0].__name__ + ': ' + str(x[1][1]) + "\r\n" for x in self.errored]
-            text.append("Encountered errors:\r\n" + "".join(errors))
+            errors = [x[0] + ': ' + x[1][0].__name__ + ': ' + str(x[1][1]) for x in self.errored]
+            text.append("Encountered errors:\r\n" + "\r\n".join(errors))
         if len(self.skipped) > 0:
             text.append("Skipped:\r\n" + ", ".join([x[0] for x in self.skipped]))
         return "\r\n".join(text)
