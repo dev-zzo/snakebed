@@ -27,9 +27,16 @@
 #define STRING_INTERPOLATION ON
 #define STR_FORMAT ON
 
+/* Builtin pretty traceback support */
+#define TRACEBACKS ON
+
 /* Compiled-in modules support */
 
 /* Around 4k on x86 */
 #define MODULE_SOCKET ON
+
+#if SUPPORTS(TRACEBACKS)
+#define MODULE_TRACEBACK ON
+#endif
 
 #endif // __SNAKEBED_SUPOORTS_H
