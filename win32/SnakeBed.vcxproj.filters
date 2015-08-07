@@ -127,6 +127,9 @@
     <ClCompile Include="..\src\runtime\win32\files.c">
       <Filter>runtime\win32</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\object\tback.c">
+      <Filter>object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\module\builtin.h">
@@ -223,6 +226,9 @@
     </ClInclude>
     <ClInclude Include="..\src\module\_string.h">
       <Filter>module</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\api\object_tback.h">
+      <Filter>api</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
