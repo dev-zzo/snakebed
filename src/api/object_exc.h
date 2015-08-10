@@ -40,9 +40,6 @@ SbExc_Check(SbObject *o);
 SbTypeObject *
 SbExc_NewException(const char *name, SbTypeObject *base);
 
-#define SbExc_GetValue(p) \
-    (((SbBaseExceptionObject *)p)->args)
-
 #ifdef __cplusplus
 }
 #endif

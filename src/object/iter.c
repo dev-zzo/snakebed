@@ -14,7 +14,7 @@ iter_next_iterable(SbIterObject *myself)
         Sb_INCREF(result);
         return result;
     }
-    if (SbErr_Occurred() && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_IndexError)) {
+    if (SbErr_Occurred() && SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_IndexError)) {
         SbErr_Clear();
     }
     return NULL;

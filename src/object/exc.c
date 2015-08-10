@@ -84,7 +84,7 @@ exception_str(SbBaseExceptionObject *self, SbObject *args, SbObject *kwargs)
     SbObject *arg_repr;
     Sb_ssize_t arg_count;
 
-    arg_count = SbTuple_GetSizeUnsafe(self->args);
+    arg_count = self->args ? SbTuple_GetSizeUnsafe(self->args) : 0;
     if (arg_count == 0) {
         return SbStr_FromFormat("%s: (no message)", Sb_TYPE(self)->tp_name);
     }

@@ -6,14 +6,12 @@ extern "C" {
 
 /* Get the exception object, if any occurred.
    Returns: Borrowed reference. */
-SbObject *
+SbTypeObject *
 SbErr_Occurred(void);
 
 /* Check whether the `exc` matches anything in `what`.
    Typically, `exc` is what is returned by SbErr_Occurred().
    Returns: 1 if yes, 0 if no, -1 on failure. */
-int
-SbExc_ExceptionMatches(SbObject *exc, SbObject *what);
 int
 SbExc_ExceptionTypeMatches(SbTypeObject *exc_type, SbObject *what);
 
@@ -24,13 +22,19 @@ SbErr_Clear(void);
 /* Retrieve exception information, clearing the current state.
    Note: you own the references. */
 void
-SbErr_Fetch(SbObject **exc);
+SbErr_Fetch(SbTypeObject **type, SbObject **value, SbObject **tb);
 
 /* Reset the exception information back from info.
    Note: references are stolen. */
 void
-SbErr_Restore(SbObject *exc);
+SbErr_Restore(SbTypeObject *type, SbObject *value, SbObject *tb);
 
+
+/* Raise an exception of the given type with the associated value and traceback.
+   Note: the reference to `value` is stolen.
+*/
+void
+SbErr_Raise(SbTypeObject *type, SbObject *value, SbObject *tb);
 
 /* Raise an exception of the given type with the associated value.
    Note: the reference to `value` is stolen.

@@ -254,7 +254,7 @@ StoreXxx_common:
                 if (i_result >= 0) {
                     continue;
                 }
-                if (!SbErr_Occurred() || !SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_KeyError)) {
+                if (!SbErr_Occurred() || !SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_KeyError)) {
                     break;
                 }
                 SbErr_Clear();
@@ -677,43 +677,44 @@ BinaryXxx_common:
             case RaiseVarArgs:
                 /* X Y Z -> */
                 /* NOTE: raise Z, Y, X */
-                if (opcode_arg > 0) {
-                    /* Raise a new exception. */
-
-                    op2 = NULL;
-                    switch (opcode_arg) {
-                    case 3:
-                        /* TODO: tracebacks */
-                        op3 = STACK_POP();
-                        Sb_XDECREF(op3);
-                        /* Fall through */
-                    case 2:
-                        op2 = STACK_POP();
-                        /* Fall through */
-                    case 1:
-                        op1 = STACK_POP();
-                        if (!SbType_Check(op1)) {
-                            Sb_XDECREF(op2);
-                            Sb_XDECREF(op1);
-                            SbErr_RaiseWithString(SbExc_TypeError, "only type objects can be passed at 1st parameter to raise");
-                            break;
-                        }
+                op3 = NULL;
+                op2 = NULL;
+                switch (opcode_arg) {
+                case 3:
+                    /* TODO: tracebacks */
+                    op3 = STACK_POP();
+                    if (op3 == Sb_None) {
+                        Sb_DECREF(op3);
+                        op3 = NULL;
                     }
-
-                    SbErr_RaiseWithObject((SbTypeObject *)op1, op2);
+                    /* Fall through */
+                case 2:
+                    op2 = STACK_POP();
+                    /* Fall through */
+                case 1:
+                    op1 = STACK_POP();
+                    if (!SbType_Check(op1)) {
+                        SbErr_RaiseWithString(SbExc_TypeError, "only type objects can be passed at 1st parameter to raise");
+                    }
+                    else {
+                        SbErr_Raise((SbTypeObject *)op1, op2, op3);
+                    }
+                    Sb_XDECREF(op3);
                     Sb_XDECREF(op2);
                     Sb_XDECREF(op1);
-                }
-                else {
-                    SbObject *current_exc = frame->current_exc;
-
+                    break;
+                case 0:
+                    op3 = frame->exc_tb;
+                    op2 = frame->exc_value;
+                    op1 = (SbObject *)frame->exc_type;
                     /* Reraise the previous exception */
-                    if (!current_exc) {
+                    if (!op1) {
                         SbErr_RaiseWithString(SbExc_ValueError, "cannot reraise if no exception has been raised");
                         break;
                     }
 
-                    SbErr_Restore(current_exc);
+                    SbErr_Restore((SbTypeObject *)op1, op2, op3);
+                    break;
                 }
                 break;
 
@@ -732,7 +733,11 @@ BinaryXxx_common:
                 if (op1 == Sb_None) {
                     /* No exception occurred or it was handled */
                     Sb_DECREF(op1);
-                    Sb_CLEAR(frame->current_exc);
+                    Sb_CLEAR(frame->exc_type);
+                    Sb_CLEAR(frame->exc_value);
+#if SUPPORTS(TRACEBACKS)
+                    Sb_CLEAR(frame->exc_tb);
+#endif
                     continue;
                 }
 
@@ -751,15 +756,29 @@ BinaryXxx_common:
 
                 /* Type Instance Traceback -> */
                 if (SbType_Check(op1)) {
-                    Sb_DECREF(op1);
-                    op2 = STACK_POP(); /* Value */
+                    SbObject *exc_args;
+
+                    /* No Sb_DECREF: Stealing ref to type */
+
+                    op2 = STACK_POP(); /* Value (exception instance) */
+                    /* assert(SbExc_Check(op2)); */
+                    exc_args = ((SbBaseExceptionObject *)op2)->args;
+                    Sb_INCREF(exc_args);
+                    Sb_DECREF(op2);
+
                     op3 = STACK_POP(); /* Traceback */
-                    Sb_DECREF(op3);
-                    Sb_CLEAR(frame->current_exc);
-                    SbErr_Restore(op2);
+                    /* No Sb_DECREF: Stealing ref to traceback */
+
+                    Sb_CLEAR(frame->exc_type);
+                    Sb_CLEAR(frame->exc_value);
+#if SUPPORTS(TRACEBACKS)
+                    Sb_CLEAR(frame->exc_tb);
+#endif
+                    SbErr_Restore((SbTypeObject *)op1, exc_args, op3);
                     break;
                 }
 
+                Sb_DECREF(op1);
                 SbErr_RaiseWithString(SbExc_SystemError, "END_FINALLY found something odd on the stack");
                 break;
 
@@ -980,22 +999,40 @@ Xxx_check_error:
             /* The `finally` handler is always executed. */
             if (insn == SetupFinally || (insn == SetupExcept && reason == Reason_Error)) {
                 if (reason == Reason_Error) {
-                    SbObject *tmp;
-                    SbObject *exc;
+                    SbTypeObject *exc_type;
+                    SbObject *exc_value;
+                    SbObject *exc_tb;
+                    SbObject *exc_instance;
 
                     /* The frame now owns references to exception info. */
-                    SbErr_Fetch(&exc);
-                    frame->current_exc = exc;
+                    SbErr_Fetch(&exc_type, &exc_value, &exc_tb);
+                    frame->exc_type = exc_type;
+                    frame->exc_value = exc_value;
+                    frame->exc_tb = exc_tb;
 
                     /* Both `finally` and `except`: Type Instance TraceBack -> */
+#if SUPPORTS(TRACEBACKS)
+                    if (!exc_tb) {
+                        exc_tb = Sb_None;
+                        Sb_INCREF(exc_tb);
+                    }
+                    /* No Sb_INCREF -- pushing stolen ref */
+                    STACK_PUSH(exc_tb);
+#else
                     tmp = Sb_None;
                     Sb_INCREF(tmp);
                     STACK_PUSH(tmp);
-                    Sb_INCREF(exc);
-                    STACK_PUSH(exc);
-                    tmp = (SbObject *)Sb_TYPE(exc);
-                    Sb_INCREF(tmp);
-                    STACK_PUSH(tmp);
+#endif
+                    /* Instantiate the exception */
+                    /* assert(SbTuple_Check(exc_value)); */
+                    exc_instance = SbObject_Call((SbObject *)exc_type, exc_value, NULL);
+                    if (!exc_instance) {
+                        /* Whoopsie. */
+                    }
+                    STACK_PUSH(exc_instance);
+
+                    /* No Sb_INCREF -- pushing stolen ref */
+                    STACK_PUSH((SbObject *)exc_type);
                 }
                 else {
                     if (reason == Reason_Return) {

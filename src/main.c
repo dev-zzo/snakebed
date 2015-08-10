@@ -3,7 +3,9 @@
 int main(int argc, const char *argv[])
 {
     SbObject *main_module;
-    SbObject *exc;
+    SbTypeObject *exc_type;
+    SbObject *exc_value;
+    SbObject *exc_tb;
     int rv = 0;
 
     if (Sb_Initialize() < 0) {
@@ -15,21 +17,23 @@ int main(int argc, const char *argv[])
     }
 
     main_module = Sb_LoadModule("__main__", argv[1]);
-    SbErr_Fetch(&exc);
+    SbErr_Fetch(&exc_type, &exc_value, &exc_tb);
     Sb_XDECREF(main_module);
-    if (exc) {
-        if (SbExc_ExceptionMatches(exc, (SbObject *)SbExc_SystemExit)) {
+    if (exc_type) {
+        if (SbExc_ExceptionTypeMatches(exc_type, (SbObject *)SbExc_SystemExit)) {
             SbErr_Clear();
             rv = 0;
         }
         else {
-            if (SbExc_ExceptionMatches(exc, (SbObject *)SbExc_MemoryError)) {
+            if (SbExc_ExceptionTypeMatches(exc_type, (SbObject *)SbExc_MemoryError)) {
                 SbFile_WriteString(SbSys_StdErr, "OOM DEATH!\r\n");
             }
             else {
                 SbObject *error_str;
+                SbObject *exc_instance;
 
-                error_str = SbObject_Str(exc);
+                exc_instance = SbObject_Call((SbObject *)exc_type, exc_value, NULL);
+                error_str = SbObject_Str(exc_instance);
                 SbFile_WriteString(SbSys_StdErr, "Uncaught exception:\r\n");
                 SbFile_WriteString(SbSys_StdErr, SbStr_AsStringUnsafe(error_str));
                 SbFile_Write(SbSys_StdErr, "\r\n", 2);

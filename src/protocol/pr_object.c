@@ -31,10 +31,10 @@ SbObject_IsTrue(SbObject *p)
     }
 
     result = SbObject_CallMethod(p, "__nonzero__", NULL, NULL);
-    if (!result && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
+    if (!result && SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
         SbErr_Clear();
         result = SbObject_CallMethod(p, "__len__", NULL, NULL);
-        if (!result && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
+        if (!result && SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
             SbErr_Clear();
             return 1;
         }
@@ -82,7 +82,7 @@ SbObject_Str(SbObject *p)
     SbObject *result;
 
     result = SbObject_CallMethod(p, "__str__", NULL, NULL);
-    if (!result && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
+    if (!result && SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
         SbErr_Clear();
         result = SbObject_Repr(p);
     }
@@ -96,7 +96,7 @@ SbObject_Repr(SbObject *p)
     SbObject *result;
 
     result = SbObject_CallMethod(p, "__repr__", NULL, NULL);
-    if (!result && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
+    if (!result && SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
         SbErr_Clear();
         result = SbObject_DefaultStr(p, NULL, NULL);
     }
@@ -129,12 +129,9 @@ SbObject_Compare(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
     }
 
     result = SbObject_CallMethodObjArgs(p1, op_to_method[op], 1, p2);
-    if (!result) {
-        if (SbErr_Occurred() && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
-            SbErr_Clear();
-            Sb_INCREF(Sb_NotImplemented);
-            return Sb_NotImplemented;
-        }
+    if (!result && SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
+        Sb_INCREF(Sb_NotImplemented);
+        return Sb_NotImplemented;
     }
     return result;
 }
@@ -195,7 +192,7 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
         attr = SbObject_CallObjArgs(getattribute, 1, SbStr_FromString(attr_name));
         Sb_DECREF(getattribute);
         /* Silence AttributeError, if any */
-        if (!attr && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
+        if (!attr && SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
             SbErr_Clear();
         }
         return attr;
@@ -232,7 +229,7 @@ SbObject_GetAttrString(SbObject *p, const char *attr_name)
         attr = SbObject_CallObjArgs(getattr, 1, SbStr_FromString(attr_name));
         Sb_DECREF(getattr);
         /* Silence AttributeError, if any */
-        if (!attr && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
+        if (!attr && SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_AttributeError)) {
             SbErr_Clear();
         }
         return attr;

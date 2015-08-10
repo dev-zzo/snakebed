@@ -1,25 +1,19 @@
 #include "snakebed.h"
 
-SbObject *SbErr_Current = NULL;
+SbTypeObject *SbErr_Type = NULL;
+SbObject *SbErr_Value = NULL;
+#if SUPPORTS(TRACEBACKS)
+SbTraceBackObject *SbErr_TraceBack = NULL;
+#endif
 
 /* Cached MemoryError instance -- when we don't have memory to create another one */
 extern SbObject *_SbExc_MemoryErrorInstance;
 extern SbObject *_SbExc_StopIterationInstance;
 
-SbObject *
+SbTypeObject *
 SbErr_Occurred(void)
 {
-    return SbErr_Current;
-}
-
-int
-SbExc_ExceptionMatches(SbObject *exc, SbObject *what)
-{
-    if (!exc) {
-        return 0;
-    }
-
-    return SbExc_ExceptionTypeMatches(Sb_TYPE(exc), what);
+    return SbErr_Type;
 }
 
 int
@@ -51,42 +45,78 @@ SbExc_ExceptionTypeMatches(SbTypeObject *exc_type, SbObject *what)
 void
 SbErr_Clear(void)
 {
-    Sb_CLEAR(SbErr_Current);
+    Sb_CLEAR(SbErr_Type);
+    Sb_CLEAR(SbErr_Value);
+#if SUPPORTS(TRACEBACKS)
+    Sb_CLEAR(SbErr_TraceBack);
+#endif
 }
 
 void
-SbErr_Fetch(SbObject **exc)
+SbErr_Fetch(SbTypeObject **type, SbObject **value, SbObject **tb)
 {
-    *exc = SbErr_Current;
-    SbErr_Current = NULL;
+    *type = SbErr_Type;
+    SbErr_Type = NULL;
+    *value = SbErr_Value;
+    SbErr_Value = NULL;
+#if SUPPORTS(TRACEBACKS)
+    *tb = (SbObject *)SbErr_TraceBack;
+    SbErr_TraceBack = NULL;
+#else
+    *tb = (SbObject *)NULL;
+#endif
 }
 
 void
-SbErr_Restore(SbObject *exc)
+SbErr_Restore(SbTypeObject *type, SbObject *value, SbObject *tb)
 {
     SbErr_Clear();
-    SbErr_Current = exc;
+    SbErr_Type = type;
+    SbErr_Value = value;
+    SbErr_TraceBack = (SbTraceBackObject *)tb;
 }
 
+
+void
+SbErr_Raise(SbTypeObject *type, SbObject *value, SbObject *tb)
+{
+    SbErr_Clear();
+
+    Sb_INCREF(type);
+    SbErr_Type = type;
+
+    if (value) {
+        if (!SbTuple_CheckExact(value)) {
+            if (value != Sb_None) {
+                SbObject *packed;
+
+                packed = SbTuple_Pack(1, value);
+                /* TODO: How to handle a double fault? */
+                Sb_DECREF(value);
+                SbErr_Value = packed;
+            }
+        }
+        else {
+            Sb_INCREF(value);
+            SbErr_Value = value;
+        }
+    }
+    else {
+        SbErr_Value = SbTuple_New(0);
+    }
+
+#if SUPPORTS(TRACEBACKS)
+    if (tb && tb != Sb_None) {
+        Sb_INCREF(tb);
+        SbErr_TraceBack = (SbTraceBackObject *)tb;
+    }
+#endif
+}
 
 void
 SbErr_RaiseWithObject(SbTypeObject *type, SbObject *value)
 {
-    SbObject *args = NULL;
-
-    SbErr_Clear();
-
-    if (value) {
-        if (SbTuple_CheckExact(value)) {
-            args = value;
-        }
-        else {
-            args = SbTuple_Pack(1, value);
-            Sb_DECREF(value);
-        }
-    }
-    SbErr_Current = SbObject_Call((SbObject *)type, args, NULL);
-    Sb_XDECREF(args);
+    SbErr_Raise(type, value, NULL);
 }
 
 void
@@ -140,22 +170,22 @@ SbErr_RaiseIOError(SbInt_Native_t error_code, const char *error_text)
 }
 
 static SbObject *
-err_raise_singleton(SbObject *which)
+err_raise_singleton(SbTypeObject *which)
 {
     SbErr_Clear();
     Sb_INCREF(which);
-    SbErr_Current = which;
+    SbErr_Restore(which, NULL, NULL);
     return NULL;
 }
 
 SbObject *
 SbErr_NoMemory(void)
 {
-    return err_raise_singleton(_SbExc_MemoryErrorInstance);
+    return err_raise_singleton(SbExc_MemoryError);
 }
 
 SbObject *
 SbErr_NoMoreItems(void)
 {
-    return err_raise_singleton(_SbExc_StopIterationInstance);
+    return err_raise_singleton(SbExc_StopIteration);
 }

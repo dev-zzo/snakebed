@@ -26,9 +26,10 @@ typedef struct _SbFrameObject {
     SbObject *locals; /* dict -- local namespace associated with current frame */
     SbCodeBlock *blocks;
     /* Stores exception information while it is being handled */
-    SbObject *current_exc;
+    SbTypeObject *exc_type;
+    SbObject *exc_value;
 #if SUPPORTS(TRACEBACKS)
-    SbObject *current_tb;
+    SbObject *exc_tb;
 #endif
     const Sb_byte_t *ip;
     SbObject **sp; /* topmost in stack */

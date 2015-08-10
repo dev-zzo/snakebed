@@ -109,7 +109,7 @@ SB_Import(const char *name)
         return module;
     }
 
-    if (SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_IOError)) {
+    if (SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_IOError)) {
         SbErr_RaiseWithFormat(SbExc_ImportError, "module '%s' not found", name);
     }
     return NULL;

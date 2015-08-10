@@ -25,15 +25,17 @@ set_item_or_none(SbObject *tuple, Sb_ssize_t pos, SbObject *o)
 static SbObject *
 exc_info(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *exc;
+    SbFrameObject *frame;
     SbObject *none = Sb_None;
 
-    exc = SbInterp_TopFrame->current_exc;
-    if (exc) {
-        SbObject *value;
-
-        value = SbExc_GetValue(exc);
-        return SbTuple_Pack(3, Sb_TYPE(exc), value ? value : none, none);
+    frame = SbInterp_TopFrame;
+    while (frame) {
+        if (frame->exc_type) {
+            return SbTuple_Pack(3, 
+                frame->exc_type, 
+                frame->exc_value ? frame->exc_value : none,
+                frame->exc_tb ? frame->exc_tb : none);
+        }
     }
     return SbTuple_Pack(3, none, none, none);
 }

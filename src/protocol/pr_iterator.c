@@ -12,10 +12,8 @@ SbIter_Next(SbObject *o)
     SbObject *r;
 
     r = SbObject_CallMethod(o, "next", NULL, NULL);
-    if (!r) {
-        if (SbErr_Occurred() && SbExc_ExceptionMatches(SbErr_Occurred(), (SbObject *)SbExc_StopIteration)) {
-            SbErr_Clear();
-        }
+    if (!r && SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_StopIteration)) {
+        SbErr_Clear();
     }
     return r;
 }
