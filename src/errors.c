@@ -106,10 +106,20 @@ SbErr_Raise(SbTypeObject *type, SbObject *value, SbObject *tb)
     }
 
 #if SUPPORTS(TRACEBACKS)
-    if (tb && tb != Sb_None) {
-        Sb_INCREF(tb);
-        SbErr_TraceBack = (SbTraceBackObject *)tb;
+    if (tb == Sb_None) {
+        Sb_DECREF(tb);
+        tb = NULL;
     }
+    if (!tb) {
+        tb = SbTraceBack_FromHere();
+        if (!tb) {
+            SbErr_Clear();
+        }
+    }
+    else {
+        Sb_INCREF(tb);
+    }
+    SbErr_TraceBack = (SbTraceBackObject *)tb;
 #endif
 }
 

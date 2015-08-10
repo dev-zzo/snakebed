@@ -1013,16 +1013,21 @@ Xxx_check_error:
                     /* Both `finally` and `except`: Type Instance TraceBack -> */
 #if SUPPORTS(TRACEBACKS)
                     if (!exc_tb) {
-                        exc_tb = Sb_None;
-                        Sb_INCREF(exc_tb);
+                        exc_tb = SbTraceBack_FromHere();
+                        /* If failed, silently set traceback to None */
+                        if (!exc_tb) {
+                            SbErr_Clear();
+                            exc_tb = Sb_None;
+                            Sb_INCREF(exc_tb);
+                        }
                     }
-                    /* No Sb_INCREF -- pushing stolen ref */
-                    STACK_PUSH(exc_tb);
+                    /* No Sb_INCREF -- pushing new/stolen ref */
 #else
-                    tmp = Sb_None;
-                    Sb_INCREF(tmp);
-                    STACK_PUSH(tmp);
+                    exc_tb = Sb_None;
+                    Sb_INCREF(exc_tb);
 #endif
+                    STACK_PUSH(exc_tb);
+
                     /* Instantiate the exception */
                     /* assert(SbTuple_Check(exc_value)); */
                     exc_instance = SbObject_Call((SbObject *)exc_type, exc_value, NULL);

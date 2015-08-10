@@ -29,17 +29,13 @@ int main(int argc, const char *argv[])
                 SbFile_WriteString(SbSys_StdErr, "OOM DEATH!\r\n");
             }
             else {
-                SbObject *error_str;
-                SbObject *exc_instance;
-
-                exc_instance = SbObject_Call((SbObject *)exc_type, exc_value, NULL);
-                error_str = SbObject_Str(exc_instance);
-                SbFile_WriteString(SbSys_StdErr, "Uncaught exception:\r\n");
-                SbFile_WriteString(SbSys_StdErr, SbStr_AsStringUnsafe(error_str));
-                SbFile_Write(SbSys_StdErr, "\r\n", 2);
+                SbTraceBack_PrintException(exc_type, exc_value, exc_tb, 10, SbSys_StdErr);
             }
             rv = 1;
         }
+        Sb_XDECREF(exc_tb);
+        Sb_XDECREF(exc_value);
+        Sb_XDECREF(exc_type);
     }
 
     _Sb_UnloadModule("__main__");

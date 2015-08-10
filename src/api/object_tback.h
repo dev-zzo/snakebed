@@ -17,8 +17,15 @@ struct _SbTraceBackObject {
 
 extern SbTypeObject *SbTraceBack_Type;
 
+/* Generate a traceback object from the currently topmost interpreter frame.
+   Returns: New reference. */
 SbObject *
 SbTraceBack_FromHere();
+
+/* Write out exception and traceback to a file.
+   Returns: 0 if OK, -1 otherwise. */
+int
+SbTraceBack_PrintException(SbTypeObject *type, SbObject *value, SbObject *tb, Sb_ssize_t limit, SbObject *file);
 
 #ifdef __cplusplus
 }
