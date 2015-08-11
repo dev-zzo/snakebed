@@ -393,6 +393,8 @@ XxxName_check_iresult:
                     kwargs_passed = (opcode_arg >> 8) & 0xFF;
                     op3 = SbDict_New();
                     if (!op3) {
+                        Sb_XDECREF(vargs);
+                        Sb_XDECREF(kwds);
                         goto Xxx_check_error;
                     }
                     if (kwds) {
@@ -400,6 +402,7 @@ XxxName_check_iresult:
                         i_result = SbDict_Merge(op3, kwds, 1);
                         Sb_DECREF(kwds);
                         if (i_result < 0) {
+                            Sb_XDECREF(vargs);
                             Sb_DECREF(op3);
                             goto Xxx_check_error;
                         }
@@ -541,6 +544,8 @@ UnaryXxx_common:
                     o_result = SbBool_FromLong(i_result);
                     goto Xxx_drop2_check_oresult;
                 }
+                Sb_DECREF(op2);
+                Sb_DECREF(op1);
                 SbErr_RaiseWithFormat(SbExc_SystemError, "compare op %d not implemented", opcode_arg);
                 break;
 
@@ -701,21 +706,20 @@ BinaryXxx_common:
                     }
                     Sb_XDECREF(op3);
                     Sb_XDECREF(op2);
-                    Sb_XDECREF(op1);
+                    Sb_DECREF(op1);
                     break;
                 case 0:
-#if SUPPORTS(TRACEBACKS)
-                    op3 = frame->exc_tb;
-#endif
-                    op2 = frame->exc_value;
-                    op1 = (SbObject *)frame->exc_type;
                     /* Reraise the previous exception */
-                    if (!op1) {
+                    if (!frame->exc_type) {
                         SbErr_RaiseWithString(SbExc_ValueError, "cannot reraise if no exception has been raised");
                         break;
                     }
 
-                    SbErr_Restore((SbTypeObject *)op1, op2, op3);
+#if SUPPORTS(TRACEBACKS)
+                    SbErr_Restore(frame->exc_type, frame->exc_value, frame->exc_tb);
+#else
+                    SbErr_Restore(frame->exc_type, frame->exc_value, NULL);
+#endif
                     break;
                 }
                 break;
@@ -1012,24 +1016,20 @@ Xxx_check_error:
                     frame->exc_value = exc_value;
 #if SUPPORTS(TRACEBACKS)
                     frame->exc_tb = exc_tb;
-#endif
-
-                    /* Both `finally` and `except`: Type Instance TraceBack -> */
-#if SUPPORTS(TRACEBACKS)
                     if (!exc_tb) {
                         exc_tb = SbTraceBack_FromHere();
+                        frame->exc_tb = exc_tb;
                         /* If failed, silently set traceback to None */
                         if (!exc_tb) {
                             SbErr_Clear();
                             exc_tb = Sb_None;
-                            Sb_INCREF(exc_tb);
                         }
                     }
-                    /* No Sb_INCREF -- pushing new/stolen ref */
 #else
                     exc_tb = Sb_None;
-                    Sb_INCREF(exc_tb);
 #endif
+                    /* Both `finally` and `except`: Type Instance TraceBack -> */
+                    Sb_INCREF(exc_tb);
                     STACK_PUSH(exc_tb);
 
                     /* Instantiate the exception */
@@ -1040,7 +1040,7 @@ Xxx_check_error:
                     }
                     STACK_PUSH(exc_instance);
 
-                    /* No Sb_INCREF -- pushing stolen ref */
+                    Sb_INCREF((SbObject *)exc_type);
                     STACK_PUSH((SbObject *)exc_type);
                 }
                 else {
