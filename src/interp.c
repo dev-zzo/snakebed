@@ -310,8 +310,7 @@ XxxName_check_iresult:
                     SbTuple_SetItemUnsafe(o_result, pos, tmp);
                     --pos;
                 }
-                STACK_PUSH(o_result);
-                continue;
+                goto Xxx_push_continue;
             case BuildList:
                 o_result = SbList_New(opcode_arg);
                 if (!o_result) {
@@ -324,8 +323,7 @@ XxxName_check_iresult:
                     SbList_SetItemUnsafe(o_result, pos, tmp);
                     --pos;
                 }
-                STACK_PUSH(o_result);
-                continue;
+                goto Xxx_push_continue;
             case BuildMap:
                 /* Nothing is pushed on the stack. */
                 o_result = SbDict_New();
