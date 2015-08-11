@@ -99,10 +99,8 @@ SbInterp_Execute(SbFrameObject *frame)
 
             case DupTop:
                 /* X -> X X */
-                op1 = STACK_TOP();
-                Sb_INCREF(op1);
-                *--sp = op1;
-                continue;
+                o_result = STACK_TOP();
+                goto Xxx_incref_push_continue;
 
             case RotTwo:
                 /* X Y -> Y X */
@@ -128,15 +126,11 @@ SbInterp_Execute(SbFrameObject *frame)
 
             case LoadConst:
                 o_result = SbTuple_GetItemUnsafe(code->consts, opcode_arg);
-                Sb_INCREF(o_result);
-                STACK_PUSH(o_result);
-                continue;
+                goto Xxx_incref_push_continue;
 
             case LoadLocals:
                 o_result = locals;
-                Sb_INCREF(o_result);
-                STACK_PUSH(o_result);
-                continue;
+                goto Xxx_incref_push_continue;
 
             case JumpForward:
                 ip += opcode_arg;
@@ -274,8 +268,7 @@ DeleteXxx_common:
                 o_result = SbObject_GetAttrString(op1, name);
                 Sb_DECREF(op1);
                 if (o_result) {
-                    STACK_PUSH(o_result);
-                    continue;
+                    goto Xxx_push_continue;
                 }
                 /* No need to clear - SbObject_GetAttrString() doesn't raise */
                 SbErr_RaiseWithString(SbExc_AttributeError, name);
@@ -644,8 +637,7 @@ BinaryXxx_common:
                 op1 = STACK_TOP();
                 o_result = SbIter_Next(op1);
                 if (o_result) {
-                    STACK_PUSH(o_result);
-                    continue;
+                    goto Xxx_push_continue;
                 }
                 else {
                     ++sp;
@@ -933,13 +925,13 @@ Xxx_drop1_check_oresult:
                 Sb_DECREF(op1);
 Xxx_check_oresult:
                 if (o_result) {
-                    STACK_PUSH(o_result);
-                    continue;
+                    goto Xxx_push_continue;
                 }
                 goto Xxx_check_error;
 
 Xxx_incref_push_continue:
                 Sb_INCREF(o_result);
+Xxx_push_continue:
                 STACK_PUSH(o_result);
                 continue;
 
