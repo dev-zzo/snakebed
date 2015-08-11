@@ -823,25 +823,21 @@ BinaryXxx_common:
                 /* X -> X[:] */
                 op3 = NULL;
                 op2 = NULL;
-                op1 = STACK_POP();
                 goto SliceXxx;
             case Slice+1:
                 /* X Y -> Y[X:] */
                 op3 = NULL;
                 op2 = STACK_POP();
-                op1 = STACK_POP();
                 goto SliceXxx;
             case Slice+2:
                 /* X Y -> Y[:X] */
                 op3 = STACK_POP();
                 op2 = NULL;
-                op1 = STACK_POP();
                 goto SliceXxx;
             case Slice+3:
                 /* X Y Z -> Z[Y:X] */
                 op3 = STACK_POP();
                 op2 = STACK_POP();
-                op1 = STACK_POP();
 SliceXxx:
                 tmp = SbSlice_New(op2, op3, NULL);
                 Sb_XDECREF(op3);
@@ -850,6 +846,7 @@ SliceXxx:
                     goto Xxx_check_error;
                 }
                 op2 = tmp;
+                op1 = STACK_POP();
                 o_result = SbObject_GetItem(op1, op2);
                 goto Xxx_drop2_check_oresult;
 
@@ -869,8 +866,6 @@ SliceXxx:
                 op4 = STACK_POP();
                 op3 = STACK_POP();
 StoreSliceXxx:
-                op2 = STACK_POP();
-                op1 = STACK_POP();
                 /* op1 = val, op2 = obj, op3 = start, op4 = end */
                 tmp = SbSlice_New(op3, op4, NULL);
                 Sb_XDECREF(op4);
@@ -879,6 +874,8 @@ StoreSliceXxx:
                     goto Xxx_check_error;
                 }
                 op3 = tmp;
+                op2 = STACK_POP();
+                op1 = STACK_POP();
                 i_result = SbObject_SetItem(op2, op1, op3);
                 goto Xxx_drop3_check_iresult;
 
@@ -886,25 +883,21 @@ StoreSliceXxx:
                 /* X -> */
                 op3 = NULL;
                 op2 = NULL;
-                op1 = STACK_POP();
                 goto DeleteSliceXxx;
             case DeleteSlice+1:
                 /* X Y -> */
                 op3 = NULL;
                 op2 = STACK_POP();
-                op1 = STACK_POP();
                 goto DeleteSliceXxx;
             case DeleteSlice+2:
                 /* X Y -> */
                 op3 = STACK_POP();
                 op2 = NULL;
-                op1 = STACK_POP();
                 goto DeleteSliceXxx;
             case DeleteSlice+3:
                 /* X Y Z -> */
                 op3 = STACK_POP();
                 op2 = STACK_POP();
-                op1 = STACK_POP();
 DeleteSliceXxx:
                 tmp = SbSlice_New(op2, op3, NULL);
                 Sb_XDECREF(op3);
@@ -913,6 +906,7 @@ DeleteSliceXxx:
                     goto Xxx_check_error;
                 }
                 op2 = tmp;
+                op1 = STACK_POP();
                 i_result = SbObject_DelItem(op1, op2);
                 goto Xxx_drop2_check_iresult;
 
