@@ -65,11 +65,30 @@ traceback_destroy(SbTraceBackObject *self)
     SbObject_DefaultDestroy((SbObject *)self);
 }
 
+
+int
+_Sb_TypeInit_TraceBack()
+{
+    SbTypeObject *tp;
+
+    tp = _SbType_FromCDefs("<traceback>", NULL, NULL, sizeof(SbTraceBackObject));
+    if (!tp) {
+        return -1;
+    }
+
+    tp->tp_destroy = (SbDestroyFunc)traceback_destroy;
+
+    SbTraceBack_Type = tp;
+    return 0;
+}
+
 SbObject *
 SbTraceBack_FormatTrace(SbTraceBackObject *tb)
 {
     return SbStr_FromFormat("  in %s +%d\n", SbStr_AsStringUnsafe(tb->frame->code->name), tb->ip);
 }
+
+#endif /* SUPPORTS(TRACEBACKS) */
 
 SbObject *
 SbTraceBack_FormatException(SbTypeObject *type, SbObject *value)
@@ -113,6 +132,7 @@ SbTraceBack_PrintException(SbTypeObject *type, SbObject *value, SbObject *tb, Sb
         goto exit0;
     }
 
+#if SUPPORTS(TRACEBACKS)
     if (tb && tb != Sb_None) {
         SbTraceBackObject *real_tb = (SbTraceBackObject *)tb;
 
@@ -127,6 +147,7 @@ SbTraceBack_PrintException(SbTypeObject *type, SbObject *value, SbObject *tb, Sb
             real_tb = real_tb->next;
         }
     }
+#endif
 
     if (append_line(lines, SbTraceBack_FormatException(type, value)) < 0) {
         goto exit1;
@@ -146,21 +167,3 @@ exit0:
     return rv;
 }
 
-
-int
-_Sb_TypeInit_TraceBack()
-{
-    SbTypeObject *tp;
-
-    tp = _SbType_FromCDefs("<traceback>", NULL, NULL, sizeof(SbTraceBackObject));
-    if (!tp) {
-        return -1;
-    }
-
-    tp->tp_destroy = (SbDestroyFunc)traceback_destroy;
-
-    SbTraceBack_Type = tp;
-    return 0;
-}
-
-#endif /* SUPPORTS(TRACEBACKS) */

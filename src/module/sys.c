@@ -34,7 +34,11 @@ exc_info(SbObject *self, SbObject *args, SbObject *kwargs)
             return SbTuple_Pack(3, 
                 frame->exc_type, 
                 frame->exc_value ? frame->exc_value : none,
+#if SUPPORTS(TRACEBACKS)
                 frame->exc_tb ? frame->exc_tb : none);
+#else
+                none);
+#endif
         }
     }
     return SbTuple_Pack(3, none, none, none);

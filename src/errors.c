@@ -73,7 +73,9 @@ SbErr_Restore(SbTypeObject *type, SbObject *value, SbObject *tb)
     SbErr_Clear();
     SbErr_Type = type;
     SbErr_Value = value;
+#if SUPPORTS(TRACEBACKS)
     SbErr_TraceBack = (SbTraceBackObject *)tb;
+#endif
 }
 
 

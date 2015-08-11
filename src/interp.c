@@ -704,7 +704,9 @@ BinaryXxx_common:
                     Sb_XDECREF(op1);
                     break;
                 case 0:
+#if SUPPORTS(TRACEBACKS)
                     op3 = frame->exc_tb;
+#endif
                     op2 = frame->exc_value;
                     op1 = (SbObject *)frame->exc_type;
                     /* Reraise the previous exception */
@@ -1008,7 +1010,9 @@ Xxx_check_error:
                     SbErr_Fetch(&exc_type, &exc_value, &exc_tb);
                     frame->exc_type = exc_type;
                     frame->exc_value = exc_value;
+#if SUPPORTS(TRACEBACKS)
                     frame->exc_tb = exc_tb;
+#endif
 
                     /* Both `finally` and `except`: Type Instance TraceBack -> */
 #if SUPPORTS(TRACEBACKS)
