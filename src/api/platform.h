@@ -30,6 +30,9 @@ void *
 Sb_Malloc(Sb_size_t size);
 
 void *
+Sb_Calloc(Sb_size_t count, Sb_size_t size);
+
+void *
 Sb_Realloc(void *ptr, Sb_size_t new_size);
 
 void
