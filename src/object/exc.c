@@ -4,6 +4,9 @@
 SbTypeObject *SbExc_BaseException = NULL;
 SbTypeObject  *SbExc_Exception = NULL;
 SbTypeObject   *SbExc_StandardError = NULL;
+SbTypeObject    *SbExc_ArithmeticError = NULL;
+SbTypeObject     *SbExc_OverflowError = NULL;
+SbTypeObject     *SbExc_ZeroDivisionError = NULL;
 SbTypeObject    *SbExc_AttributeError = NULL;
 SbTypeObject    *SbExc_EnvironmentError = NULL;
 SbTypeObject     *SbExc_IOError = NULL;
@@ -206,6 +209,10 @@ _Sb_TypeInit_Exceptions()
 
     SbExc_Exception = SbExc_NewException("Exception", SbExc_BaseException);
     SbExc_StandardError = SbExc_NewException("StandardError", SbExc_Exception);
+
+    SbExc_ArithmeticError = SbExc_NewException("ArithmeticError", SbExc_StandardError);
+    SbExc_OverflowError = SbExc_NewException("OverflowError", SbExc_ArithmeticError);
+    SbExc_ZeroDivisionError = SbExc_NewException("ZeroDivisionError", SbExc_ArithmeticError);
 
     SbExc_AttributeError = SbExc_NewException("AttributeError", SbExc_StandardError);
 

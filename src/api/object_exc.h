@@ -13,6 +13,9 @@ typedef struct _SbBaseExceptionObject {
 extern SbTypeObject *SbExc_BaseException;
 extern SbTypeObject  *SbExc_Exception;
 extern SbTypeObject   *SbExc_StandardError;
+extern SbTypeObject    *SbExc_ArithmeticError;
+extern SbTypeObject     *SbExc_OverflowError;
+extern SbTypeObject     *SbExc_ZeroDivisionError;
 extern SbTypeObject    *SbExc_AttributeError;
 extern SbTypeObject    *SbExc_EnvironmentError;
 extern SbTypeObject     *SbExc_IOError;
