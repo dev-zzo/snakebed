@@ -250,7 +250,13 @@ list_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
         return result;
     }
     if (SbInt_Check(index)) {
-        result = SbList_GetItem(self, SbInt_AsNativeUnsafe(index));
+        SbInt_Native_t pos;
+
+        pos = SbInt_AsNative(index);
+        if (pos == -1 && SbErr_Occurred()) {
+            return NULL;
+        }
+        result = SbList_GetItem(self, pos);
         if (result) {
             Sb_INCREF(result);
         }
@@ -301,10 +307,15 @@ list_setitem(SbObject *self, SbObject *args, SbObject *kwargs)
         Sb_RETURN_NONE;
     }
     if (SbInt_Check(index)) {
+        SbInt_Native_t pos;
         int result;
 
+        pos = SbInt_AsNative(index);
+        if (pos == -1 && SbErr_Occurred()) {
+            return NULL;
+        }
         Sb_INCREF(value);
-        result = SbList_SetItem(self, SbInt_AsNativeUnsafe(index), value);
+        result = SbList_SetItem(self, pos, value);
         if (result < 0) {
             return NULL;
         }
@@ -342,7 +353,10 @@ list_delitem(SbObject *self, SbObject *args, SbObject *kwargs)
         SbInt_Native_t my_pos;
         int result;
 
-        my_pos = SbInt_AsNativeUnsafe(index);
+        my_pos = SbInt_AsNative(index);
+        if (my_pos == -1 && SbErr_Occurred()) {
+            return NULL;
+        }
         result = SbList_SetItem(self, my_pos, NULL);
         if (result < 0) {
             return NULL;

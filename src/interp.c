@@ -740,7 +740,7 @@ BinaryXxx_common:
                 /* Reason [RetVal] -> */
                 if (SbInt_CheckExact(op1)) {
                     /* Restore unwind reason and go on with unwinding */
-                    reason = (enum SbUnwindReason)SbInt_AsNativeUnsafe(op1);
+                    reason = (enum SbUnwindReason)SbInt_AsNativeOverflow(op1, NULL);
                     Sb_DECREF(op1);
                     if (reason == Reason_Return) {
                         return_value = STACK_POP();

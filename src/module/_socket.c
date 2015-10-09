@@ -617,11 +617,15 @@ socketobj_settimeout(socket_object *self, SbObject *args, SbObject *kwargs)
         timeout = -1;
     }
     else if (SbInt_Check(o_timeout)) {
-        timeout = SbInt_AsNativeUnsafe(o_timeout);
+        timeout = SbInt_AsNative(o_timeout);
         if (timeout < 0) {
-            /* raise */
-            SbErr_RaiseWithString(SbExc_ValueError, "timeout cannot be negative");
-            return NULL;
+            if (timeout == -1 && SbErr_Occurred() && SbExc_ExceptionTypeMatches(SbErr_Occurred(), (SbObject *)SbExc_OverflowError)) {
+            }
+            else {
+                /* raise */
+                SbErr_RaiseWithString(SbExc_ValueError, "timeout cannot be negative");
+                return NULL;
+            }
         }
     }
     else {

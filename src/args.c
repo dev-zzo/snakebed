@@ -90,7 +90,10 @@ store_ptr:
                     expected_arg_type = "int";
                     goto invalid_arg_type;
                 }
-                *va_arg(va, SbInt_Native_t *) = SbInt_AsNativeUnsafe(arg);
+                *va_arg(va, SbInt_Native_t *) = SbInt_AsNative(arg);
+                if (SbErr_Occurred()) {
+                    return -1;
+                }
                 break;
 
             case 'z':

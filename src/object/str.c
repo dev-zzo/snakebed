@@ -488,7 +488,10 @@ str_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
         return result;
     }
     if (SbInt_Check(index)) {
-        pos = SbInt_AsNativeUnsafe(index);
+        pos = SbInt_AsNative(index);
+        if (pos == -1 && SbErr_Occurred()) {
+            return NULL;
+        }
         result = SbStr_FromStringAndSize(NULL, 1);
         if (result) {
             char *dst_buffer;

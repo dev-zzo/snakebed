@@ -18,15 +18,18 @@ SbBool_FromLong(long x)
     }
 }
 
+void
+_SbInt_SetFromNative(SbObject *op, SbInt_Native_t ival);
+
 static SbObject *
 bool_new(long val)
 {
-    SbBoolObject *op;
-    op = (SbBoolObject *)SbObject_New(SbBool_Type);
-    if (op) {
-        op->value = val;
+    SbBoolObject *myself;
+    myself = (SbBoolObject *)SbObject_New(SbBool_Type);
+    if (myself) {
+        _SbInt_SetFromNative((SbObject *)myself, val);
     }
-    return (SbObject *)op;
+    return (SbObject *)myself;
 }
 
 /* Type initializer */

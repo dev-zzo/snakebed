@@ -200,7 +200,13 @@ tuple_getitem(SbObject *self, SbObject *args, SbObject *kwargs)
         return result;
     }
     if (SbInt_Check(index)) {
-        result = SbTuple_GetItem(self, SbInt_AsNativeUnsafe(index));
+        SbInt_Native_t pos;
+
+        pos = SbInt_AsNative(index);
+        if (pos == -1 && SbErr_Occurred()) {
+            return NULL;
+        }
+        result = SbTuple_GetItem(self, pos);
         if (result) {
             Sb_INCREF(result);
         }
