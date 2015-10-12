@@ -8,6 +8,7 @@
 #define TYPE_ELLIPSIS           '.'
 
 #define TYPE_INT                'i'
+#define TYPE_LONG               'l'
 #define TYPE_STRING8            's'
 #define TYPE_STRING32           'S'
 #define TYPE_STRINGREF8         'r'
@@ -103,6 +104,23 @@ read_object(SbObject *input, marshal_state *state)
             break;
         }
         result = SbInt_FromNative(n);
+        break;
+
+    case TYPE_LONG:
+        if (read_half(input, &n) < 0) {
+            break;
+        }
+        result = SbInt_FromLengthAndDigits(n, NULL);
+        if (result) {
+            SbInt_Digit_t *digits;
+            long digit;
+
+            digits = SbInt_DIGITS(result);
+            while (n--) {
+                read_half(input, &digit);
+                *digits++ = (SbInt_Digit_t)digit;
+            }
+        }
         break;
 
     case TYPE_STRING8:

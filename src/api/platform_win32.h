@@ -24,7 +24,10 @@ extern "C" {
 typedef unsigned char Sb_byte_t;
 
 typedef size_t Sb_size_t;
+
 typedef long Sb_ssize_t;
+#define Sb_SSIZE_MIN LONG_MIN
+#define Sb_SSIZE_MAX LONG_MAX
 
 typedef long long Sb_long64_t;
 typedef unsigned long long Sb_ulong64_t;

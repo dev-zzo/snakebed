@@ -18,9 +18,30 @@ The implementation is defined to operate on half-words to allow for:
 Some algorithms are taken from the awesome Hacker's Delight book.
 */
 
+static SbInt_Digit_t *
+long_alloc(Sb_size_t count)
+{
+    return Sb_Calloc(count, sizeof(SbInt_Digit_t));
+}
+
+static void
+long_free(SbInt_Digit_t *digits)
+{
+    Sb_Free(digits);
+}
+
+#define LONG_IS_NATIVE(o) \
+    ((o)->length <= 0)
+#define LONG_SET_NATIVE(o) \
+    ((o)->length = -1)
+
 /* MACRO: test if the MPI is negative. */
 #define LONG_IS_NEGATIVE(o) \
-    (((SbInt_SignDigit_t)o->u.digits[o->length - 1]) < 0)
+    (((SbInt_SignDigit_t)(o)->u.digits[(o)->length - 1]) < 0)
+
+/* MACRO: test if the MPI is zero. */
+#define LONG_IS_ZERO(o) \
+    (LONG_IS_NATIVE(o) && ((o)->u.value == 0))
 
 /* Obtain the digit filled with the sign bit.
    Returns: -1 or 0 depending on the sign. */
@@ -78,15 +99,36 @@ static void
 __long_neg(const SbInt_Value *rhs, SbInt_Value *result)
 {
     SbInt_Digit_t c;
-    size_t i;
+    SbInt_Digit_t *src, *dst, *dst_limit;
+
+    src = rhs->u.digits;
+    dst = result->u.digits;
+    dst_limit = dst + result->length;
 
     c = 1;
-    for (i = 0; i < result->length; ++i) {
+    while (dst < dst_limit) {
         SbInt_DoubleDigit_t t;
 
-        t = ~rhs->u.digits[i] + c;
+        t = ~(*src++) + c;
         c = t >> SbInt_DIGIT_BITS;
-        result->u.digits[i] = t & 0xFFFFu;
+        (*dst++) = t & 0xFFFFu;
+    }
+}
+
+/* Invert an MPI value.
+   Assumes: result->length == rhs->length
+   NOTE: Allows for operand aliasing. */
+static void
+__long_inv(const SbInt_Value *rhs, SbInt_Value *result)
+{
+    SbInt_Digit_t *src, *dst, *dst_limit;
+
+    src = rhs->u.digits;
+    dst = result->u.digits;
+    dst_limit = dst + result->length;
+
+    while (dst < dst_limit) {
+        (*dst++) = ~(*src++);
     }
 }
 
@@ -96,25 +138,48 @@ __long_neg(const SbInt_Value *rhs, SbInt_Value *result)
 static void
 __long_add(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
 {
-    SbInt_Digit_t lhs_sign, rhs_sign;
-    SbInt_Digit_t c;
-    size_t i;
+    SbInt_Digit_t *src1, *src2, *limit1, *limit2, *dst;
+    SbInt_Digit_t sign;
+    SbInt_DoubleDigit_t c;
 
-    lhs_sign = long_sign(lhs);
-    rhs_sign = long_sign(rhs);
+    if (lhs->length < rhs->length) {
+        const SbInt_Value *tmp;
+
+        tmp = lhs;
+        lhs = rhs;
+        rhs = tmp;
+    }
+
+    src1 = lhs->u.digits;
+    limit1 = src1 + lhs->length;
+    src2 = rhs->u.digits;
+    limit2 = src2 + rhs->length;
+    dst = result->u.digits;
 
     c = 0;
-    for (i = 0; i < result->length; ++i) {
-        SbInt_Digit_t a, b;
+    while (src2 < limit2) {
         SbInt_DoubleDigit_t t;
 
-        a = i < lhs->length ? lhs->u.digits[i] : lhs_sign;
-        b = i < rhs->length ? rhs->u.digits[i] : rhs_sign;
-
-        t = a + b + c;
+        t = *src1 + *src2 + c;
         c = t >> SbInt_DIGIT_BITS;
-        result->u.digits[i] = t & 0xFFFFu;
+        *dst = t & 0xFFFFu;
+        ++src1;
+        ++src2;
+        ++dst;
     }
+
+    sign = ((SbInt_SignDigit_t)src2[-1]) >> (SbInt_DIGIT_BITS - 1);
+    while (src1 < limit1) {
+        SbInt_DoubleDigit_t t;
+
+        t = *src1 + sign + c;
+        c = t >> SbInt_DIGIT_BITS;
+        *dst = t & 0xFFFFu;
+        ++src1;
+        ++dst;
+    }
+
+    *dst = (SbInt_Digit_t)((((SbInt_SignDigit_t)src1[-1]) >> (SbInt_DIGIT_BITS - 1)) + sign + c);
 }
 
 /* Subtract two MPI values.
@@ -123,25 +188,48 @@ __long_add(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
 static void
 __long_sub(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
 {
-    SbInt_Digit_t lhs_sign, rhs_sign;
-    SbInt_Digit_t c;
-    size_t i;
+    SbInt_Digit_t *src1, *src2, *limit1, *limit2, *dst;
+    SbInt_Digit_t sign;
+    SbInt_DoubleDigit_t c;
 
-    lhs_sign = long_sign(lhs);
-    rhs_sign = long_sign(rhs);
+    if (lhs->length < rhs->length) {
+        const SbInt_Value *tmp;
+
+        tmp = lhs;
+        lhs = rhs;
+        rhs = tmp;
+    }
+
+    src1 = lhs->u.digits;
+    limit1 = src1 + lhs->length;
+    src2 = rhs->u.digits;
+    limit2 = src2 + rhs->length;
+    dst = result->u.digits;
 
     c = 0;
-    for (i = 0; i < result->length; ++i) {
-        SbInt_Digit_t a, b;
+    while (src2 < limit2) {
         SbInt_DoubleDigit_t t;
 
-        a = i < lhs->length ? lhs->u.digits[i] : lhs_sign;
-        b = i < rhs->length ? rhs->u.digits[i] : rhs_sign;
-
-        t = a - b - c;
+        t = *src1 - *src2 - c;
         c = t >> SbInt_DIGIT_BITS;
-        result->u.digits[i] = t & 0xFFFFu;
+        *dst = t & 0xFFFFu;
+        ++src1;
+        ++src2;
+        ++dst;
     }
+
+    sign = ((SbInt_SignDigit_t)src2[-1]) >> (SbInt_DIGIT_BITS - 1);
+    while (src1 < limit1) {
+        SbInt_DoubleDigit_t t;
+
+        t = *src1 - sign - c;
+        c = t >> SbInt_DIGIT_BITS;
+        *dst = t & 0xFFFFu;
+        ++src1;
+        ++dst;
+    }
+
+    *dst = (SbInt_Digit_t)((((SbInt_SignDigit_t)src1[-1]) >> (SbInt_DIGIT_BITS - 1)) - sign - c);
 }
 
 /* Multiply two MPI values.
@@ -150,7 +238,7 @@ __long_sub(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
 static void
 __long_mul(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
 {
-    size_t i, j;
+    Sb_ssize_t i, j;
 
     for (i = 0; i < result->length; ++i) {
         result->u.digits[i] = 0;
@@ -182,6 +270,7 @@ __long_mul(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
         SbInt_Digit_t b;
         SbInt_DoubleDigit_t t;
 
+        b = 0;
         for (i = 0; 0 < rhs->length; ++i) {
             t = result->u.digits[lhs->length + i] - rhs->u.digits[i] - b;
             result->u.digits[lhs->length + i] = t & 0xFFFFu;
@@ -193,6 +282,7 @@ __long_mul(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
         SbInt_Digit_t b;
         SbInt_DoubleDigit_t t;
 
+        b = 0;
         for (i = 0; 0 < lhs->length; ++i) {
             t = result->u.digits[rhs->length + i] - lhs->u.digits[i] - b;
             result->u.digits[rhs->length + i] = t & 0xFFFFu;
@@ -201,6 +291,49 @@ __long_mul(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
     }
 }
 
+static void
+long_reduce(SbInt_Value *o)
+{
+    SbInt_Digit_t sign;
+    Sb_ssize_t i;
+
+    if (LONG_IS_NATIVE(o)) {
+        return;
+    }
+
+    sign = long_sign(o);
+    i = o->length - 1;
+    if (o->u.digits[i] != sign) {
+        return;
+    }
+    do {
+        --i;
+    } while ((i >= 0) && (o->u.digits[i] == sign));
+    if ((i >= 0) && ((o->u.digits[i] ^ sign) & (1 << (SbInt_DIGIT_BITS - 1)))) {
+        ++i;
+    }
+
+    if (i < 2) {
+        SbInt_Native_t v;
+
+        if (i == 1) {
+            v = (o->u.digits[1] << SbInt_DIGIT_BITS) | (o->u.digits[0]);
+        }
+        else if (i == 0) {
+            v = (sign << SbInt_DIGIT_BITS) | (o->u.digits[0]);
+        }
+        else {
+            v = (sign << SbInt_DIGIT_BITS) | (sign);
+        }
+
+        long_free(o->u.digits);
+        LONG_SET_NATIVE(o);
+        o->u.value = v;
+    }
+    else {
+        o->length = i + 1;
+    }
+}
 
 
 /*
@@ -212,7 +345,7 @@ _SbInt_SetFromNative(SbObject *self, SbInt_Native_t ival)
 {
     SbIntObject *myself = (SbIntObject *)self;
 
-    myself->v.native = 1;
+    LONG_SET_NATIVE(&myself->v);
     myself->v.u.value = ival;
 }
 
@@ -223,6 +356,28 @@ SbInt_FromNative(SbInt_Native_t ival)
     myself = (SbIntObject *)SbObject_New(SbInt_Type);
     if (myself) {
         _SbInt_SetFromNative((SbObject *)myself, ival);
+    }
+    return (SbObject *)myself;
+}
+
+SbObject *
+SbInt_FromLengthAndDigits(Sb_ssize_t length, SbInt_Digit_t *digits)
+{
+    SbIntObject *myself;
+    myself = (SbIntObject *)SbObject_New(SbInt_Type);
+    if (myself) {
+        SbInt_Digit_t *new_digits;
+
+        new_digits = long_alloc(length);
+        if (!new_digits) {
+            Sb_DECREF(myself);
+            return NULL;
+        }
+        myself->v.length = length;
+        myself->v.u.digits = new_digits;
+        if (digits) {
+            SbRT_MemCpy(new_digits, digits, length * sizeof(SbInt_Digit_t));
+        }
     }
     return (SbObject *)myself;
 }
@@ -239,9 +394,8 @@ SbInt_AsNativeOverflow(SbObject *op, int *overflow_flag)
     }
 #endif
 
-
     myself = (SbIntObject *)op;
-    if (myself->v.native) {
+    if (LONG_IS_NATIVE(&myself->v)) {
         if (overflow_flag) {
             *overflow_flag = 0;
         }
@@ -279,7 +433,6 @@ SbInt_AsNative(SbObject *op)
 static void
 long_convert_digits(SbInt_Value *value, SbInt_Native_t native_value, Sb_size_t digits_length, SbInt_Digit_t *digits)
 {
-    value->native = 0;
     value->length = digits_length;
     value->u.digits = digits;
 
@@ -291,19 +444,25 @@ long_convert_digits(SbInt_Value *value, SbInt_Native_t native_value, Sb_size_t d
 }
 
 typedef int (*long_ivv)(const SbInt_Value *lhs, const SbInt_Value *rhs);
-typedef int (*long_vvv)(const SbInt_Value *lhs, const SbInt_Value *rhs);
+typedef void (*long_vvr)(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result);
 
 static int
-long_coerce_apply_ivv(SbInt_Value *lhs, SbInt_Value *rhs, long_ivv func)
+long_coerce_apply_ivv(const SbInt_Value *lhs, const SbInt_Value *rhs, long_ivv func)
 {
     SbInt_Value lhs_copy;
     SbInt_Value rhs_copy;
     SbInt_Digit_t lhs_digits[2];
     SbInt_Digit_t rhs_digits[2];
 
-    long_convert_digits(&lhs_copy, lhs->u.value, 2, lhs_digits);
-    long_convert_digits(&rhs_copy, rhs->u.value, 2, rhs_digits);
-    return func(&lhs_copy, &rhs_copy);
+    if (LONG_IS_NATIVE(lhs)) {
+        long_convert_digits(&lhs_copy, lhs->u.value, 2, lhs_digits);
+        lhs = &lhs_copy;
+    }
+    if (LONG_IS_NATIVE(rhs)) {
+        long_convert_digits(&rhs_copy, rhs->u.value, 2, rhs_digits);
+        rhs = &rhs_copy;
+    }
+    return func(lhs, rhs);
 }
 
 int
@@ -319,7 +478,7 @@ SbInt_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
 
     i1 = (SbIntObject *)p1;
     i2 = (SbIntObject *)p2;
-    if (i1->v.native && i2->v.native) {
+    if (LONG_IS_NATIVE(&i1->v) && LONG_IS_NATIVE(&i2->v)) {
         v1 = i1->v.u.value;
         v2 = i2->v.u.value;
     }
@@ -346,6 +505,242 @@ SbInt_CompareBool(SbObject *p1, SbObject *p2, SbObjectCompareOp op)
     return -1;
 }
 
+static SbObject *
+int_do_neginv(
+    const SbInt_Value *val, 
+    int (fnative)(const SbInt_Value *val, SbInt_Value *res),
+    void (flong)(const SbInt_Value *val, SbInt_Value *res))
+{
+    SbIntObject *o_result;
+    SbInt_Value *res;
+
+    o_result = (SbIntObject *)SbObject_New(SbInt_Type);
+    if (!o_result) {
+        return NULL;
+    }
+
+    res = &o_result->v;
+    LONG_SET_NATIVE(res);
+    if (LONG_IS_NATIVE(val)) {
+        if (fnative(val, res) < 0) {
+            Sb_DECREF(o_result);
+            return NULL;
+        }
+    }
+    else {
+        SbInt_Digit_t *digits;
+
+        digits = long_alloc(val->length);
+        if (!digits) {
+            Sb_DECREF(o_result);
+            return NULL;
+        }
+        res->length = val->length;
+        res->u.digits = digits;
+        flong(val, res);
+    }
+    /* No length correction required */
+    return (SbObject *)o_result;
+}
+
+static int
+int_negate_native(const SbInt_Value *val, SbInt_Value *res)
+{
+    if (SbInt_NATIVE_MIN == val->u.value) {
+        SbInt_Digit_t *digits;
+
+        digits = long_alloc(3);
+        if (!digits) {
+            return -1;
+        }
+        res->length = 3;
+        res->u.digits = digits;
+        digits[0] = (SbInt_Digit_t)SbInt_NATIVE_MIN;
+        digits[1] = (SbInt_Digit_t)(SbInt_NATIVE_MIN >> SbInt_DIGIT_BITS);
+        digits[2] = 0;
+    }
+    res->u.value = -val->u.value;
+    return 0;
+}
+
+SbObject *
+SbInt_Negate(SbObject *o)
+{
+    return int_do_neginv(&((SbIntObject *)o)->v, int_negate_native, __long_neg);
+}
+
+static int
+int_invert_native(const SbInt_Value *val, SbInt_Value *res)
+{
+    res->u.value = ~val->u.value;
+    return 0;
+}
+
+SbObject *
+SbInt_Invert(SbObject *o)
+{
+    return int_do_neginv(&((SbIntObject *)o)->v, int_invert_native, __long_inv);
+}
+
+SbObject *
+SbInt_Absolute(SbObject *o)
+{
+    const SbInt_Value *val = &((SbIntObject *)o)->v;
+
+    if (LONG_IS_NATIVE(val)) {
+        if (val->u.value < 0) {
+            return SbInt_Negate(o);
+        }
+    }
+    else {
+        if (LONG_IS_NEGATIVE(val)) {
+            return SbInt_Negate(o);
+        }
+    }
+    Sb_INCREF(o);
+    return o;
+}
+
+typedef int (*int_binary_op)(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res);
+
+static SbObject *
+int_do_binary_op(const SbInt_Value *lhs, const SbInt_Value *rhs, int_binary_op fnative, int_binary_op flong)
+{
+    SbIntObject *result;
+    SbInt_Value lhs_copy;
+    SbInt_Value rhs_copy;
+    SbInt_Digit_t lhs_digits[2];
+    SbInt_Digit_t rhs_digits[2];
+
+    result = (SbIntObject *)SbObject_New(SbInt_Type);
+    if (!result) {
+        return NULL;
+    }
+    LONG_SET_NATIVE(&result->v);
+
+    if (LONG_IS_NATIVE(lhs) && LONG_IS_NATIVE(rhs)) {
+        if (!fnative(lhs, rhs, &result->v)) {
+            return (SbObject *)result;
+        }
+    }
+
+    if (LONG_IS_NATIVE(lhs)) {
+        long_convert_digits(&lhs_copy, lhs->u.value, 2, lhs_digits);
+        lhs = &lhs_copy;
+    }
+    if (LONG_IS_NATIVE(rhs)) {
+        long_convert_digits(&rhs_copy, rhs->u.value, 2, rhs_digits);
+        rhs = &rhs_copy;
+    }
+
+    if (flong(lhs, rhs, &result->v) < 0) {
+        Sb_DECREF(result);
+        return NULL;
+    }
+    long_reduce(&result->v);
+    return (SbObject *)result;
+}
+
+static int
+int_add_native(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res)
+{
+    SbInt_Native_t a, b, rv;
+
+    a = lhs->u.value;
+    b = rhs->u.value;
+    res->u.value = rv = a + b;
+    /* Signed integer overflow of addition occurs if and only if
+    the operands have the same sign and 
+    the sum has a sign opposite to that of the operands. */
+    return (~(a ^ b) && ((rv ^ b) & 0x80000000U));
+}
+
+static int
+int_add_long(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res)
+{
+    Sb_ssize_t length;
+
+    length = (lhs->length > rhs->length ? lhs->length : rhs->length) + 1;
+    res->u.digits = long_alloc(length);
+    if (!res->u.digits) {
+        return -1;
+    }
+    res->length = length;
+    __long_add(lhs, rhs, res);
+    return 0;
+}
+
+SbObject *
+SbInt_Add(SbObject *lhs, SbObject *rhs)
+{
+    return int_do_binary_op(&((SbIntObject *)lhs)->v, &((SbIntObject *)rhs)->v, int_add_native, int_add_long);
+}
+
+static int
+int_sub_native(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res)
+{
+    SbInt_Native_t a, b, rv;
+
+    a = lhs->u.value;
+    b = rhs->u.value;
+    res->u.value = rv = a - b;
+    return ((a ^ b) && ((rv ^ a) & 0x80000000U));
+}
+
+static int
+int_sub_long(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res)
+{
+    Sb_ssize_t length;
+
+    length = (lhs->length > rhs->length ? lhs->length : rhs->length) + 1;
+    res->u.digits = long_alloc(length);
+    if (!res->u.digits) {
+        return -1;
+    }
+    res->length = length;
+    __long_sub(lhs, rhs, res);
+    return 0;
+}
+
+SbObject *
+SbInt_Subtract(SbObject *lhs, SbObject *rhs)
+{
+    return int_do_binary_op(&((SbIntObject *)lhs)->v, &((SbIntObject *)rhs)->v, int_sub_native, int_sub_long);
+}
+
+static int
+int_mul_native(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res)
+{
+    SbInt_Native_t a, b, rv;
+
+    a = lhs->u.value;
+    b = rhs->u.value;
+
+    return 0;
+}
+
+static int
+int_mul_long(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res)
+{
+    Sb_ssize_t length;
+
+    length = lhs->length + rhs->length;
+    res->u.digits = long_alloc(length);
+    if (!res->u.digits) {
+        return -1;
+    }
+    res->length = length;
+    __long_mul(lhs, rhs, res);
+    return 0;
+}
+
+SbObject *
+SbInt_Multiply(SbObject *lhs, SbObject *rhs)
+{
+    return int_do_binary_op(&((SbIntObject *)lhs)->v, &((SbIntObject *)rhs)->v, int_mul_native, int_mul_long);
+}
+
+
 /* Python accessible methods */
 
 static SbObject *
@@ -358,10 +753,19 @@ int_init(SbIntObject *self, SbObject *args, SbObject *kwargs)
         return NULL;
     }
 
+    LONG_SET_NATIVE(&self->v);
     if (x) {
     }
 
     Sb_RETURN_NONE;
+}
+
+static void
+int_destroy(SbIntObject *self)
+{
+    if (!LONG_IS_NATIVE(&self->v)) {
+        long_free(self->v.u.digits);
+    }
 }
 
 static SbObject *
@@ -374,7 +778,12 @@ int_hash(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_nonzero(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return NULL;
+    const SbInt_Value *val = &((SbIntObject *)self)->v;
+
+    if (LONG_IS_NATIVE(val) && val->u.value == 0) {
+        Sb_RETURN_FALSE;
+    }
+    Sb_RETURN_TRUE;
 }
 
 static SbObject *
@@ -435,19 +844,37 @@ int_ge(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_add(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return NULL;
+    SbObject *other;
+
+    other = SbTuple_GetItem(args, 0);
+    if (!other) {
+        return NULL;
+    }
+    return SbInt_Add(self, other);
 }
 
 static SbObject *
 int_sub(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return NULL;
+    SbObject *other;
+
+    other = SbTuple_GetItem(args, 0);
+    if (!other) {
+        return NULL;
+    }
+    return SbInt_Subtract(self, other);
 }
 
 static SbObject *
 int_mul(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return NULL;
+    SbObject *other;
+
+    other = SbTuple_GetItem(args, 0);
+    if (!other) {
+        return NULL;
+    }
+    return SbInt_Multiply(self, other);
 }
 
 static SbObject *
@@ -469,9 +896,27 @@ int_shr(SbObject *self, SbObject *args, SbObject *kwargs)
 }
 
 static SbObject *
-int_neg(SbObject *self, SbObject *args, SbObject *kwargs)
+int_and(SbObject *self, SbObject *args, SbObject *kwargs)
 {
     return NULL;
+}
+
+static SbObject *
+int_or(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return NULL;
+}
+
+static SbObject *
+int_xor(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return NULL;
+}
+
+static SbObject *
+int_neg(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return SbInt_Negate(self);
 }
 
 static SbObject *
@@ -484,13 +929,13 @@ int_pos(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_abs(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return NULL;
+    return SbInt_Absolute(self);
 }
 
 static SbObject *
 int_inv(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return NULL;
+    return SbInt_Invert(self);
 }
 
 #if SUPPORTS(STR_FORMAT)
@@ -645,6 +1090,12 @@ static const SbCMethodDef int_methods[] = {
     { "__ilshift__", int_shl },
     { "__rshift__", int_shr },
     { "__irshift__", int_shr },
+    { "__and__", int_and },
+    { "__iand__", int_and },
+    { "__or__", int_or },
+    { "__ior__", int_or },
+    { "__xor__", int_xor },
+    { "__ixor__", int_xor },
 
     { "__neg__", int_neg },
     { "__pos__", int_pos },
@@ -668,6 +1119,7 @@ _SbInt_BuiltinInit()
     if (!tp) {
         return -1;
     }
+    tp->tp_destroy = (SbDestroyFunc)int_destroy;
     SbInt_Type = tp;
     return 0;
 }

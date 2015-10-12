@@ -6,6 +6,8 @@ extern "C" {
 
 /* NOTE: this should actually be a fixed-size 32-bit signed integer. */
 typedef Sb_ssize_t SbInt_Native_t;
+#define SbInt_NATIVE_MIN Sb_SSIZE_MIN
+#define SbInt_NATIVE_MAX Sb_SSIZE_MAX
 
 /* Type for digits not carrying the sign bit. */
 typedef unsigned short SbInt_Digit_t;
@@ -17,8 +19,7 @@ typedef unsigned long SbInt_DoubleDigit_t;
 #define SbInt_DIGIT_BITS 16
 
 typedef struct {
-    Sb_size_t length : 31;
-    Sb_size_t native : 1;
+    Sb_ssize_t length;
     union {
         SbInt_Native_t value;
         SbInt_Digit_t *digits;
@@ -41,10 +42,18 @@ extern SbTypeObject *SbInt_Type;
 #define SbInt_Check(p) \
     (SbType_IsSubtype(Sb_TYPE(p), SbInt_Type))
 
+#define SbInt_DIGITS(o) \
+    (((SbIntObject *)(o))->v.u.digits)
+
 /* Construct an int object from a C long.
    Returns: New reference. */
 SbObject *
 SbInt_FromNative(SbInt_Native_t ival);
+
+/* Construct an int object from a length in digits and possibly data.
+   Returns: New reference. */
+SbObject *
+SbInt_FromLengthAndDigits(Sb_ssize_t length, SbInt_Digit_t *digits);
 
 /* Return the object's value as C SbInt_Native_t.
    Returns: value; if out of bounds -- -1 and sets overflow_flag */
