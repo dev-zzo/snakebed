@@ -1,4 +1,5 @@
-"""Compiler for SnakeBed.
+"""
+Compiler for SnakeBed.
 
 Please keep in sync with unmarshal code.
 
@@ -10,7 +11,7 @@ import struct
 import argparse
 import __future__
 
-COMPILER_VERSION = 0x0101
+COMPILER_VERSION = 0x0102
 
 _strtab = []
 _count_ints = 0
@@ -33,15 +34,36 @@ def write_raw_half(output, o):
     output.write(struct.pack('<H', o & 0xFFFF))
     _count_ints += 1
 
-def write_raw_int(output, o):
+def write_raw_word(output, o):
     global _count_ints, _count_small_ints
     output.write(struct.pack('<i', o))
     _count_ints += 1
 
 def write_int(output, o):
     global _count_proper_ints
-    output.write('i')
-    write_raw_int(output, o)
+    if o is int or (-2147483648L <= o <= 2147483647L):
+        output.write('i')
+        write_raw_word(output, o)
+    else:
+        digits = []
+        while True:
+            if o == 0 or o == -1:
+                if not digits:
+                    digits.append(o)
+                else:
+                    r = digits[-1] & 0x8000
+                    if (r == 0 and o != 0) or (r != 0 and o == 0):
+                        digits.append(o)
+                break
+            digits.append(o & 0xFFFF);
+            o >>= 16
+        if len(digits) > 0xFFFF:
+            # Highly unlikely.
+            raise ValueError, "long size overflow"
+        output.write('l')
+        write_raw_half(output, len(digits))
+        for x in digits:
+            write_raw_half(output, x)
     _count_proper_ints += 1
 
 def write_str(output, o):
@@ -56,7 +78,7 @@ def write_str(output, o):
             write_raw_byte(output, length)
         else:
             output.write('S')
-            write_raw_int(output, length)
+            write_raw_word(output, length)
         output.write(o)
     else:
         if strtab_index < 0x100:
@@ -79,19 +101,19 @@ def write_obj(output, o):
         output.write('F')
     elif o is True:
         output.write('T')
-    elif otype is int:
+    elif otype is int or otype is long:
         write_int(output, o)
     elif otype is str:
         write_str(output, o)
     elif otype is tuple:
         output.write('(')
-        write_raw_int(output, len(o))
+        write_raw_word(output, len(o))
         for x in o:
             write_obj(output, x)
         _count_tuples += 1
     elif otype is list:
         output.write('[')
-        write_raw_int(output, len(o))
+        write_raw_word(output, len(o))
         for x in o:
             write_obj(output, x)
         _count_lists += 1
@@ -108,9 +130,9 @@ def write_obj(output, o):
     elif str(otype) == "<type 'code'>":
         output.write('c')
         write_obj(output, o.co_name)
-        write_raw_int(output, o.co_flags)
-        write_raw_int(output, o.co_stacksize)
-        write_raw_int(output, o.co_argcount)
+        write_raw_word(output, o.co_flags)
+        write_raw_word(output, o.co_stacksize)
+        write_raw_word(output, o.co_argcount)
         write_obj(output, o.co_code)
         write_obj(output, o.co_consts)
         # These are used with {Load|Store|Delete}{Global|Name}
