@@ -8,6 +8,9 @@ python ../tools/sbcompile.py test_objects.py
 python ../tools/sbcompile.py test_str.py
 ..\build\SbApp_d.exe test_str.sb
 
+python ../tools/sbcompile.py test_int.py
+..\build\SbApp_d.exe test_int.sb
+
 python ../tools/sbcompile.py test_socket.py
 ..\build\SbApp_d.exe test_socket.sb
 
