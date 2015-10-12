@@ -81,7 +81,7 @@ long_cmp(const SbInt_Value *lhs, const SbInt_Value *rhs)
     /* Established: lhs and rhs have the same sign and the same length. */
 
     for (i = lhs->length - 1; i >= 0; --i) {
-        diff = lhs->u.digits[i] != rhs->u.digits[i];
+        diff = lhs->u.digits[i] - rhs->u.digits[i];
         if (diff) {
             /* Both positive: bigger one is +1. */
             /* Both negative: bigger one is -1. */
@@ -211,7 +211,7 @@ __long_sub(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
         SbInt_DoubleDigit_t t;
 
         t = *src1 - *src2 - c;
-        c = t >> SbInt_DIGIT_BITS;
+        c = t >> 31;
         *dst = t & 0xFFFFu;
         ++src1;
         ++src2;
@@ -223,7 +223,7 @@ __long_sub(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
         SbInt_DoubleDigit_t t;
 
         t = *src1 - sign - c;
-        c = t >> SbInt_DIGIT_BITS;
+        c = t >> 31;
         *dst = t & 0xFFFFu;
         ++src1;
         ++dst;
