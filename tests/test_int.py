@@ -68,6 +68,18 @@ class Test(unittest.TestCase):
         a = -2147483648
         b = 1
         self.assertEqual(a - b, -2147483649)
+    def test_native_mul1(self):
+        a = 20
+        b = 32
+        self.assertEqual(a * b, 640)
+    def test_native_overflow_mul1(self):
+        a = 0x7FFFFFFF
+        b = 2
+        self.assertEqual(a * b, 0xFFFFFFFE)
+    def test_native_overflow_mul2(self):
+        a = -0x7FFFFFFF
+        b = 2
+        self.assertEqual(a * b, -0xFFFFFFFE)
 #
 
 if __name__ == "__main__":

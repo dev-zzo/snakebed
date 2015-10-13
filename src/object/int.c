@@ -271,7 +271,7 @@ __long_mul(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
         SbInt_DoubleDigit_t t;
 
         b = 0;
-        for (i = 0; 0 < rhs->length; ++i) {
+        for (i = 0; i < rhs->length; ++i) {
             t = result->u.digits[lhs->length + i] - rhs->u.digits[i] - b;
             result->u.digits[lhs->length + i] = t & 0xFFFFu;
             b = t >> 31;
@@ -283,7 +283,7 @@ __long_mul(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
         SbInt_DoubleDigit_t t;
 
         b = 0;
-        for (i = 0; 0 < lhs->length; ++i) {
+        for (i = 0; i < lhs->length; ++i) {
             t = result->u.digits[rhs->length + i] - lhs->u.digits[i] - b;
             result->u.digits[rhs->length + i] = t & 0xFFFFu;
             b = t >> 31;
@@ -709,6 +709,18 @@ SbInt_Subtract(SbObject *lhs, SbObject *rhs)
 }
 
 static int
+int_native_bitcount(SbInt_Native_t x)
+{
+    int count;
+
+    for (count = 0; x != 0 && x != -1; ++count) {
+        x >>= 1;
+    }
+
+    return count;
+}
+
+static int
 int_mul_native(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res)
 {
     SbInt_Native_t a, b, rv;
@@ -716,6 +728,12 @@ int_mul_native(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res)
     a = lhs->u.value;
     b = rhs->u.value;
 
+    /* TODO: replace this test with multiplication on a capable machine */
+    if (int_native_bitcount(a) + int_native_bitcount(b) > 30) {
+        return 1;
+    }
+
+    res->u.value = a * b;
     return 0;
 }
 
