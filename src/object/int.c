@@ -92,6 +92,19 @@ long_cmp(const SbInt_Value *lhs, const SbInt_Value *rhs)
     return 0;
 }
 
+static void
+__long_copy(const SbInt_Value *src, SbInt_Value *dst)
+{
+    SbInt_Digit_t *src_ptr, *dst_ptr, *dst_limit;
+
+    src_ptr = src->u.digits;
+    dst_ptr = dst->u.digits;
+    dst_limit = dst_ptr + dst->length;
+    while (dst_ptr < dst_limit) {
+        *dst_ptr++ = *src_ptr++;
+    }
+}
+
 /* Negate an MPI value.
    Assumes: result->length == rhs->length
    NOTE: Allows for operand aliasing. */
@@ -289,6 +302,14 @@ __long_mul(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *result)
             b = t >> 31;
         }
     }
+}
+
+/* Divide lhs by rhs (unsigned).
+   Assumes: 
+   */
+static void
+__long_divmod(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *q, SbInt_Value *r)
+{
 }
 
 static void
@@ -723,7 +744,7 @@ int_native_bitcount(SbInt_Native_t x)
 static int
 int_mul_native(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res)
 {
-    SbInt_Native_t a, b, rv;
+    SbInt_Native_t a, b;
 
     a = lhs->u.value;
     b = rhs->u.value;
@@ -756,6 +777,34 @@ SbObject *
 SbInt_Multiply(SbObject *lhs, SbObject *rhs)
 {
     return int_do_binary_op(&((SbIntObject *)lhs)->v, &((SbIntObject *)rhs)->v, int_mul_native, int_mul_long);
+}
+
+static int
+int_fdiv_native(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res)
+{
+    SbInt_Native_t a, b, rv;
+
+    a = lhs->u.value;
+    b = rhs->u.value;
+    res->u.value = rv = a / b;
+    return 0;
+}
+
+static int
+int_fdiv_long(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res)
+{
+    /* TODO: implement me. */
+    return -1;
+}
+
+SbObject *
+SbInt_FloorDivide(SbObject *lhs, SbObject *rhs)
+{
+    if (LONG_IS_ZERO(&((SbIntObject *)rhs)->v)) {
+        SbErr_RaiseWithObject(SbExc_ZeroDivisionError, NULL);
+        return NULL;
+    }
+    return int_do_binary_op(&((SbIntObject *)lhs)->v, &((SbIntObject *)rhs)->v, int_fdiv_native, int_fdiv_long);
 }
 
 
@@ -860,7 +909,7 @@ int_ge(SbObject *self, SbObject *args, SbObject *kwargs)
 
 
 static SbObject *
-int_add(SbObject *self, SbObject *args, SbObject *kwargs)
+int_binary_wrap(SbObject *self, SbObject *args, SbObject * (func)(SbObject *lhs, SbObject *rhs))
 {
     SbObject *other;
 
@@ -868,37 +917,31 @@ int_add(SbObject *self, SbObject *args, SbObject *kwargs)
     if (!other) {
         return NULL;
     }
-    return SbInt_Add(self, other);
+    return func(self, other);
+}
+
+static SbObject *
+int_add(SbObject *self, SbObject *args, SbObject *kwargs)
+{
+    return int_binary_wrap(self, args, SbInt_Add);
 }
 
 static SbObject *
 int_sub(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *other;
-
-    other = SbTuple_GetItem(args, 0);
-    if (!other) {
-        return NULL;
-    }
-    return SbInt_Subtract(self, other);
+    return int_binary_wrap(self, args, SbInt_Subtract);
 }
 
 static SbObject *
 int_mul(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    SbObject *other;
-
-    other = SbTuple_GetItem(args, 0);
-    if (!other) {
-        return NULL;
-    }
-    return SbInt_Multiply(self, other);
+    return int_binary_wrap(self, args, SbInt_Multiply);
 }
 
 static SbObject *
 int_fdiv(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return NULL;
+    return int_binary_wrap(self, args, SbInt_FloorDivide);
 }
 
 static SbObject *
