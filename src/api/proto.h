@@ -96,6 +96,10 @@ SbObject *
 SbNumber_Or(SbObject * lhs, SbObject *rhs);
 SbObject *
 SbNumber_Xor(SbObject * lhs, SbObject *rhs);
+SbObject *
+SbNumber_Lshift(SbObject * lhs, SbObject *rhs);
+SbObject *
+SbNumber_Rshift(SbObject * lhs, SbObject *rhs);
 
 Sb_ssize_t
 SbObject_GetSize(SbObject *o);

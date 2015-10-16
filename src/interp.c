@@ -582,11 +582,11 @@ UnaryXxx_common:
                 goto BinaryXxx_common;
             case InPlaceLeftShift:
             case BinaryLeftShift:
-                bfunc = &SbNumber_Or;
+                bfunc = &SbNumber_Lshift;
                 goto BinaryXxx_common;
             case InPlaceRightShift:
             case BinaryRightShift:
-                bfunc = &SbNumber_Or;
+                bfunc = &SbNumber_Rshift;
 BinaryXxx_common:
                 op1 = STACK_POP();
                 op2 = STACK_POP();
