@@ -64,10 +64,12 @@ class Test(unittest.TestCase):
         a = -2147483648
         b = -1
         self.assertEqual(a + b, -2147483649)
+
     def test_native_overflow_sub(self):
         a = -2147483648
         b = 1
         self.assertEqual(a - b, -2147483649)
+
     def test_native_mul1(self):
         a = 20
         b = 32
@@ -80,6 +82,26 @@ class Test(unittest.TestCase):
         a = -0x7FFFFFFF
         b = 2
         self.assertEqual(a * b, -0xFFFFFFFE)
+
+    def test_shl_native_simple(self):
+        a = 0x03200
+        self.assertEqual(a << 1, 0x06400)
+    def test_shl_native_conv(self):
+        a = 0x40000000
+        self.assertEqual(a << 1, 0x80000000)
+    def test_shl_long_simple1(self):
+        a = 0x100000000L
+        self.assertEqual(a << 1, 0x200000000L)
+    def test_shl_long_simple2(self):
+        a = -0x100000000L
+        b = a << 1
+        self.assertEqual(b, -0x200000000L)
+        self.assertTrue(b < 0)
+    def test_shl_long_into_sign(self):
+        a = 0x400000000000L
+        b = a << 1
+        self.assertEqual(b, 0x800000000000L)
+        self.assertTrue(b > 0)
 #
 
 if __name__ == "__main__":

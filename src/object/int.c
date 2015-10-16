@@ -18,10 +18,22 @@ The implementation is defined to operate on half-words to allow for:
 Some algorithms are taken from the awesome Hacker's Delight book.
 */
 
+static int
+int_native_bitcount(SbInt_Native_t x)
+{
+    int count;
+
+    for (count = 0; x != 0 && x != -1; ++count) {
+        x >>= 1;
+    }
+
+    return count;
+}
+
 static SbInt_Digit_t *
 long_alloc(Sb_size_t count)
 {
-    return Sb_Calloc(count, sizeof(SbInt_Digit_t));
+    return (SbInt_Digit_t *)Sb_Calloc(count, sizeof(SbInt_Digit_t));
 }
 
 static void
@@ -142,6 +154,41 @@ __long_inv(const SbInt_Value *rhs, SbInt_Value *result)
 
     while (dst < dst_limit) {
         (*dst++) = ~(*src++);
+    }
+}
+
+/* Shift left an MPI value.
+   Assumes: shift won't overflow.
+   */
+static void
+__long_shl(const SbInt_Value *lhs, int rhs, SbInt_Value *result)
+{
+    SbInt_Digit_t *src, *src_limit, *dst, *dst_limit;
+    SbInt_DoubleDigit_t carry;
+    SbInt_SignDigit_t sign;
+
+    src = lhs->u.digits;
+    src_limit = src + lhs->length - 1;
+    dst = result->u.digits;
+    dst_limit = dst + result->length;
+
+    while (rhs >= SbInt_DIGIT_BITS) {
+        *dst++ = 0;
+        rhs -= SbInt_DIGIT_BITS;
+    }
+
+    carry = 0;
+    while (src < src_limit) {
+        *dst = (SbInt_Digit_t)((*src << rhs) | carry);
+        carry = *src >> (SbInt_DIGIT_BITS - rhs);
+        ++src;
+        ++dst;
+    }
+    sign = *src;
+    *dst++ = (SbInt_Digit_t)((sign << rhs) | carry);
+    sign = sign >> (SbInt_DIGIT_BITS - rhs);
+    while (dst < dst_limit) {
+        *dst++ = (SbInt_Digit_t)sign;
     }
 }
 
@@ -459,7 +506,7 @@ long_convert_digits(SbInt_Value *value, SbInt_Native_t native_value, Sb_size_t d
 
     /* NOTE: Do away with the loop and just stick to SbInt_DIGIT_BITS being 16? */
     while (digits_length-- > 0) {
-        *digits++ = native_value & 0xFFFFu;
+        *digits++ = (SbInt_Digit_t)(native_value);
         native_value >>= SbInt_DIGIT_BITS;
     }
 }
@@ -622,6 +669,47 @@ SbInt_Absolute(SbObject *o)
     return o;
 }
 
+SbObject *
+SbInt_ShiftLeft(SbObject *lhs, int rhs)
+{
+    const SbInt_Value *val = &((SbIntObject *)lhs)->v;
+    SbInt_Value lhs_copy;
+    SbInt_Digit_t lhs_digits[2];
+    SbIntObject *o_result;
+    SbInt_Value *res;
+
+    o_result = (SbIntObject *)SbObject_New(SbInt_Type);
+    if (!o_result) {
+        return NULL;
+    }
+
+    res = &o_result->v;
+    LONG_SET_NATIVE(res);
+
+    if (LONG_IS_NATIVE(val)) {
+        int bitcount;
+
+        bitcount = int_native_bitcount(val->u.value);
+        if (bitcount + rhs < 30) {
+            res->u.value = val->u.value << rhs;
+            return (SbObject *)o_result;
+        }
+        long_convert_digits(&lhs_copy, val->u.value, 2, lhs_digits);
+        val = &lhs_copy;
+    }
+
+    res->length = val->length + (rhs / SbInt_DIGIT_BITS) + 1;
+    res->u.digits = long_alloc(res->length);
+    if (!res->u.digits) {
+        Sb_DECREF(o_result);
+        return NULL;
+    }
+    __long_shl(val, rhs, res);
+    long_reduce(res);
+    return (SbObject *)o_result;
+}
+
+
 typedef int (*int_binary_op)(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res);
 
 static SbObject *
@@ -727,18 +815,6 @@ SbObject *
 SbInt_Subtract(SbObject *lhs, SbObject *rhs)
 {
     return int_do_binary_op(&((SbIntObject *)lhs)->v, &((SbIntObject *)rhs)->v, int_sub_native, int_sub_long);
-}
-
-static int
-int_native_bitcount(SbInt_Native_t x)
-{
-    int count;
-
-    for (count = 0; x != 0 && x != -1; ++count) {
-        x >>= 1;
-    }
-
-    return count;
 }
 
 static int
@@ -947,7 +1023,24 @@ int_fdiv(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_shl(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return NULL;
+    SbObject *other;
+    int overflow;
+    SbInt_Native_t shift;
+
+    other = SbTuple_GetItem(args, 0);
+    if (!other) {
+        return NULL;
+    }
+    shift = SbInt_AsNativeOverflow(other, &overflow);
+    if (overflow) {
+        SbErr_RaiseWithString(SbExc_OverflowError, "shift amount out of range");
+        return NULL;
+    }
+    if ((unsigned)shift > (1 << SbInt_DIGIT_BITS)) {
+        SbErr_RaiseWithString(SbExc_OverflowError, "shift amount out of range");
+        return NULL;
+    }
+    return SbInt_ShiftLeft(self, shift);
 }
 
 static SbObject *
