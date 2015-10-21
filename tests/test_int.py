@@ -102,6 +102,16 @@ class Test(unittest.TestCase):
         b = a << 1
         self.assertEqual(b, 0x800000000000L)
         self.assertTrue(b > 0)
+        
+    def test_shr_native_simple(self):
+        a = 0x03200
+        self.assertEqual(a >> 4, 0x00320)
+    def test_shl_long_simple1(self):
+        a = 0x123400000L
+        self.assertEqual(a >> 4, 0x12340000L)
+    def test_shl_long_simple2(self):
+        a = -0x123400000L
+        self.assertEqual(a >> 4, -0x12340000L)
 #
 
 if __name__ == "__main__":

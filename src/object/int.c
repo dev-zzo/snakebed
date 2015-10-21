@@ -192,6 +192,36 @@ __long_shl(const SbInt_Value *lhs, int rhs, SbInt_Value *result)
     }
 }
 
+/* Shift right an MPI value.
+   Assumes: shift won't overflow.
+   */
+static void
+__long_shr(const SbInt_Value *lhs, int rhs, SbInt_Value *result)
+{
+    SbInt_Digit_t *src, *src_limit, *dst, *dst_limit;
+
+    src = lhs->u.digits;
+    src_limit = src + lhs->length - 1;
+    dst = result->u.digits;
+    dst_limit = dst + result->length;
+
+    while (rhs >= SbInt_DIGIT_BITS) {
+        src++;
+        rhs -= SbInt_DIGIT_BITS;
+    }
+
+    while (src < src_limit) {
+        SbInt_DoubleDigit_t t;
+
+        t = src[0] | (src[1] << SbInt_DIGIT_BITS);
+        *dst = (SbInt_Digit_t)(t >> rhs);
+        ++src;
+        ++dst;
+    }
+    /* Propagate sign */
+    *dst = (SbInt_Digit_t)((SbInt_SignDigit_t)*src >> rhs);
+}
+
 /* Add two MPI values.
    Assumes: result->length > max(lhs->length, rhs->length)
    NOTE: Allows for aliasing all three ops. */
@@ -709,6 +739,37 @@ SbInt_ShiftLeft(SbObject *lhs, int rhs)
     return (SbObject *)o_result;
 }
 
+SbObject *
+SbInt_ShiftRight(SbObject *lhs, int rhs)
+{
+    const SbInt_Value *val = &((SbIntObject *)lhs)->v;
+    SbIntObject *o_result;
+    SbInt_Value *res;
+
+    o_result = (SbIntObject *)SbObject_New(SbInt_Type);
+    if (!o_result) {
+        return NULL;
+    }
+
+    res = &o_result->v;
+
+    if (LONG_IS_NATIVE(val)) {
+        /* No overflow is possible here. */
+        LONG_SET_NATIVE(res);
+        res->u.value = val->u.value >> rhs;
+        return (SbObject *)o_result;
+    }
+
+    res->length = val->length - (rhs / SbInt_DIGIT_BITS);
+    res->u.digits = long_alloc(res->length);
+    if (!res->u.digits) {
+        Sb_DECREF(o_result);
+        return NULL;
+    }
+    __long_shr(val, rhs, res);
+    long_reduce(res);
+    return (SbObject *)o_result;
+}
 
 typedef int (*int_binary_op)(const SbInt_Value *lhs, const SbInt_Value *rhs, SbInt_Value *res);
 
@@ -1046,7 +1107,24 @@ int_shl(SbObject *self, SbObject *args, SbObject *kwargs)
 static SbObject *
 int_shr(SbObject *self, SbObject *args, SbObject *kwargs)
 {
-    return NULL;
+    SbObject *other;
+    int overflow;
+    SbInt_Native_t shift;
+
+    other = SbTuple_GetItem(args, 0);
+    if (!other) {
+        return NULL;
+    }
+    shift = SbInt_AsNativeOverflow(other, &overflow);
+    if (overflow) {
+        SbErr_RaiseWithString(SbExc_OverflowError, "shift amount out of range");
+        return NULL;
+    }
+    if ((unsigned)shift > (1 << SbInt_DIGIT_BITS)) {
+        SbErr_RaiseWithString(SbExc_OverflowError, "shift amount out of range");
+        return NULL;
+    }
+    return SbInt_ShiftRight(self, shift);
 }
 
 static SbObject *
